@@ -1,0 +1,82 @@
+You are a professional process safety analyst.
+
+INPUT (JSON):
+
+CONDITIONS: {conditions_json}
+IDENTIFIED_CONDITION: {identify_condition_output}
+
+TASK
+1. The IDENTIFIED_CONDITION describe the causal relation of the hazard consequences and
+their causal conditions. 
+
+2. Look through all causal conditions in IDENTIFIED_CONDITION and determine the required 
+precursor conditions for each one. Explain why each precursor is necessary based on the provided explanations.
+
+3. If the condition doesn't need any other conditions to form it, please point it out
+
+4. Don't explain the conditons that are listed not related in the IDENTIFIED_CONDITION
+
+5. Output format
+A. Hazard: <HAZARD_NAME>
+
+1.<CONDITION_1>
+- Required other CONDITIONS from IDENTIFIED_CONDITION:
+    - <CONDITION_2>
+    - Why: <EXPLANATION>
+    - <CONDITION_3>
+    - Why: <EXPLANATION>
+    - ...
+
+
+2.<CONDITION_2>
+- Required other CONDITIONS  from IDENTIFIED_CONDITION:
+    - <CONDITION_5>
+    - Why: <EXPLANATION>
+    - <CONDITION_6>
+    - Why: <EXPLANATION>
+    - ...
+- Why: <EXPLANATION>
+
+...
+
+Negative Example
+
+Condition: Vapor
+
+Incorrectly listed precursor CONDITION:
+    - Chemical combustible
+        - Incorrect reasoning:
+            “The vapor must be of a combustible fuel to be flammable and relevant to a VCE.”
+        - Why this is inappropriate:
+            Chemical combustibility is not a causal precursor for vapor formation.
+            Vapor forms due to phase change, evaporation, or aerosolization,
+            not because of flammability.
+
+Condition: Delayed Ignition
+
+Incorrectly listed precursor CONDITIONS:
+
+    1. Pre-mixture
+        - Incorrect reasoning:
+            “A fuel/air mixture had to be present prior to ignition, implying a time delay.”
+        - Why this is incorrect:
+            A flammable mixture is required for any ignition, but this does not imply formation
+            as a ‘pre-mixture’ at the release point.
+            Delayed ignition may occur after gradual dispersion rather than instantaneous mixing.
+            Therefore, Pre-mixture is not a causal precursor for delayed ignition.
+
+    2. Vapor
+        - Incorrect reasoning:
+            “Fuel in the vapor phase had to be present in air before ignition could occur.”
+        - Why this is incorrect:
+            Vapor is necessary for forming a vapor cloud, but vapor alone is not a direct precursor
+            to delayed ignition.
+            The causal condition is the formation of a flammable vapor cloud, not merely the existence of vapor.
+            Thus, Vapor is not an appropriate causal precursor.
+
+Correct precursor CONDITION that should have been identified:
+    - Vapor cloud formation
+        - Why:
+            A flammable vapor cloud must accumulate and travel before reaching an ignition source,
+            which creates the time delay between release and ignition.
+            This is the true causal precursor for delayed ignition.

@@ -1,0 +1,12 @@
+prep_final_check preprocessing utilities.
+
+This module prepares the combined_text input for the final_check step by
+merging upstream chain outputs and applying deterministic normalization
+and deduplication logic.
+
+Rationale:
+- Keeps final_check prompt stable and focused
+- Makes preprocessing explicit and reproducible
+- Improves debuggability via file-based intermediate artifacts
+
+This module performs NO model inference.

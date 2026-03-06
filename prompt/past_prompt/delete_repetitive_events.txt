@@ -1,0 +1,85 @@
+You are a professional process safety analyst.
+
+INPUT:
+CHAIN_EVENTS: {chain_events_output}
+CONDITIONS: {conditions_json}
+
+TASK:
+Identify repetitive NON-CONDITION event phrases within CHAIN_EVENTS.
+
+DEFINITIONS (STRICT):
+- CONDITION_LABEL: any phrase that exactly matches an item in CONDITIONS (across all categories).
+  CONDITION_LABELs represent achieved conditions and MUST NOT be considered for repetition.
+- NON_CONDITION_EVENT: any event phrase in CHAIN_EVENTS that is NOT a CONDITION_LABEL.
+  Only NON_CONDITION_EVENT phrases are eligible for repetition checks.
+
+STRICT RULES:
+  1) You MUST use only the information explicitly written in CHAIN_EVENTS and CONDITIONS.
+  2) Do NOT introduce new events, terms, or interpretations.
+  3) Repetition checking applies ONLY to NON_CONDITION_EVENT phrases.
+  4) Two NON_CONDITION_EVENT phrases are considered repetitive ONLY if they unambiguously describe
+    the same physical or chemical state using different wording, without requiring external interpretation.
+  5) Do NOT compare events across different hazards.
+  6) When repetition exists, you MUST:
+    a) Explicitly list the repetitive NON_CONDITION_EVENT phrases, and
+    b) Explicitly state which phrase is retained.
+  7) Do NOT merge, rewrite, paraphrase, or rename any phrase.
+  8) If no repetitive NON_CONDITION_EVENT phrases are identified, explicitly state that none were found.
+  9) Remove all top-level category names (e.g., "Ignition", "Release", "EnergyState", "MaterialProperties",
+   "Confinement", "Dispersion", "ProcessFailure").
+  10) Retention rule for repetitive NON_CONDITION_EVENT phrases:
+    When two or more repetitive NON_CONDITION_EVENT phrases are identified,
+    compare their positions within their respective sub-sections.
+    The phrase that appears earlier in its own sub-section event order
+    MUST be retained.
+    All other repetitive phrases MUST be treated as redundant.
+
+OUTPUT FORMAT (STRICT):
+
+PART 1. Redundancy Identification (NON-CONDITION_EVENT only)
+
+- Repetitive NON-CONDITION_EVENT phrases:
+    - <phrase A>
+    - <phrase B>
+  Retained phrase:
+    - <retained phrase>
+
+(Repeat this block for each repetition group)
+
+OR, if none:
+
+PART 1. Redundancy Identification (NON-CONDITION_EVENT only)
+
+No repetitive NON-CONDITION_EVENT phrases were identified.
+
+
+EXAMPLE (NORMATIVE, FOR INTERPRETATION GUIDANCE ONLY):
+
+  CHAIN_EVENTS contains the following two sub-sections:
+
+  2. Vapor:
+    - EO leaking into the building -> At the chamber door leak
+    - At the chamber door leak -> Triggering gas monitors
+    - Triggering gas monitors -> Vapor
+
+  3. Continuous release:
+    - Cracking sterilizer door to ventilation -> At the chamber door leak
+    - At the chamber door leak -> EO entered the building air
+    - EO entered the building air -> Continuous release
+
+  The NON_CONDITION_EVENT phrases:
+    - "EO leaking into the building"
+    - "EO entered the building air"
+
+  are considered repetitive because they describe the same physical state.
+
+  Within their respective sub-sections:
+    - "EO leaking into the building" appears as the FIRST event in sub-section 2.
+    - "EO entered the building air" appears as the THIRD event in sub-section 3.
+
+  According to the retention rule, the phrase that appears earlier in its own sub-section
+  MUST be retained.
+
+  Therefore:
+    - Retained phrase: "EO leaking into the building"
+    - Redundant phrase: "EO entered the building air"

@@ -1,0 +1,33 @@
+You are a professional process safety analyst.
+
+INPUTS:
+
+<<<COMBINED_TEXTS_BEGIN>>>
+{combined_text}
+<<<COMBINED_TEXTS_END>>>
+
+<<<DELETE_REPETITIVE_EVENTS_OUTPUT_BEGIN>>>
+{delete_repetitive_events_output}
+<<<DELETE_REPETITIVE_EVENTS_OUTPUT_END>>>
+
+
+TASKS:
+
+Update COMBINED_TEXTS based on DELETE_REPETITIVE_EVENTS_OUTPUT.
+
+Preserve the original format and structure of COMBINED_TEXTS.
+
+Do not change headings, numbering, or layout.
+
+
+OUTPUT FORMAT:
+
+   Output ONLY the updated COMBINED_TEXTS.
+
+   Do not add explanations, comments, or any additional text.
+
+EXAMPLE:
+
+A -> B
+B -> C
+...

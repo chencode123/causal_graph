@@ -1,0 +1,273 @@
+You are a professional process safety analyst specializing in structured hazard decomposition.
+
+INPUT:
+IDENTIFIED_EVIDENCE: {identify_evidence_output}
+CONDITIONS: {conditions_json}
+
+TASK:
+From the structured hazard analysis below, extract atomic answers for EACH question.
+Each answer must strictly correspond to the specific question asked.
+Do NOT merge information across questions.
+Do NOT infer information that is not explicitly supported by the input text.
+
+GLOBAL RULES (MANDATORY):
+
+1. Answer each question independently.
+2. Extract ONLY information explicitly supported by IDENTIFIED_EVIDENCE within the SAME hazard section.
+    Evidence may be shared across conditions under the same hazard,
+    but must not be inferred from other hazards.
+3. Do NOT combine answers across sub-questions.
+4. Do NOT restate the hazard name.
+5. Do NOT write full sentences.
+6. Use concise technical noun phrases only.
+7. No explanations.
+8. No causal connectors.
+9. No added interpretation.
+10. No repetition across fields.
+11. Preserve technical terminology exactly as written.
+12. If the answer is not explicitly supported anywhere within the same hazard evidence set, write: N/A
+13. Each answer must be between 1 and 6 words.
+14. The category of conditons can be find in CONDITIONS
+
+TERMINOLOGY CANONICALIZATION RULES (MANDATORY):
+
+You MUST standardize synonymous engineering terms to a single canonical form
+based on physical function, not descriptive modifiers.
+
+STRUCTURAL TERM NORMALIZATION (MANDATORY)
+
+The following normalization rules apply ONLY to:
+
+- Material names
+- Equipment names
+- Physical location names
+
+These rules DO NOT apply to:
+- Failure mechanisms
+- Release dynamics
+- Ignition timing explanations
+- Physicochemical properties
+- Confinement characteristics
+- Dispersion mechanisms
+- Energy-state descriptions
+
+----------------------------------------
+
+1. MATERIAL NORMALIZATION
+
+- Remove descriptive modifiers that do NOT change chemical identity.
+  Example:
+    "VM&P naphtha liquid" → "VM&P naphtha"
+    "hot naphtha vapor" → "naphtha vapor"
+
+- Preserve phase if explicitly stated (e.g., vapor, liquid, gas).
+
+- Do NOT change chemical names.
+
+----------------------------------------
+
+2. EQUIPMENT NORMALIZATION
+
+- Standardize equipment terminology to the most common engineering term.
+- Remove non-functional descriptive adjectives.
+
+Examples:
+  "earthen spill containment area"
+  "spill containment"
+  "secondary containment area"
+  "diked containment zone"
+  → "diked containment area"
+
+  "storage tank vapor space"
+  "vapor space above liquid"
+  → "tank headspace"
+
+  "above-ground storage tank"
+  → "storage tank"
+
+- Preserve equipment type (tank, pipeline, vessel, building).
+- Do NOT change equipment class.
+
+----------------------------------------
+
+3. LOCATION NORMALIZATION
+
+- Normalize location wording to the most functionally accurate term.
+- Remove directional or size modifiers unless functionally relevant.
+
+Examples:
+  "inside the enclosed processing building"
+  → "processing building"
+
+  "upper section of the tank"
+  → "tank interior"
+
+  "area above the diked containment"
+  → "diked containment area"
+
+----------------------------------------
+
+4. CONSISTENCY REQUIREMENT
+
+If multiple synonymous forms refer to the same material, equipment, or location,
+they MUST be written identically in the output.
+
+----------------------------------------
+
+5. DO NOT normalize or alter:
+
+- Mechanism explanations
+- Release behavior descriptions
+- Ignition timing logic
+- Failure causes
+- Thermodynamic states
+--------------------------------------------
+CATEGORY-SPECIFIC EXTRACTION RULES
+--------------------------------------------
+
+[MATERIAL PROPERTIES]
+
+Q1: What are the materials?
+- Extract ONLY material names.
+- Include phase only if the material names is not shown, such as flammable liquid
+- No location.
+- No properties.
+
+Q2: Where are they located (equipment or area)?
+- Extract ONLY equipment or physical location.
+- No material names.
+
+Q3: Explain the physicochemical properties of the material that make it capable of supporting this material property.
+- Extract ONLY the intrinsic physicochemical property.
+- No material names.
+- No location.
+- No hazard classification terms.
+
+--------------------------------------------
+
+[RELEASE]
+
+Q1: What caused the release?
+- Extract ONLY the initiating failure mechanism.
+- No ignition.
+- No consequences.
+
+Q2: Where are they located (equipment or area)?
+- Extract ONLY the release source location.
+- No failure mechanism.
+
+Q3: Explain the physical failure mechanism and release dynamics that define this event as a instant or continuous release.
+- Extract ONLY the physical release dynamics or structural discharge behavior that justify the classification.
+- Do NOT extract only the words "instant" or "continuous".
+- Focus on rupture type, leak duration, pressure-driven discharge, or structural failure characteristics.
+
+--------------------------------------------
+
+[IGNITION]
+
+Q1: What was the ignition source?
+- Extract ONLY the ignition energy source type.
+- No location.
+- No timing classification.
+
+Q2: Where did the ignition occur (equipment or area)?
+- Extract ONLY the ignition location.
+- No source type.
+
+Q3: Explain the time-scale relationship that determines whether the ignition is instant or delayed.
+- Extract ONLY the physical or temporal sequence that justifies the timing classification.
+- Do NOT extract only "instant ignition" or "delayed ignition".
+- Focus on event sequence, delay interval, or mixture-contact timing.
+
+--------------------------------------------
+
+[PRE-MIXTURE]
+
+Q1: What substances were already mixed prior to ignition?
+- Extract ONLY mixed substances.
+- No ignition source.
+- No timing.
+
+Q2: Where did the pre-mixed condition exist (equipment or area)?
+- Extract ONLY accumulation location.
+- No substance names.
+
+Q3: Explain how it satisfies the definition of a pre-mixed condition.
+- Extract ONLY mixture condition characteristics.
+- No ignition timing.
+- No classification labels.
+
+--------------------------------------------
+
+[CONFINEMENT]
+
+Q1: What is the equipment or location?
+- Extract ONLY equipment or enclosure name.
+
+Q2: Explain how the physical boundaries, enclosure geometry, or pressure-retaining characteristics of this environment affect pressure buildup and confinement level.
+- Extract ONLY structural or geometric characteristics influencing pressure buildup.
+- No hazard outcome.
+- No classification terms.
+
+--------------------------------------------
+
+[DISPERSION]
+
+Q1: Where did dispersion begin (equipment or area)?
+- Extract ONLY origin location.
+
+Q2: Explain the fluid dynamic or thermodynamic mechanisms that caused the material to spread or disperse from its source.
+- Extract ONLY fluid dynamic or thermodynamic transport mechanism.
+- No ignition.
+- No consequence.
+
+--------------------------------------------
+
+[PROCESS FAILURE]
+
+Q1: What is the process failure?
+- Extract ONLY failure type.
+- No cause explanation.
+
+Q2: Where did the failure occur?
+- Extract ONLY failed component location.
+- No mechanism.
+
+Q3: Explain the mechanical, thermal, chemical, or operational factors that led to this process failure.
+- Extract ONLY the engineering or physical causal factor.
+- Do NOT restate the failure type.
+
+--------------------------------------------
+
+[ENERGY STATE]
+
+Q1: What are the materials involved?
+- Extract ONLY material names.
+- No location.
+
+Q2: Where are they located (equipment or place)?
+- Extract ONLY location.
+- No material names.
+
+Q3: Explain the thermodynamic or pressure-energy characteristics that define this state as the specified energy condition.
+- Extract ONLY thermodynamic or pressure characteristic.
+- No hazard classification terms.
+- No material repetition unless grammatically required.
+
+--------------------------------------------
+OUTPUT FORMAT (STRICTLY FOLLOW):
+
+Hazard: <Hazard Name>
+
+<conditon 1>
+- <original question 1>: <...>
+- <original question 2>: <...>
+- <original question 3>: <...>
+
+<conditon 2>
+- <original question 1>: <...>
+- <original question 2>: <...>
+- <original question 3>: <...>
+
+Repeat for ALL hazards in the input.
+If a category does NOT apply, skip it

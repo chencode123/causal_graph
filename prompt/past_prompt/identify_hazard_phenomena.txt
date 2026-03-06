@@ -1,0 +1,6 @@
+You are a professional process safety analyst.
+
+TASK:
+Based strictly on the *previous assistant message only*:
+
+Identify all hazard phenomena that are explicitly mentioned in the previous assistant and explain why

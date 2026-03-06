@@ -1,0 +1,102 @@
+You are a professional process safety analyst.
+
+INPUTS:
+IDENTIFIED_HAZARD_CONSEQUENCE: {identify_hazard_consequence_output}
+CONDITIONS: {conditions_json}
+IDENTIFIED_INCIDENT_OUTPUT: {identify_incident_output}
+CHAIN_SCENARIO: {chain_scenario_output}
+
+TASK:
+
+1. Definition of "EVENTS_FROM_CHAIN_SCENARIO":
+   - EVENTS_FROM_CHAIN_SCENARIO are ONLY the descriptive statements that appear in the CHAIN_SCENARIO.
+   - EVENTS_FROM_CHAIN_SCENARIO MUST NOT be taken from IDENTIFIED_INCIDENT_OUTPUT.
+   - EVENTS_FROM_CHAIN_SCENARIO MUST NOT be taken from CONDITIONS or IDENTIFIED_HAZARD_CONSEQUENCE.
+   - No other source is allowed for event extraction.
+
+2. Based on the CHAIN_SCENARIO and IDENTIFIED_INCIDENT_OUTPUT, identify all EVENTS_FROM_CHAIN_SCENARIO that are caused by each hazard consequence.
+
+3. Use IDENTIFIED_INCIDENT_OUTPUT ONLY to determine temporal order,
+   NEVER to create or infer additional events.
+
+4. You must find the evidence from the IDENTIFIED_INCIDENT_OUTPUT and explain why for each of the causal chain
+
+5. Rules (MUST follow with zero exceptions):
+
+    - You MUST NOT create any new events.
+      Absolutely no invented or inferred events are allowed.
+
+    - You MUST extract events ONLY from the CHAIN_SCENARIO.
+
+    - You MUST ONLY create causal links in the required format.
+      No descriptive text, no narrative, no extra words.
+
+    - A result event MUST occur strictly AFTER the corresponding hazard consequence.
+      If the narrative does not explicitly place an event AFTER the hazard,
+      you MUST NOT connect it.
+
+    - If a hazard consequence is the final one in temporal order,
+      you are STRICTLY FORBIDDEN from creating ANY causal links for that hazard.
+
+    - If a hazard consequence has no direct result event, you should explicitly state that
+     it has no result events and provide a brief explanation for why no downstream events occur after that hazard.
+
+    - Multi-step chains are ABSOLUTELY FORBIDDEN.
+      You must NOT output anything resembling:
+          A → B → C
+      Each line MUST contain EXACTLY ONE arrow:
+          Hazard consequence → Event
+
+6. Temporal exclusivity rule (MUST follow):
+
+1. Hazards must be processed strictly in chronological order.
+2. For each hazard, you must identify events that occur AFTER it.
+3. But before assigning any event to that hazard, you must check:
+
+       "Is this event already caused by any earlier hazard consequence?"
+
+4. If yes → you MUST NOT assign it to the later hazard.
+5. Each event may only belong to ONE hazard, and that hazard must be 
+   the earliest one that causes it.
+
+Output format:
+1. Confined explosion
+    Confined explosion -> Tanks exploded and ruptured
+    Evidence:
+        (use ONLY the text from IDENTIFIED_INCIDENT_OUTPUT)
+    Explanation: 
+        (Based on IDENTIFIED_INCIDENT_OUTPUT, explain why this hazard consequence is the direct cause and temporal order)
+    Confined explosion -> Tanks ruptures
+    Evidence:
+        (use ONLY the text from IDENTIFIED_INCIDENT_OUTPUT)
+    Explanation: 
+        (Based on IDENTIFIED_INCIDENT_OUTPUT, explain why this hazard consequence is the direct cause and temporal order)
+    ... (Find evidence and explain why for every causal chain)
+
+2. Pool fire:
+    Pool fire has no direct result events
+    Evidence:
+        (use ONLY the text from IDENTIFIED_INCIDENT_OUTPUT)
+    Explanation: 
+        (Based on IDENTIFIED_INCIDENT_OUTPUT, explain why this hazard consequence is the direct cause and temporal order)
+...
+N.
+    Fire ball
+    No causal links
+    Evidence:
+        (use ONLY the text from IDENTIFIED_INCIDENT_OUTPUT)
+    Explanation: 
+        (Based on IDENTIFIED_INCIDENT_OUTPUT, explain why this hazard consequence is the direct cause and temporal order)
+
+NEGATIVE EXAMPLE — Incorrect causal assignment:
+    Pool fire -> Flammable solvents released
+
+Why this is WRONG:
+
+    The text states that flammable liquid was released FIRST, and this released liquid
+    THEN formed and fed the pool fire. Therefore, "Flammable solvents released" is a
+    precursor to the pool fire, not a result of it. Instead, the condined explosion
+    is the cause of Flammable solvents released
+
+Correct interpretation:
+    Flammable solvents released -> Pool fire

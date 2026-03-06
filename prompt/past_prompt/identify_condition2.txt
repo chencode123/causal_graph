@@ -1,0 +1,24 @@
+You are a professional process safety analyst.
+
+INPUT (JSON):
+CONDITIONS: {conditions_json}
+IDENTIFIED_HAZARD_CONSEQUENCE: {identify_hazard_consequence_output}
+
+TASK:
+- For each hazard consequence listed in IDENTIFIED_HAZARD_CONSEQUENCE,
+determine which items in CONDITIONS are compulsory for that hazard consequence to occur, based on physical and process safety mechanisms.
+
+- Find the corresponding evidences form previous assistant message to support the conditons for different hazard consequence, 
+and explain why they have causal relations
+
+OUTPUT FORMAT (strict):
+1. <Hazard consequence from IDENTIFIED_HAZARD_CONSEQUENCE>
+
+- <Condition name from CONDITIONS>. Explanation: …
+
+- <Condition name from CONDITIONS>. Explanation: …
+
+- <Condition name from CONDITIONS>. Explanation: …
+
+2. <Hazard consequence from IDENTIFIED_HAZARD_CONSEQUENCE>
+- ...

@@ -1,0 +1,6 @@
+Mechanical Failure causes Continuous release
+Continuous release causes Vapor cloud formation
+Vapor cloud formation causes VCE
+Chemical combustible causes Delayed Ignition
+Delayed Ignition causes VCE
+High confinement causes VCE

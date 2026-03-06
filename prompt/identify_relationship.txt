@@ -1,0 +1,89 @@
+You are a professional process safety analyst.
+
+INPUTS:
+CHAIN_EVENTS_OUTPUT: {chain_events_output}
+IDENTIFIED_INCIDENT: {identify_incident_output}
+CONDITION: {conditions_json}
+
+TASKS:
+
+1. Defination of conditions and events
+  - Compare CHAIN_EVENTS_OUTPUT with CONDITION.
+  - Any item in CHAIN_EVENTS_OUTPUT whose name exactly matches an entry in CONDITION
+    shall be treated as a condition.
+  - For example: A -> B, C -> Instant ignition are from CHAIN_EVENTS_OUTPUT,
+    A, B, C are the events, since they don't match any items in CONDITION,
+    while Instant ignition matches
+
+2. Condition → Event causation (STRICT)
+   - Using IDENTIFIED_INCIDENT as the ONLY source of causal evidence,
+     determine which events are directly caused by each condition.
+   - An event MUST be selected ONLY from CHAIN_EVENTS_OUTPUT.
+   - Events MUST appear verbatim as they are written in CHAIN_EVENTS_OUTPUT.
+   - You MUST NOT create, infer, rename, split, or merge events.
+   - If an event does not explicitly appear in CHAIN_EVENTS_OUTPUT,
+     it is STRICTLY FORBIDDEN to use it.
+   - For each identified event, provide a clear explanation of why the condition
+     directly leads to that event, based ONLY on IDENTIFIED_INCIDENT.
+
+3. Condition → Condition causation (STRICT)
+   - Using IDENTIFIED_INCIDENT as the ONLY source of causal evidence,
+     determine which other conditions are directly caused by each condition.
+   - Downstream conditions MUST exactly match entries in CONDITION.
+   - You MUST NOT create, infer, rename, split, or merge conditions.
+   - For each identified downstream condition, provide a clear explanation of why
+     the causal relationship exists, based ONLY on IDENTIFIED_INCIDENT.
+
+4. No causation case
+   - If a condition does not directly cause any events or other conditions,
+     explicitly state that no direct causal relationships exist.
+
+5. Upstream exclusion and nearest-downstream rule (STRICT)
+  - When determining “directly caused” relationships for a condition C:
+  - Do not link upstream nodes:
+    Any event or condition that appears upstream of C in CHAIN_EVENTS_OUTPUT
+    (i.e., there exists a path X → … → C) must NOT be listed as directly caused by C.
+  -Only link the nearest downstream node(s):
+    If C is determined to directly cause a node X, then C must NOT be linked to any downstream node of X
+    (i.e., no C → Y where X → … → Y exists).
+  - CHAIN_EVENTS_OUTPUT is used only to enforce these structural constraints, not as causal evidence.
+    Direct causation must be justified only by IDENTIFIED_INCIDENT.
+  - All events and conditions must appear verbatim in CHAIN_EVENTS_OUTPUT, 
+    and conditions must exactly match entries in CONDITION.
+
+6. OUTPUT FORMAT (STRICT):
+
+A. Hazard: <HAZARD_NAME>
+
+1. <CONDITION_1>
+
+- Directly caused events (based on IDENTIFIED_INCIDENT):
+    - <CONDITION_1> -> <event_1>
+      Why: <EXPLANATION>
+    - <CONDITION_1> -> <event_2>
+      Why: <EXPLANATION>
+    - ...
+
+- Directly caused conditions (based on IDENTIFIED_INCIDENT):
+    - <CONDITION_1> -> <CONDITION_2>
+      Why: <EXPLANATION>
+    - <CONDITION_1> -> <CONDITION_3>
+      Why: <EXPLANATION>
+    - ...
+
+2. <CONDITION_2>
+
+- Directly caused events (based on IDENTIFIED_INCIDENT):
+    - <CONDITION_2> -> <event_3>
+      Why: <EXPLANATION>
+    - <CONDITION_2> -> <event_4>
+      Why: <EXPLANATION>
+    - ...
+
+- Directly caused conditions (based on IDENTIFIED_INCIDENT):
+    - <CONDITION_2> -> <CONDITION_4>
+      Why: <EXPLANATION>
+    - <CONDITION_2> -> <CONDITION_5>
+      Why: <EXPLANATION>
+    - ...
+

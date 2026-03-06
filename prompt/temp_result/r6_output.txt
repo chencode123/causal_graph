@@ -1,0 +1,47 @@
+Gilsonite causes Chemical combustible
+Gilsonite dust causes Solid
+Bag dumping causes Dispersion
+Airborne dust causes Pre-mixture
+Room/corridor space causes Low confinement
+Flash at bag dump causes Instant Ignition
+Chemical combustible causes Flash fire
+Solid causes Flash fire
+Dispersion causes Flash fire
+Pre-mixture causes Flash fire
+Low confinement causes Flash fire
+Instant Ignition causes Flash fire
+
+Gilsonite causes Chemical combustible
+Gilsonite dust causes Solid
+Bag dumping causes Dispersion
+Airborne dust causes Pre-mixture
+Duct/collector interiors causes High confinement
+Dust collector auto-run causes Continuous release
+Dust cloud persists causes Delayed Ignition
+Auto start/stop failed causes Mechanical Failure
+Chemical combustible causes Dust explosion
+Solid causes Dust explosion
+Dispersion causes Dust explosion
+Pre-mixture causes Dust explosion
+High confinement causes Dust explosion
+Continuous release causes Dust explosion
+Delayed Ignition causes Dust explosion
+Mechanical Failure causes Dust explosion
+
+Gilsonite causes Chemical combustible
+Gilsonite dust causes Solid
+Bag dumping causes Dispersion
+Airborne dust causes Pre-mixture
+Dust venting corridor causes Instant release
+Room/corridor space causes Low confinement
+Flash at bag dump causes Instant Ignition
+Chemical combustible causes Fire ball
+Solid causes Fire ball
+Dispersion causes Fire ball
+Pre-mixture causes Fire ball
+Instant release causes Fire ball
+Low confinement causes Fire ball
+Instant Ignition causes Fire ball
+
+Flash fire causes Dust explosion
+Dust explosion causes Fire ball

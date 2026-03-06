@@ -1,0 +1,89 @@
+You are a professional process safety analyst.
+
+INPUT (JSON):
+HAZARD_CONSEQUENCE: {hazards_consequence_json}
+
+TASK:
+Based strictly on the previous assistant message ONLY:
+
+1. Identify all hazard consequences that:
+   - are explicitly mentioned in the previous assistant message, AND
+   - also appear in the predefined HAZARD_CONSEQUENCE list.
+
+2. Identify implied hazard consequences ONLY when the previous assistant message provides
+   *clear, strong, and mechanism-specific evidence*. 
+   Weak indicators, generic flammability, presence of vapor, ignition sources,
+   or general mentions of “explosion” or “fire” DO NOT qualify.
+
+3. Apply the following STRICT criteria for each hazard consequence:
+
+   --- EXPLOSION / BLAST HAZARDS --------------------------------------
+
+   - **VCE (Vapor Cloud Explosion)**  
+     Allowed ONLY if the message describes:
+       * An UNCONFINED vapor cloud in open space, AND
+       * Clear overpressure effects (pressure wave damage, structural collapse,
+         shattered windows, pressure injuries).  
+     Do NOT infer VCE from fireballs, smoke clouds, tank rupture, or unconfined burning.
+
+   - **BLEVE (Boiling Liquid Expanding Vapor Explosion)**  
+     Allowed ONLY if:
+       * A vessel containing a pressurized, boiling liquid ruptures, AND
+       * Rapid flashing of liquid to vapor is described, AND
+       * A fireball immediately follows.  
+     Do NOT infer BLEVE solely from tank rupture or fire involvement.
+
+   - **Dust explosion**  
+     Allowed ONLY if:
+       * Combustible dust is explicitly referenced (e.g., powder, grain, carbon, metal dust), AND
+       * Suspended dust cloud AND ignition mechanism are indicated.  
+     Do NOT infer from generic “explosion” alone.
+
+   - **Confined explosion**  
+     Allowed when:
+       * Ignition occurs inside a vessel/tank/equipment/enclosure, AND
+       * Overpressure or structural failure of the vessel is described.  
+     This includes headspace ignition that ruptures a tank.
+
+   --- FIRE HAZARDS ---------------------------------------------------
+
+   - **Pool fire**  
+     Allowed ONLY when:
+       * Flammable liquid accumulates on the ground or containment surface, AND
+       * The liquid pool is burning.
+
+   - **Jet fire**  
+     Allowed ONLY when:
+       * A pressurized, directional release of flammable gas or liquid forms a flame jet
+         (e.g., torch-like fire, high-momentum flame).  
+     Do NOT infer from general “fire” or “flame.”
+
+   - **Fire ball**  
+     Allowed when:
+       * The message explicitly mentions a fireball, OR
+       * A spherical transient fire is clearly described (from ignition of dispersed fuel).
+
+   - **Flash fire**  
+     Allowed ONLY if:
+       * A flammable vapor cloud ignites in open or semi-open space, AND
+       * The message does NOT describe blast/overpressure, AND
+       * Flame propagation through a vapor cloud is explicitly or clearly indicated.  
+     Do NOT infer from vapor presence + ignition alone.
+
+   --- TOXIC / HEALTH HAZARDS -----------------------------------------
+
+   - **Toxicity dispersion**  
+     Allowed ONLY when:
+       * A toxic chemical release AND atmospheric dispersion are explicitly described
+         (e.g., toxic vapor cloud, downwind exposure).  
+     Do NOT infer only from the presence of chemicals.
+
+   - **Asphyxiation**  
+     Allowed ONLY when:
+       * Oxygen displacement, confined space oxygen deficiency, or inhalation hazard causing
+         loss of consciousness is explicitly or clearly indicated.  
+     Do NOT infer from generic “vapor release.”
+
+4. If a hazard consequence does not meet its strict criteria, it MUST NOT be classified.
+
+5. For every final hazard consequence, provide a concise explanation referencing the evidence.

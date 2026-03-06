@@ -1,0 +1,52 @@
+You are a process safety analyst.
+
+INPUT (JSON):
+{process_json}
+{rule_json}
+
+Task:
+
+Analyze hazards based on the process system {process_json}.
+
+Generate one hazard scenario network that can lead to a hazard from the {rule_json} that you think is the most possible.
+
+Do not remove or rename any nodes from the selected {rule_json}, which involves possible hazards and corresponding scenairos. 
+
+You may add realistic triggers from the JSON to connect into those nodes.
+
+Express the result as a list of cause–effect statements. Each line must be:
+
+A causes B
+
+The output should look like an interconnected graph:
+
+Multiple causes can point to the same effect (e.g., “A causes C”, “B causes C”).
+
+Effects can also lead to multiple consequences.
+
+Express them comprehensively and exhaustively
+
+Explain how the thermodynamic properties of the substances may influence the subsequent events.
+
+Mark uncertain or inferred links with [assumption].
+
+Avoid invented equipment or streams not in the JSON. Use only JSON IDs plus generic hazard nodes from the rule set.
+
+Self-check before printing:
+
+Did you preserve every node and edge from the selected rule set?
+
+Are all equipment/streams consistent with the JSON?
+
+Are cause–effect statements formatted strictly as "A causes B" lines only?
+
+Please generate output strictly in the following format, without explanatory sentences
+
+Output format (strict):
+
+A causes B
+B causes C
+D causes C
+...
+
+BEGIN:

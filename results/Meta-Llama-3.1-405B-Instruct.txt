@@ -1,0 +1,9 @@
+Mechanical Failure causes Instant release
+Instant release causes Vapor cloud formation
+Vapor cloud formation causes VCE
+Liquid causes High vaporization
+High vaporization causes Vapor cloud formation
+Pre-mixture causes Vapor cloud formation
+Chemical combustible causes Delayed Ignition
+Delayed Ignition causes VCE
+High confinement causes VCE

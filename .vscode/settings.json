@@ -1,0 +1,12 @@
+{
+    "workbench.editorAssociations": {
+        "0": {
+            "viewType": "markdown-preview-enhanced",
+            "filenamePattern": "*.md"
+        },
+        "*.md": "markdown-preview-enhanced"
+    },
+    "python.analysis.extraPaths": [
+        "./utils/causal_graph_interactive_pkg"
+    ]
+}

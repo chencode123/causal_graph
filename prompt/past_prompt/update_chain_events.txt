@@ -1,0 +1,51 @@
+You are a professional process safety analyst.
+
+INPUTS:
+CHAIN_EVENTS: {chain_events_output}
+DELETE_REPETITIVE_EVENTS_OUTPUT: {delete_repetitive_events_output}
+
+TASKS:
+
+Update CHAIN_EVENTS based on DELETE_REPETITIVE_EVENTS_OUTPUT.
+
+Remove or merge events in CHAIN_EVENTS that are identified as repetitive or redundant in DELETE_REPETITIVE_EVENTS_OUTPUT.
+
+Preserve the original format and structure of CHAIN_EVENTS.
+
+Do not change headings, numbering, or layout.
+
+Only modify event content as required by DELETE_REPETITIVE_EVENTS_OUTPUT.
+
+OUTPUT FORMAT:
+
+   Output ONLY the updated CHAIN_EVENTS.
+
+   Do not add explanations, comments, or any additional text.
+
+   Example (Update CHAIN_EVENTS using DELETE_REPETITIVE_EVENTS_OUTPUT)
+
+EXAMPLE
+   INPUT:
+   CHAIN_EVENTS:
+   A. Hazard: Explosion
+
+   1. Instant ignition:
+      - spark ignition -> inside storage tank
+      - static ignition -> inside storage tank
+      - inside storage tank -> explosion
+
+   DELETE_REPETITIVE_EVENTS_OUTPUT:
+   PART 1. Redundancy Identification (NON-CONDITION_EVENT only)
+
+   - Repetitive NON-CONDITION_EVENT phrases:
+      - spark ignition
+      - static ignition
+   Retained phrase:
+      - spark ignition
+
+   OUTPUT:
+   A. Hazard: Explosion
+
+   1. Instant ignition:
+      - spark ignition -> inside storage tank
+      - inside storage tank -> explosion

@@ -1,0 +1,63 @@
+You are a professional process safety analyst.
+
+INPUT (JSON):
+HAZARD_CONSEQUENCE: {hazards_consequence_json}
+IDENTIFIED_INCIDENT: {identify_incident_output}
+
+TASK:
+Based strictly on the IDENTIFIED_INCIDENT ONLY:
+
+1. Identify all hazard consequences that:
+   a) are explicitly mentioned in the IDENTIFIED_INCIDENT, OR
+   b) are implicitly present because the described operational conditions and physical behavior
+      satisfy the defining mechanism of a hazard consequence listed in HAZARD_CONSEQUENCE.
+
+2. Mechanism-based matching is REQUIRED:
+   - A hazard consequence MUST be selected if the incident description clearly satisfies
+     the physical mechanism of that hazard, even if the exact phrase does not appear.
+   - Matching must be based strictly on operational conditions and physical behavior
+     explicitly described in IDENTIFIED_INCIDENT.
+   - Do NOT introduce external knowledge, assumptions, or typical industry scenarios.
+
+3. Multiple-instance handling (CRITICAL RULE):
+   - If the same TYPE of hazard consequence occurs multiple times in the incident,
+     AND the occurrences correspond to distinct physical events
+     (e.g., different locations, different equipment, different times, or separate releases),
+     you MUST treat them as separate hazard consequences.
+   - In such cases:
+       a) Output each occurrence separately.
+       b) Append a numeric suffix to distinguish them
+          (e.g., "Pool fire 1", "Pool fire 2"),
+          while keeping the base hazard consequence name exactly as defined
+          in HAZARD_CONSEQUENCE.
+   - You MUST NOT merge multiple distinct occurrences of the same hazard consequence
+     into a single entry.
+
+4. For each identified hazard consequence occurrence:
+   - Provide evidence copied verbatim ONLY from IDENTIFIED_INCIDENT.
+   - Provide a concise explanation describing why the evidence satisfies
+     the physical mechanism of that hazard consequence.
+
+5. Do NOT:
+   - Infer hazards not supported by IDENTIFIED_INCIDENT.
+   - Collapse multiple hazard consequence occurrences into one.
+   - Re-label or rename hazard consequence types beyond numeric instance identifiers.
+
+OUTPUT FORMAT (STRICT):
+
+Hazard consequence happened:
+
+   1. Name: <Hazard consequence name exactly as in HAZARD_CONSEQUENCE> <instance number if applicable>
+      Evidence: <Sentence(s) copied ONLY from IDENTIFIED_INCIDENT>
+      Explanation: <Concise mechanism-based explanation referencing the evidence>
+
+(Repeat for each identified hazard consequence occurrence)
+
+Hazard consequence NOT happened:
+
+   1. Name: <Hazard consequence name exactly as in HAZARD_CONSEQUENCE> <instance number if applicable>
+      Evidence: <Sentence(s) copied ONLY from IDENTIFIED_INCIDENT>
+      Explanation: <Concise mechanism-based explanation referencing the evidence>
+      ...
+
+(Repeat for all the remaining hazard consequence that you think not happened)

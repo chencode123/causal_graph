@@ -1,0 +1,103 @@
+You are a professional process safety analyst.
+
+INPUT
+IDENTIFIED_EVIDENCE: {identify_evidence_output}
+
+TASK:
+    - You MUST use only the information explicitly written in the explianations of IDENTIFIED_EVIDENCE.
+    - You MUST NOT introduce any new facts, background knowledge, inferred mechanisms, ignition behavior, 
+    storage conditions, or upstream causes. 
+    - If a word or concept does NOT appear verbatim in the IDENTIFIED_EVIDENCE, you MUST NOT mention it.
+    - For each hazard consequence, convert each related condition into a causal chain.
+    - Each event must be a short phrase (no more than 6 words).
+    - Chains must follow the order of the questions and dervive explicitly from IDENTIFIED_EVIDENCE. For example
+    - <Condition>:
+        - <Short answer to Question 1> -> <Short answer to Question 2>
+        - <Short answer to Question 2> -> <Condition>
+    - The short answer must directly address the central focus of the question.
+
+    - Remove all top-level category names (e.g., "Ignition", "Release", "EnergyState", "MaterialProperties", "Confinement", "Dispersion", "ProcessFailure").
+
+CROSS-HAZARD CANONICALIZATION (MANDATORY):
+
+    Across ALL hazard sections in IDENTIFIED_CONDITION:
+
+    1) If the same physical event, state, location, or equipment is described more than once,
+    you MUST reuse the exact same phrase (character-for-character) every time it appears.
+
+    2) You MUST NOT introduce paraphrases or alternate wording for a previously used phrase.
+    This includes tense changes, noun/verb form changes, and synonyms.
+
+    3) If multiple phrases could refer to the same item, prefer the phrase that is:
+    a) more specific (contains an explicit identifier, e.g., "Tank 409", "WWT area"), then
+    b) already used earlier in the overall output.
+
+    4) Once a phrase is used, it becomes the canonical phrase and MUST be reused verbatim
+    in later hazard sections.
+
+CHAIN LENGTH AND COUNT CONSTRAINT (MANDATORY):
+
+    1. The number of causal links MUST equal the number of explanation questions.
+        For example:
+            If there are two explanation questions, generate:
+
+            <Answer 1> -> <Answer 2>
+            <Answer 2> -> <CONDITION>
+
+    2. You MUST NOT:
+
+        Merge multiple answers into one node
+        Skip a question
+        Add extra intermediate nodes
+        Create additional parallel chains
+        Each answer must directly correspond to one explanation question in order.
+
+OUTPUT FORMAT
+    A. Hazard: <HAZARD_NAME>
+
+    1. <CONDITION_1>:
+        - <Short answer to Question 1> -> <Short answer to Question 2>
+        - <Short answer to Question 2> -> <Short answer to Question 3>
+        ...
+        - <Short answer to Question n> -> <CONDITION_1>
+
+    2. <CONDITION_2>:
+        - <Short answer to Question 1> -> <Short answer to Question 2>
+        - <Short answer to Question 2> -> <Short answer to Question 3>
+        ...
+        - <Short answer to Question n> -> <CONDITION_2>
+    (Repeat for each conditions and its corresponding evidence)
+    ...
+
+    B. Hazard: <HAZARD_NAME>
+
+    1. <CONDITION_1>:
+        - <Short answer to Question 1> -> <Short answer to Question 2>
+        - <Short answer to Question 2> -> <Short answer to Question 3>
+        ...
+        - <Short answer to Question n> -> <CONDITION_1>
+
+    2. <CONDITION_2>:
+        - <Short answer to Question 1> -> <Short answer to Question 2>
+        - <Short answer to Question 2> -> <Short answer to Question 3>
+        ...
+        - <Short answer to Question n> -> <CONDITION_2>
+    (Repeat for each conditions and its corresponding evidence)
+    ...
+
+EXAMPLE
+
+    IDENTIFIED_EVIDENCE:
+    - Instant Ignition:
+    Evidence: The initial explosion occurred soon after the tank farm supervisor started the transfer of the final compartment of a tanker-trailer containing VM&P naphtha into a 15,000 gallon above-ground storage tank.
+    Explanation:
+    - Why did ignition occur?: The incident indicates ignition occurred shortly after transfer began, consistent with a spark/static ignition mechanism during filling operations.
+    - Where did the ignition occur (equipment or place)?: In/at the tank being filled (the explosion is described as occurring inside the storage tank).
+    - Why is the ignition classified as instant or delayed?: The phrase “occurred soon after” the transfer started indicates ignition occurred essentially immediately during the filling evolution, not after a prolonged delay.
+
+    Output:
+
+    1. Instant Ignition:
+        Spark/static ignition during filling -> Inside the storage tank
+        Inside the storage tank -> Occurred soon after transfer started
+        Occurred soon after transfer started -> Instant Ignition

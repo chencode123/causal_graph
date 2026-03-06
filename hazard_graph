@@ -1,0 +1,54 @@
+
+digraph HazardGraph {
+  rankdir=LR;
+  splines=true;
+  nodesep=0.35;
+  ranksep=0.6;
+  fontname="Helvetica";
+
+  node [shape=box, style="rounded", fontname="Helvetica", fontsize=11];
+  edge [fontname="Helvetica", fontsize=10];
+
+  Material [label="Material"];
+
+  subgraph cluster_phase {
+    label="Phase";
+    style="rounded";
+    color="gray70";
+    Phase [label="Liquid\nSolid\nVapor"];
+  }
+
+  subgraph cluster_release {
+    label="Release";
+    style="rounded";
+    color="gray70";
+    Release [label="Continuous release\nInstant release"];
+  }
+
+  subgraph cluster_evolution {
+    label="Material state evolution";
+    style="rounded";
+    color="gray70";
+    Material_state_evolution [label="Dispersion\nVapor cloud formation\nPre-mixture"];
+  }
+
+  subgraph cluster_ignition {
+    label="Ignition";
+    style="rounded";
+    color="gray70";
+    Ignition [label="Delayed ignition\nInstant ignition"];
+  }
+
+  subgraph cluster_conseq {
+    label="Primary hazard consequence";
+    style="rounded";
+    color="gray70";
+    Hazard_consequence [label="hazard consequence"];
+  }
+
+  Material -> Phase [label="has_phase"];
+  Phase -> Release [label="enables"];
+  Release -> Material_state_evolution [label="enables"];
+  Material_state_evolution -> Ignition [label="enables"];
+  Ignition -> Hazard_consequence [label="triggers"];
+}

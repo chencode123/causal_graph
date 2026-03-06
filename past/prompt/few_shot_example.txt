@@ -1,0 +1,27 @@
+EXAMPLE (for few-shot learning only; do not output or repeat):
+
+INPUT:
+{process_json} + {rule_json}
+
+OUTPUT (expected format):
+Propene in FEED causes Chemical combustible
+Benzene in FEED causes Chemical combustible
+REACTOR at 1 bar causes Vapor
+COOLER at 54 C causes Vapor
+SEP at ~0 MPa [assumption] causes Vapor
+Two-phase stream [assumption] causes Vapor
+Corrosion [assumption] causes Mechanical Failure
+Gasket degradation [assumption] causes Mechanical Failure
+Mechanical Failure causes Continuous release
+Continuous release causes Vapor cloud formation
+Vapor causes Vapor cloud formation
+Air ingress [assumption] causes Pre-mixture
+Pre-mixture causes Vapor cloud formation
+Poor ventilation [assumption] causes High confinement
+Equipment congestion [assumption] causes High confinement
+Chemical combustible causes Delayed Ignition
+Vapor cloud formation causes VCE
+High confinement causes VCE
+Delayed Ignition causes VCE
+
+End of example.

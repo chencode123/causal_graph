@@ -1,0 +1,36 @@
+Metadata-Version: 2.4
+Name: causal-graph-interactive
+Version: 0.1.0
+Summary: Static Graphviz + Interactive Cytoscape.js HTML causal graphs from arrow-line chains
+Requires-Python: >=3.9
+Description-Content-Type: text/markdown
+Requires-Dist: graphviz>=0.20.0
+
+# causal-graph-interactive
+
+Generate causal graphs from `A -> B` arrow-line chains:
+
+- Static images via Graphviz (PNG/SVG/PDF)
+- Interactive HTML via Cytoscape.js + Dagre (CDN)
+
+## Install (editable)
+```bash
+pip install -e .
+```
+
+## Usage
+
+### Static PNG
+```python
+from causal_graph_interactive import draw_causal_graph
+out = draw_causal_graph(chain_lines=text, save_path="causal_graph.png")
+```
+
+### Interactive HTML
+```python
+from causal_graph_interactive import draw_causal_graph
+out = draw_causal_graph(chain_lines=text, conditions="conditions.json", hazards="hazards.json",
+                        save_path="causal_graph.html")
+```
+
+Open the generated HTML file in a browser.

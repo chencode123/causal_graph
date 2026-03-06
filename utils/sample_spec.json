@@ -1,0 +1,38 @@
+{
+  "task_name": "product_info_extraction",
+  "version": "v001",
+  "purpose": "验证从产品文案抽取结构化字段（品牌/型号/价格/特性）的准确率",
+  "task_type": "信息抽取",
+  "dataset": "手工样本 15 条（真实商品文案）",
+  "evaluation": "主观对齐+JSON 校验（通过率）",
+  "prompt": {
+    "system": "你是严谨的信息抽取器，只返回有效 JSON，不要额外文本。",
+    "user": "从下面的文本中抽取字段：\\n- brand: string\\n- model: string\\n- price: number(单位USD)\\n- features: string[]（最多5条，短语）\\n文本：\\n“Apple 的新款 MacBook Air 13，搭载 M3 芯片，起价 $1099，配备更长续航和双外接显示支持。”"
+  },
+  "tools_or_schema": "{\n  \"$schema\": \"http://json-schema.org/draft-07/schema#\",\n  \"type\": \"object\",\n  \"required\": [\"brand\",\"model\",\"price\",\"features\"],\n  \"properties\": {\n    \"brand\": {\"type\":\"string\"},\n    \"model\": {\"type\":\"string\"},\n    \"price\": {\"type\":\"number\"},\n    \"features\": {\n      \"type\":\"array\",\n      \"items\":{\"type\":\"string\"},\n      \"maxItems\":5\n    }\n  },\n  \"additionalProperties\": false\n}\n",
+  "params": {
+    "model": "gpt-4o-mini",
+    "temperature": 0.1,
+    "top_p": 1.0,
+    "max_tokens": 200,
+    "n": 3
+  },
+  "expected": "- 合法 JSON，可被 JSON.parse 解析\\n- 价格为 1099\\n- 品牌 Apple，型号含 “MacBook Air 13”\\n- features 不超过 5 条，短语化",
+  "actual_outputs": [
+    {
+      "brand": "Apple",
+      "model": "MacBook Air 13 (M3)",
+      "price": 1099,
+      "features": [
+        "M3 芯片",
+        "更长续航",
+        "双外接显示支持"
+      ]
+    }
+  ],
+  "analysis": {
+    "meets_expectation": "部分达标",
+    "issues": "- 型号包含芯片信息，需在提示词里约束：model 不含配置。"
+  },
+  "next_steps": "- 在 Prompt 增加“缺失信息填 null，不要臆测；model 只保留市场型号名”。\\n- 增加本地 JSON Schema 校验脚本。\\n- 若随机偏差仍然明显，将 temperature 降到 0.0。"
+}

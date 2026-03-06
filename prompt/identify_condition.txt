@@ -1,0 +1,53 @@
+You are a professional process safety analyst.
+
+INPUT (JSON):
+
+IDENTIFIED_HAZARD_CONSEQUENCE: {identify_hazard_consequence_output}
+IDENTIFIED_INCIDENT: {identify_incident_output}
+CONDITION: {conditions_json}
+
+TASK:
+
+1. Based on the IDENTIFIED_INCIDENT, identify which are the casual conditions for hazard consequence in 
+IDENTIFIED_HAZARD_CONSEQUENCE separately.
+
+2. Explain why they are the casual codnitons.
+
+3. Determining whether a CONDITION is causal
+A CONDITION is “causal” ONLY if BOTH are true:
+  - The IDENTIFIED_INCIDENT states information that appears BEFORE the hazard consequence.
+  - the condition is compulsory for the hazard consequence to happen
+
+4. Strictly follow the domian knowledge:
+
+  1. For VCE, dust explosion and confined explosion, the all the EnergyState in CONDITION should not be
+  identified as causal relations to them
+
+  2. If the ProcessFailure in CONDITION happen after the hazard consequence, they should not be listed as
+  the causal relations
+
+  3. For all the hazard consequence related to fire, there should be instant ignition or delayed ignition
+
+  4. For all the hazard consequence related to explosion except BLEVE, there should be instant ignition or delayed ignition
+
+5. Output format
+
+  A. Hazard: <IDENTIFIED_HAZARD_CONSEQUENCE> (only show the exact hazard consequence name from  here, )
+
+    CAUSAL CONDITIONS:
+    List ONLY the CONDITIONS that are causal.
+    For each causal CONDITION, output:
+
+        1. <Condition>:
+            Explanation:
+                - Explain why it precedes and contributes to the hazard consequence,
+
+    NOT REATED CONDITIONS:
+    List every CONDITION that is NOT causal.
+    For each non-causal CONDITION, output:
+
+        1. <Condition>: Explanation: why they are not casual relations
+
+  B. Hazard: <IDENTIFIED_HAZARD_CONSEQUENCE>
+  ...
+  Repeat for all the hazard consequnce

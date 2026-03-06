@@ -1,0 +1,43 @@
+You are a professional process safety analyst.
+
+INPUT (JSON):
+
+COMBINED_TEXT: {combined_text_output}
+CONDITIONS: {conditions_json}
+HAZARD_CONSEQUENCE: {hazards_consequence_json}
+
+1. Output format cleaning
+
+- Only keep causal relations in the format:
+  A -> B
+- Delete all evidence, explanations, and non-causal text.
+
+2. Definitions
+
+- CONDITION_LABEL:
+  any phrase that matches an item in CONDITIONS
+  (across all categories).
+
+- HAZARD_CONSEQUENCE:
+  any phrase that matches an item in HAZARD_CONSEQUENCE.
+
+- NON_CONDITION_EVENT:
+  any event phrase in COMBINED_TEXT that is NOT a
+  CONDITION_LABEL and NOT a HAZARD_CONSEQUENCE.
+
+3. Causal link update rules
+
+3.1 Condition–event–condition simplification
+
+- If a CONDITION_LABEL causes a NON_CONDITION_EVENT,
+  and that NON_CONDITION_EVENT causes a downstream CONDITION_LABEL
+  according to COMBINED_TEXT,
+  you MUST delete the direct causal link from the original
+  CONDITION_LABEL to that downstream CONDITION_LABEL.
+
+4. Output
+
+- Output the updated COMBINED_TEXT.
+- Do NOT add new nodes.
+- Do NOT rename CONDITION_LABEL or HAZARD_CONSEQUENCE.
+- Do NOT include explanations.

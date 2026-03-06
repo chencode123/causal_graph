@@ -1,0 +1,15 @@
+You are a professional process safety analyst.
+
+IDENTIFIED_HAZARD: {identified_hazard}
+
+TASK:
+- Look thorugh the output of IDENTIFIED_HAZARD, chained events and CONDITIONS
+- List the chained events that related to the identified Hazard seperately, for example:
+    -1. Flash fire:
+        - Instant release: Bag dumping Gilsonite causes Instant release
+        - Chemical combustible: Presence of Gilsonite causes Chemical combustible
+        ...
+    -2. Dust explosion:
+        - Chemical combustible: Presence of Gilsonite causes Chemical combustible
+        - Delayed Ignition: Dust cloud persists until later ignition source causes Delayed Ignition
+        ...

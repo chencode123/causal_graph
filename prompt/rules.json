@@ -1,0 +1,256 @@
+[
+    {
+        "Hazard": "VCE_liquid_continuous",
+        "Scenarios": [
+            "High vaporization -> Vapor cloud formation",
+            "Pre-mixture -> Vapor cloud formation",
+            "Liquid -> High vaporization",
+            "Continuous release -> Vapor cloud formation",
+            "Vapor cloud formation -> VCE",
+            "Mechanical Failure -> Continuous release",
+            "Chemical combustible -> Delayed Ignition",
+            "High confinement -> VCE",
+            "Delayed Ignition -> VCE"
+        ]
+    },
+    {
+        "Hazard": "VCE_vapor_continuous",
+        "Scenarios": [
+            "Continuous release -> Vapor cloud formation",
+            "High confinement -> VCE",
+            "Delayed Ignition -> VCE",
+            "Pre-mixture -> Vapor cloud formation",
+            "Vapor -> Vapor cloud formation",
+            "Chemical combustible -> Delayed Ignition",
+            "Vapor cloud formation -> VCE",
+            "Mechanical Failure -> Continuous release"
+        ]
+    },
+    {
+        "Hazard": "VCE_liquid_instant",
+        "Scenarios": [
+            "Vapor cloud formation -> VCE",
+            "Liquid -> High vaporization",
+            "High confinement -> VCE",
+            "Mechanical Failure -> Instant release",
+            "Instant release -> Vapor cloud formation",
+            "Chemical combustible -> Delayed Ignition",
+            "High vaporization -> Vapor cloud formation",
+            "Pre-mixture -> Vapor cloud formation",
+            "Delayed Ignition -> VCE"
+        ]
+    },
+    {
+        "Hazard": "VCE_vapor_instant",
+        "Scenarios": [
+            "Pre-mixture -> Vapor cloud formation",
+            "Vapor cloud formation -> VCE",
+            "Mechanical Failure -> Instant release",
+            "Vapor -> Vapor cloud formation",
+            "Instant release -> Vapor cloud formation",
+            "Chemical combustible -> Delayed Ignition",
+            "High confinement -> VCE",
+            "Delayed Ignition -> VCE"
+        ]
+    },
+    {
+        "Hazard": "BLEVE",
+        "Scenarios": [
+            "High vaporization -> BLEVE",
+            "High pressure -> BLEVE",
+            "Liquid -> BLEVE",
+            "High temperature -> BLEVE",
+            "Mechanical Failure -> BLEVE"
+        ]
+    },
+    {
+        "Hazard": "Dust_explosion",
+        "Scenarios": [
+            "Dispersion -> Dust explosion",
+            "Instant Ignition -> Dust explosion",
+            "Chemical combustible -> Instant Ignition",
+            "Chemical combustible -> Dispersion",
+            "High confinement -> Dust explosion",
+            "Mechanical failure -> Dust explosion",
+            "Solid -> Dust explosion"
+        ]
+    },
+    {
+        "Hazard": "Dust_explosion",
+        "Scenarios": [
+            "Delayed Ignition -> Dust explosion",
+            "Solid -> Dust explosion",
+            "Dispersion -> Dust explosion",
+            "High confinement -> Dust explosion",
+            "Chemical combustible -> Delayed Ignition",
+            "Chemical combustible -> Dispersion",
+            "Mechanical failure -> Dust explosion"
+        ]
+    },
+    {
+        "Hazard": "Pool_fire_mechanical_failure",
+        "Scenarios": [
+            "Liquid -> Pool fire",
+            "Mechanical failure -> Pool fire",
+            "Ignition -> Pool fire",
+            "Chemical combustible -> Ignition",
+            "Low pressure -> Pool fire"
+        ]
+    },
+    {
+        "Hazard": "jet_fire_liquid",
+        "Scenarios": [
+            "Chemical combustible -> Instant ignition",
+            "High pressure -> Jet fire",
+            "High pressure -> Continuous release",
+            "Liquid -> Jet fire",
+            "Mechanical failure -> Jet fire",
+            "Instant ignition -> Jet fire",
+            "Continuous release -> Jet fire"
+        ]
+    },
+    {
+        "Hazard": "Pool_fire_overflow",
+        "Scenarios": [
+            "Ignition -> Pool fire",
+            "Liquid -> Pool fire",
+            "Chemical combustible -> Ignition",
+            "Low pressure -> Pool fire",
+            "Overflow -> Pool fire"
+        ]
+    },
+    {
+        "Hazard": "fire_ball",
+        "Scenarios": [
+            "Chemical combustible -> Instant ignition",
+            "Instant ignition -> Fire ball",
+            "High vaporization -> Fire ball",
+            "Mechanical failure -> Fire ball",
+            "Instant release -> Fire ball",
+            "Liquid -> High vaporization",
+            "High pressure -> Fire ball",
+            "High pressure -> Instant release"
+        ]
+    },
+    {
+        "Hazard": "jet_fire_vapor",
+        "Scenarios": [
+            "Instant ignition -> Jet fire",
+            "High pressure -> Jet fire",
+            "High pressure -> Continuous release",
+            "Vapor -> Jet fire",
+            "Chemical combustible -> Instant ignition",
+            "Mechanical failure -> Jet fire",
+            "Continuous release -> Jet fire"
+        ]
+    },
+    {
+        "Hazard": "flash_fire_liquid",
+        "Scenarios": [
+            "Mechanical Failure -> Instant release",
+            "Liquid -> High vaporization",
+            "Instant release -> Vapor cloud formation",
+            "None confinement -> Flash fire",
+            "High vaporization -> Vapor cloud formation",
+            "Delayed Ignition -> Flash fire",
+            "Vapor cloud formation -> Flash fire",
+            "Pre-mixture -> Vapor cloud formation",
+            "Chemical combustible -> Delayed Ignition"
+        ]
+    },
+    {
+        "Hazard": "flash_fire_vapor",
+        "Scenarios": [
+            "Delayed Ignition -> Flash fire",
+            "Mechanical Failure -> Instant release",
+            "Vapor cloud formation -> Flash fire",
+            "Instant release -> Vapor cloud formation",
+            "Vapor -> Vapor cloud formation",
+            "Chemical combustible -> Delayed Ignition",
+            "None confinement -> Flash fire",
+            "Pre-mixture -> Vapor cloud formation"
+        ]
+    },
+    {
+        "Hazard": "flash_fire_vapor",
+        "Scenarios": [
+            "None confinement -> Flash fire",
+            "Chemical combustible -> Delayed Ignition",
+            "Continuous release -> Vapor cloud formation",
+            "Vapor cloud formation -> Flash fire",
+            "Mechanical Failure -> Continuous release",
+            "Pre-mixture -> Vapor cloud formation",
+            "Delayed Ignition -> Flash fire",
+            "Vapor -> Vapor cloud formation"
+        ]
+    },
+    {
+        "Hazard": "flash_fire_liquid",
+        "Scenarios": [
+            "Vapor cloud formation -> Flash fire",
+            "High vaporization -> Vapor cloud formation",
+            "None confinement -> Flash fire",
+            "Chemical combustible -> Delayed Ignition",
+            "Continuous release -> Vapor cloud formation",
+            "Liquid -> High vaporization",
+            "Delayed Ignition -> Flash fire",
+            "Pre-mixture -> Vapor cloud formation",
+            "Mechanical Failure -> Continuous release"
+        ]
+    },
+
+    {
+        "Hazard": "flash_fire_solid",
+        "Scenarios": [
+            "Solid -> Flash fire",
+            "None confinement -> Flash fire",
+            "Chemical combustible -> Ignition",
+            "Ignition -> Flash fire",
+            "Mechanical Failure -> Continuous release"
+        ]
+    },
+    {
+        "Hazard": "toxicity_vapor_mechanical_failure",
+        "Scenarios": [
+            "Mechanical failure -> Toxicity",
+            "Vapor -> Toxicity",
+            "Dispersion -> Toxicity",
+            "Toxic substance -> Toxicity"
+        ]
+    },
+    {
+        "Hazard": "toxicity_liquid_mechanical_failure",
+        "Scenarios": [
+            "Dispersion -> Toxicity",
+            "Toxic substance -> Toxicity",
+            "High vaporization -> Toxicity",
+            "Liquid -> High vaporization",
+            "Mechanical failure -> Toxicity"
+        ]
+    },
+    {
+        "Hazard": "toxicity_vapor_overflow",
+        "Scenarios": [
+            "Toxic substance -> Toxicity",
+            "Vapor -> Toxicity",
+            "Dispersion -> Toxicity",
+            "Overflow -> Toxicity"
+        ]
+    },
+    {
+        "Hazard": "toxicity_liquid_overflow",
+        "Scenarios": [
+            "Liquid -> High vaporization",
+            "Toxic substance -> Toxicity",
+            "Dispersion -> Toxicity",
+            "Overflow -> Toxicity",
+            "High vaporization -> Toxicity"
+        ]
+    },
+    {
+        "Hazard": "Normal",
+        "Scenarios": [
+            "Normal -> Normal"
+        ]
+    }
+]

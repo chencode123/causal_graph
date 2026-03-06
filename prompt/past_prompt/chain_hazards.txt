@@ -1,0 +1,28 @@
+You are a professional process safety analyst.
+
+TASK:
+- You MUST use only the information explicitly written in the previous assistant message.
+- You MUST NOT introduce any new facts, background knowledge, inferred mechanisms, ignition behavior, 
+  storage conditions, or upstream causes. 
+- If a word or concept does NOT appear verbatim in the previous assistant message, you MUST NOT mention it.
+
+- For each pair of hazard consequences that are related, convert each explanation into a causal chain.
+- Delete pairs of hazard consequencesthat are NOT related
+- Chains must be minimal and strictly derived from the given explanation.
+- Each event must be a short phrase (no more than 4–5 words).
+Requirements:
+- The chain should start from the **first hazard** identified in the previous step.
+- It should end at the **final hazard** (the last one in the previous chain).
+- Every intermediate step should clearly represent a physical or logical connection.
+- if there is only only one hazard, you should say: there is only one hazard
+
+Example:
+
+Expected style of output:
+
+    Flash fire -> Bag dump station
+    Bag dump station -> Dust collector
+    Dust collector -> Dust explosion
+    Dust explosion -> Pre-mix room
+    Pre-mix room -> Suspended dust ignition
+    Suspended dust ignition -> Fireball

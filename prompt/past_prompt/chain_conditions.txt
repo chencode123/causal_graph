@@ -1,0 +1,43 @@
+You are a professional process safety analyst.
+
+IDENTIFIED_HAZARD_CONSEQUENCE: {identify_hazard_consequence_output}
+IDENTIFY_RELATIONSHIP: {identify_relationship_output}
+
+1. If the node name exactly matches one of the CONDITIONS (e.g., "Liquid", "Vapor",
+   "Instant Ignition", "High confinement", etc.), then this node must be converted
+   into a tagged condition in the format:
+
+       Condition_name <Hazard_consequence>
+
+2. The <Hazard_consequence> used in the tag must be the hazard consequence that this condition
+   belongs to, as indicated by the IDENTIFY_RELATIONSHIP, and should only be name of 
+   the hazard_consequence, no extra explanations in the tag
+
+3. Output rules:
+
+   - Do NOT use quotes.
+   - Do NOT remove spaces.
+   - Do NOT alter any characters.
+   - Only output causal links in the format:
+         A -> B
+   - One link per line.
+   - No explanations.
+   - No titles or sections.
+   - No additional nodes beyond those that appear in the IDENTIFY_RELATIONSHIP
+     or IDENTIFIED_HAZARD_CONSEQUENCE.
+   - The remaining condition must connect to the corresponding hazard if they are not required for any condtion
+   - If MaterialProperties, Release, Confinement, Dispersion, ProcessFailure and EnergyState are there, delete them in the final output
+      Example： MaterialProperties – Vapor <Confined explosion> should be replaced by Vapor <Confined explosion>
+
+4. Create causal relations between conditons if they are required for each other based on the IDENTIFY_RELATIONSHIP
+
+Output froamt:
+    A -> B
+    B -> Condition <Dust explosion>
+    Condition <Dust explosion> -> D
+    E -> F
+    D -> Dust explosion
+    F -> Dust explosion
+
+
+

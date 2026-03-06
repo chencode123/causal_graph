@@ -1,0 +1,67 @@
+
+{
+  "InitiatingEvent": {
+    What is the initiating event?
+  },
+  "Mechanical failure": {
+    What is the mechanical failure?
+  }
+},
+
+
+{
+  "Material": {
+    "name": "<REQUIRED: material name, e.g., 'VM&P Naphtha'>",
+
+    "phase": "Liquid | Vapor | Solid | TwoPhase",
+
+    "thermodynamic_state": {
+      "pressure": "Low | Atmospheric | High | Not specified",
+      "temperature": "Low | Atmospheric | High | Not specified"
+    },
+
+    "thermophysical_properties": {
+      "volatility": "Low | High"
+    },
+
+    "hazardous_properties": {
+      "chemical_combustible": "true|false",
+      "toxic_substance": "true|false",
+      "simple_asphyxiant": "true|false",
+      "chemical_asphyxiant": "true|false",
+      "corrosive": "true|false",
+      "oxidizing": "true|false",
+      "chemically_reactive": "true|false"
+    },
+
+    "electrical_properties": {
+      "conductivity": "Low | High",
+    },
+
+    "location": {
+      "name": "<equipment tag or free text, e.g., 'Tank-12'>"
+    }
+  }
+},
+
+# For the following question, you have to answer if the condition led to the corresponding hazard consequence first, 
+then you can answer their following questions
+{
+  "Release":{
+    "Continuous release | Instant release"
+  }
+}
+
+{
+  "Ignition": {
+    "Delayed Ignition | Instant Ignition",
+  },
+
+  "Confinement": {
+    "High confinement | Low confinement",
+  },
+
+  "Dispersion": [
+    "Dispersion",
+  ],
+}

@@ -1,0 +1,57 @@
+This prompt does not call the API.
+
+INPUT:
+A list of causal links in the format:
+A -> B
+
+TASK:
+
+1. Condition node identification:
+   - Any node that contains angle brackets "< >" is a condition node.
+   - The text inside the brackets represents the corresponding Hazard consequence.
+   - Example:
+         Liquid <Confined explosion>
+     means:
+         Condition node = Liquid
+         Hazard consequence = Confined explosion
+
+2. For EACH hazard consequence separately:
+
+   Step 1 — Identify all condition nodes that belong to that hazard.
+   Step 2 — Determine downstream relationships using the provided causal links.
+
+   A downstream node is defined as:
+      - Any node that appears on the right-hand side of a link originating from that condition.
+
+3. Terminal condition handling:
+
+   Case A:
+   If one or more condition nodes have NO downstream nodes,
+   then for EACH such condition, create a new causal link:
+
+         Condition <Hazard consequence> -> Hazard consequence
+
+   Case B:
+   If ALL condition nodes have at least one downstream node,
+   then:
+      - Identify the most downstream condition node(s).
+      - A most downstream condition is defined as:
+            A condition that does NOT directly lead to another condition.
+      - For EACH most downstream condition, create:
+
+            Condition <Hazard consequence> -> Hazard consequence
+
+4. Output rules:
+
+   - Only output causal links in the format:
+         A -> B
+   - One link per line.
+   - Do NOT modify existing links.
+   - Do NOT remove any links.
+   - Do NOT add explanations.
+   - Do NOT add new nodes beyond hazard consequence names.
+   - Preserve all original node text exactly as written.
+   - Do NOT alter spacing or characters.
+
+OUTPUT:
+Return the full updated set of causal links, including the newly created connections.

@@ -1,0 +1,8 @@
+# datasets
+dataset/
+
+# experiment outputs
+runs/
+
+# figures
+figures/

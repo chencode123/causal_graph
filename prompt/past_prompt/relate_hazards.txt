@@ -1,0 +1,43 @@
+You are a professional process safety analyst.
+
+IDENTIFIED_HAZARD_CONSEQUENCE: {identify_hazard_consequence_output}
+
+TASK:
+
+1. First, extract all individual hazard consequences as a numbered list.
+   - Do not merge or skip any item.
+   - Keep the original wording.
+
+2. Then check every possible ordered pair, and tell how many pairs do we have.
+   For N hazards, evaluate all pairs:
+   (H1 -> H2), (H1 -> H3), ..., (Hn -> H(n-1)).
+
+3. Determining whether hazard consequences are causally related
+   Hazard consequences are “causal” ONLY if BOTH are true:
+  - The previous assistant message states one hazard consequence appears BEFORE the other
+  - the condition is compulsory for the hazard consequence to happen
+
+4. If there is only one hazard, output exactly:
+   "There is only one hazard."
+
+OUTPUT FORMAT (just for reference):
+
+There are N × (N − 1) possible pairs
+
+A. Confined explosion -> Pool fire
+   - Causal? Yes/No
+   - Explanation: ...
+
+B. Confined explosion -> Fire ball
+   - Causal? Yes/No
+   - Explanation: ...
+
+C. Fire ball -> Confined explosion
+   - Causal? Yes/No
+   - Explanation: ...
+
+(Continue until all N × (N − 1) ordered pairs are assessed)
+
+- Do not skip any pair.
+- No extra commentary outside the required format.
+"""

@@ -1,0 +1,63 @@
+You are a professional process safety analyst.
+
+INPUT (JSON):
+
+CONDITIONS: {conditions_json}
+IDENTIFIED_CONDITION: {identify_condition_output}
+
+TASK
+
+1. The IDENTIFIED_CONDITION describes the causal relations between hazard consequences
+   and their associated causal conditions.
+
+2. For each CONDITION appearing in IDENTIFIED_CONDITION, identify which other CONDITIONS
+   in IDENTIFIED_CONDITION are required as causal precursors for its formation.
+   Explain why each precursor is necessary based strictly on the provided explanations.
+
+3. If a CONDITION does not require any other CONDITIONS to form, explicitly state that
+   it has no required precursor CONDITIONS.
+
+4. Do NOT explain or discuss CONDITIONS that do not appear in IDENTIFIED_CONDITION.
+
+5. Special rule on event-mediated causation (STRICT):
+
+   If CONDITION_A is causally linked to CONDITION_B only because CONDITION_A leads to
+   an upstream EVENT that directly causes CONDITION_B, then:
+
+   - You MUST explicitly point out that CONDITION_A and CONDITION_B are causally related
+     through the upstream EVENT, AND
+   - You MUST NOT list CONDITION_A as a direct precursor CONDITION of CONDITION_B.
+
+   In such cases, the causal relationship is considered to be mediated at the event level,
+   and no direct CONDITION–CONDITION linkage should be created.
+
+6. Do NOT invent new CONDITIONS, EVENTS, or causal relations.
+   All reasoning must be grounded in IDENTIFIED_CONDITION.
+
+OUTPUT FORMAT (STRICT)
+
+A. Hazard: <HAZARD_NAME>
+
+1. <CONDITION_1>
+- Required other CONDITIONS from IDENTIFIED_CONDITION:
+    - <CONDITION_2>
+      - Why: <EXPLANATION>
+    - <CONDITION_3>
+      - Why: <EXPLANATION>
+
+  OR, if none:
+  - No required precursor CONDITIONS
+    - Why: <EXPLANATION>
+
+2. <CONDITION_2>
+- Required other CONDITIONS from IDENTIFIED_CONDITION:
+    - <CONDITION_5>
+      - Why: <EXPLANATION>
+    - <CONDITION_6>
+      - Why: <EXPLANATION>
+
+  OR, if none:
+  - No required precursor CONDITIONS
+    - Why: <EXPLANATION>
+
+...

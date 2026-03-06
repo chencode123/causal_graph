@@ -1,0 +1,63 @@
+{
+    "nodes": [
+        {
+            "id": "REACTOR",
+            "type": "RSTOIC",
+            "P": 1.0,
+            "P_unit": "bar"
+        },
+        {
+            "id": "COOLER",
+            "type": "HEATER",
+            "T_out": 54,
+            "T_unit": "C"
+        },
+        {
+            "id": "SEP",
+            "type": "FLASH2",
+            "P_MPa": 0.0
+        }
+    ],
+    "streams": [
+        {
+            "id": "FEED",
+            "T_C": 105,
+            "P_MPa": 0.25,
+            "molar_flow": {
+                "PROPENE": 18,
+                "BENZENE": 18
+            }
+        },
+        {
+            "id": "REAC-OUT"
+        },
+        {
+            "id": "COOL-OUT"
+        },
+        {
+            "id": "PRODUCT"
+        }
+    ],
+    "edges": [
+        {
+            "src": "FEED",
+            "dst": "REACTOR",
+            "etype": "material"
+        },
+        {
+            "src": "REACTOR",
+            "dst": "COOLER",
+            "etype": "material"
+        },
+        {
+            "src": "COOLER",
+            "dst": "SEP",
+            "etype": "material"
+        },
+        {
+            "src": "SEP",
+            "dst": "PRODUCT",
+            "etype": "material"
+        }
+    ]
+}

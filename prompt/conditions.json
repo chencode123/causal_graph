@@ -1,0 +1,40 @@
+{
+  "MaterialProperties": [
+    "Chemical combustible",
+    "Liquid",
+    "Solid",
+    "Vapor",
+    "Toxic substance",
+    "simple asphyxiant",
+    "chemical asphyxiant"
+  ],
+  "Release": [
+    "Continuous release",
+    "Instant release"
+  ],
+  "Ignition": [
+    "Delayed Ignition",
+    "Instant Ignition",
+    "Pre-mixture"
+  ],
+  "Confinement": [
+    "High confinement",
+    "Low confinement"
+  ],
+  "Dispersion": [
+    "Dispersion",
+    "Vapor cloud formation"
+  ],
+  "ProcessFailure": [
+    "Mechanical Failure",
+    "Overflow"
+  ],
+  "EnergyState": [
+    "High pressure",
+    "Low pressure",
+    "High temperature",
+    "Low temperature",
+    "High vaporization",
+    "Low vaporization"
+  ]
+}

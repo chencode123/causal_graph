@@ -1,0 +1,27 @@
+You are a process safety analyst.
+
+INPUT (JSON):
+{process_json}
+
+Task:
+- The REACTOR suffers a mechanical failure.
+- Produce ONE consistent path: either (rupture → pressure drops toward ambient) OR (blockage → pressure rises).
+- Respect topology: REACTOR → COOLER → SEP → PRODUCT.
+- Use only IDs from the JSON.
+- Format: 5–8 lines, each "A causes B". Mark uncertain links with [assumption].
+- Do NOT say "0 bar"; say "toward ambient" for depressurization.
+
+Before printing, self-check:
+1) Is pressure trend consistent across steps?
+2) Does each effect follow the given topology?
+3) No invented equipment/streams or units.
+
+Output only the cause-effect chain.
+
+FORMAT (strict):
+A causes B
+B causes C
+C causes D
+(Only the chain, no extra text.)
+
+BEGIN:

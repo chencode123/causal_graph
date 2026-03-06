@@ -1,0 +1,245 @@
+[
+    {
+        "Hazard": "VCE_liquid_continuous",
+        "Scenarios": [
+            "High vaporization causes Vapor cloud formation",
+            "Pre-mixture causes Vapor cloud formation",
+            "Liquid causes High vaporization",
+            "Continuous release causes Vapor cloud formation",
+            "Vapor cloud formation causes VCE",
+            "Mechanical Failure causes Continuous release",
+            "Chemical combustible causes Delayed Ignition",
+            "High confinement causes VCE",
+            "Delayed Ignition causes VCE"
+        ]
+    },
+    {
+        "Hazard": "VCE_vapor_continuous",
+        "Scenarios": [
+            "Continuous release causes Vapor cloud formation",
+            "High confinement causes VCE",
+            "Delayed Ignition causes VCE",
+            "Pre-mixture causes Vapor cloud formation",
+            "Vapor causes Vapor cloud formation",
+            "Chemical combustible causes Delayed Ignition",
+            "Vapor cloud formation causes VCE",
+            "Mechanical Failure causes Continuous release"
+        ]
+    },
+    {
+        "Hazard": "VCE_liquid_instant",
+        "Scenarios": [
+            "Vapor cloud formation causes VCE",
+            "Liquid causes High vaporization",
+            "High confinement causes VCE",
+            "Mechanical Failure causes Instant release",
+            "Instant release causes Vapor cloud formation",
+            "Chemical combustible causes Delayed Ignition",
+            "High vaporization causes Vapor cloud formation",
+            "Pre-mixture causes Vapor cloud formation",
+            "Delayed Ignition causes VCE"
+        ]
+    },
+    {
+        "Hazard": "VCE_vapor_instant",
+        "Scenarios": [
+            "Pre-mixture causes Vapor cloud formation",
+            "Vapor cloud formation causes VCE",
+            "Mechanical Failure causes Instant release",
+            "Vapor causes Vapor cloud formation",
+            "Instant release causes Vapor cloud formation",
+            "Chemical combustible causes Delayed Ignition",
+            "High confinement causes VCE",
+            "Delayed Ignition causes VCE"
+        ]
+    },
+    {
+        "Hazard": "BLEVE",
+        "Scenarios": [
+            "High vaporization causes BLEVE",
+            "High pressure causes BLEVE",
+            "Liquid causes BLEVE",
+            "High temperature causes BLEVE",
+            "Mechanical Failure causes BLEVE"
+        ]
+    },
+    {
+        "Hazard": "Dust_explosion",
+        "Scenarios": [
+            "Dispersion causes Dust explosion",
+            "Instant Ignition causes Dust explosion",
+            "Chemical combustible causes Instant Ignition",
+            "Chemical combustible causes Dispersion",
+            "High confinement causes Dust explosion",
+            "Mechanical failure causes Dust explosion",
+            "Solid causes Dust explosion"
+        ]
+    },
+    {
+        "Hazard": "Dust_explosion",
+        "Scenarios": [
+            "Delayed Ignition causes Dust explosion",
+            "Solid causes Dust explosion",
+            "Dispersion causes Dust explosion",
+            "High confinement causes Dust explosion",
+            "Chemical combustible causes Delayed Ignition",
+            "Chemical combustible causes Dispersion",
+            "Mechanical failure causes Dust explosion"
+        ]
+    },
+    {
+        "Hazard": "Pool_fire_mechanical_failure",
+        "Scenarios": [
+            "Liquid causes Pool fire",
+            "Mechanical failure causes Pool fire",
+            "Ignition causes Pool fire",
+            "Chemical combustible causes Ignition",
+            "Low pressure causes Pool fire"
+        ]
+    },
+    {
+        "Hazard": "jet_fire_liquid",
+        "Scenarios": [
+            "Chemical combustible causes Instant ignition",
+            "High pressure causes Jet fire",
+            "High pressure causes Continuous release",
+            "Liquid causes Jet fire",
+            "Mechanical failure causes Jet fire",
+            "Instant ignition causes Jet fire",
+            "Continuous release causes Jet fire"
+        ]
+    },
+    {
+        "Hazard": "Pool_fire_overflow",
+        "Scenarios": [
+            "Ignition causes Pool fire",
+            "Liquid causes Pool fire",
+            "Chemical combustible causes Ignition",
+            "Low pressure causes Pool fire",
+            "Overflow causes Pool fire"
+        ]
+    },
+    {
+        "Hazard": "fire_ball",
+        "Scenarios": [
+            "Chemical combustible causes Instant ignition",
+            "Instant ignition causes Fire ball",
+            "High vaporization causes Fire ball",
+            "Mechanical failure causes Fire ball",
+            "Instant release causes Fire ball",
+            "Liquid causes High vaporization",
+            "High pressure causes Fire ball",
+            "High pressure causes Instant release"
+        ]
+    },
+    {
+        "Hazard": "jet_fire_vapor",
+        "Scenarios": [
+            "Instant ignition causes Jet fire",
+            "High pressure causes Jet fire",
+            "High pressure causes Continuous release",
+            "Vapor causes Jet fire",
+            "Chemical combustible causes Instant ignition",
+            "Mechanical failure causes Jet fire",
+            "Continuous release causes Jet fire"
+        ]
+    },
+    {
+        "Hazard": "flash_fire_liquid",
+        "Scenarios": [
+            "Mechanical Failure causes Instant release",
+            "Liquid causes High vaporization",
+            "Instant release causes Vapor cloud formation",
+            "None confinement causes Flash fire",
+            "High vaporization causes Vapor cloud formation",
+            "Delayed Ignition causes Flash fire",
+            "Vapor cloud formation causes Flash fire",
+            "Pre-mixture causes Vapor cloud formation",
+            "Chemical combustible causes Delayed Ignition"
+        ]
+    },
+    {
+        "Hazard": "flash_fire_vapor",
+        "Scenarios": [
+            "Delayed Ignition causes Flash fire",
+            "Mechanical Failure causes Instant release",
+            "Vapor cloud formation causes Flash fire",
+            "Instant release causes Vapor cloud formation",
+            "Vapor causes Vapor cloud formation",
+            "Chemical combustible causes Delayed Ignition",
+            "None confinement causes Flash fire",
+            "Pre-mixture causes Vapor cloud formation"
+        ]
+    },
+    {
+        "Hazard": "flash_fire_vapor",
+        "Scenarios": [
+            "None confinement causes Flash fire",
+            "Chemical combustible causes Delayed Ignition",
+            "Continuous release causes Vapor cloud formation",
+            "Vapor cloud formation causes Flash fire",
+            "Mechanical Failure causes Continuous release",
+            "Pre-mixture causes Vapor cloud formation",
+            "Delayed Ignition causes Flash fire",
+            "Vapor causes Vapor cloud formation"
+        ]
+    },
+    {
+        "Hazard": "flash_fire_liquid",
+        "Scenarios": [
+            "Vapor cloud formation causes Flash fire",
+            "High vaporization causes Vapor cloud formation",
+            "None confinement causes Flash fire",
+            "Chemical combustible causes Delayed Ignition",
+            "Continuous release causes Vapor cloud formation",
+            "Liquid causes High vaporization",
+            "Delayed Ignition causes Flash fire",
+            "Pre-mixture causes Vapor cloud formation",
+            "Mechanical Failure causes Continuous release"
+        ]
+    },
+    {
+        "Hazard": "toxicity_vapor_mechanical_failure",
+        "Scenarios": [
+            "Mechanical failure causes Toxicity",
+            "Vapor causes Toxicity",
+            "Dispersion causes Toxicity",
+            "Toxic substance causes Toxicity"
+        ]
+    },
+    {
+        "Hazard": "toxicity_liquid_mechanical_failure",
+        "Scenarios": [
+            "Dispersion causes Toxicity",
+            "Toxic substance causes Toxicity",
+            "High vaporization causes Toxicity",
+            "Liquid causes High vaporization",
+            "Mechanical failure causes Toxicity"
+        ]
+    },
+    {
+        "Hazard": "toxicity_vapor_overflow",
+        "Scenarios": [
+            "Toxic substance causes Toxicity",
+            "Vapor causes Toxicity",
+            "Dispersion causes Toxicity",
+            "Overflow causes Toxicity"
+        ]
+    },
+    {
+        "Hazard": "toxicity_liquid_overflow",
+        "Scenarios": [
+            "Liquid causes High vaporization",
+            "Toxic substance causes Toxicity",
+            "Dispersion causes Toxicity",
+            "Overflow causes Toxicity",
+            "High vaporization causes Toxicity"
+        ]
+    },
+    {
+        "Hazard": "Normal",
+        "Scenarios": [
+            "Normal causes Normal"
+        ]
+    }
+]

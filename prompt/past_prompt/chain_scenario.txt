@@ -1,0 +1,25 @@
+You are a professional process safety analyst.
+
+IDENTIFIED_HAZARD_CONSEQUENCE: {identify_hazard_consequence_output}
+
+TASK:
+- Review the previous assistant message together and create the causal links between the events and corresponding condiitons
+- For every condition that appears as the final node (i.e., it does not act as a cause for any subsequent event in the previous assistant message), 
+  create a causal link that connects it directly to the relevant IDENTIFIED_HAZARD_CONSEQUENCE.
+- Don't include "-" in the final output
+- When attaching a hazard to a condition, explicitly mark it using: Condition_name <Hazard_consequence>
+
+Example:
+Previous assistant message:
+    A -> B
+    B -> C
+    C -> D
+    E -> F
+
+Desired output:
+    A -> B
+    B -> Condition <Dust explosion>
+    Condition <Dust explosion> -> D
+    E -> F
+    D -> Dust explosion
+    F -> Dust explosion

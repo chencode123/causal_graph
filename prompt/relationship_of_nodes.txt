@@ -1,0 +1,74 @@
+You are a professional process safety analyst.
+
+INPUT (JSON):
+
+CONDITIONS: {conditions_json}
+CHAIN_EVENTS: {chain_events_output}
+IDENTIFIED_EVIDENCE: {identify_evidence_output}
+
+TASK
+1. IDENTIFIED_EVIDENCE describes the details of the hazard consequences and
+   their causal conditions. CHAIN_EVENTS represent explicit causal relations
+   between nodes.
+
+2. In CHAIN_EVENTS, every element that appears on either side of an arrow ("→")
+   MUST be treated as a valid node, regardless of its semantic type.
+    -Example from CHAIN_EVENTS:
+
+        Vapor:
+        - VM&P naphtha vapor → Tank headspace above liquid
+        - Tank headspace above liquid → Vapor
+
+        In this example:
+        - "VM&P naphtha vapor", "Tank headspace above liquid", 
+            "Tank headspace above liquid" and "Vapor" are nodes,
+
+3. Use IDENTIFIED_EVIDENCE as the reference.
+    Definition of condition nodes:
+        A node can be classified as a Condition node ONLY if its name exactly matches
+        an entry in the predefined CONDITIONS list.
+
+   For each condition node which explicitly described in IDENTIFIED_EVIDENCE:
+   a. Identify the downstream outcome node(s) of the condition node based on CHAIN_EVENTS.
+   b. Explain why each outcome node is considered relevant, using evidence from IDENTIFIED_EVIDENCE.
+
+4. If the condition doesn't need any other nodes to form it, please point it out
+
+5. All the remianing nodes which are identified as not related shoud be listed and explain why
+
+6. Output format
+A. Hazard: <HAZARD_NAME>
+
+1.<CONDITION_1>
+    
+    Outcome nodes
+    - <NODE_2>
+    - Why: <EXPLANATION>
+    - <NODE_3>
+    - Why: <EXPLANATION>
+    - ...
+
+    Not related nodes
+    - <NODE_4>
+    - Why: <EXPLANATION>
+    - <NODE_5>
+    - Why: <EXPLANATION>
+    - ...
+
+2.<CONDITION_2>
+
+    Outcome nodes
+    - <NODE_5>
+    - Why: <EXPLANATION>
+    - <NODE_6>
+    - Why: <EXPLANATION>
+    - ...
+
+    Not related nodes
+    - <NODE_7>
+    - Why: <EXPLANATION>
+    - <NODE_8>
+    - Why: <EXPLANATION>
+    - ...
+
+...

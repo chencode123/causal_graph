@@ -1,0 +1,57 @@
+You are a process safety analyst.
+
+INPUT:
+SCENARIO: {scenario_json}
+
+RULES:
+{rule_json}
+
+Let's think step by step:
+
+1. Based on SCENARIO, list all possible deviations.
+   - Classify them by type:
+     - Mechanical (e.g. equipment rupture, leak, corrosion)
+     - Thermal (e.g. overheating, vaporization)
+     - Chemical (e.g. combustible composition, reaction)
+     - Environmental (e.g. confinement, ventilation, air ingress)
+     - Operational (e.g. continuous feed, ignition source in distance)
+
+2. For each deviation, infer its most direct physical effect within the process.
+   - Example: FEED causes Propane; Propane causes 1 bar, 378 K (vapor state)
+   - The effect should be a physically meaningful state or condition.
+
+3. Continue chaining the effects forward until one or more nodes defined in RULES are reached.
+   - Example: FEED causes Propane; Propane causes 1 bar, 378 K vapor
+   - Use RULES as a reference list of required phenomena or states.
+
+4. When a RULE node is reached, continue chaining forward toward the final hazard outcome.
+   - Example: FEED causes Propane; Propane causes 1 bar, 378 K Vapor; Vapor causes Vapor cloud formation; Vapor cloud formation causes VCE
+   - Example: FEED causes Propane; Propane causes 1 bar, 378 K Vapor; Vapor causes Vapor cloud formation; Vapor cloud formation causes Flash fire
+
+5. After generating all candidate chains, examine which one (or combination) satisfies **all rule nodes** of the selected hazard.
+   - Each rule node from RULES must appear at least once in the final scenario.
+   - Each rule node must have a valid physical cause and effect connection.
+   - The final hazard scenario is the one that fully covers the hazard’s rule set.
+
+6. Connect parallel or converging paths when physically meaningful:
+   - Multiple causes may lead to the same effect.
+   - One effect may trigger several outcomes.
+
+7. Incorporate environmental and ignition conditions explicitly:
+   - Indoor plant -> High confinement
+   - Air ingress -> Pre-mixture
+   - Ignition source in distance -> Delayed ignition
+
+8. Ensure all nodes are concise, physically meaningful phrases.
+   Use format: A causes B
+
+9. Output only the complete list of cause–effect statements, one per line.
+    Do not add explanations, summaries, or numbering.
+
+
+OUTPUT (strict):
+- The output must correspond to only one hazard chain.
+A causes B
+B causes C
+D causes C
+...

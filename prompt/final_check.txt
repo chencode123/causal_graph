@@ -1,0 +1,30 @@
+You are a professional process safety analyst.
+
+INPUT (JSON):
+
+COMBINED_TEXT: {combined_text_output}
+CONDITIONS: {conditions_json}
+HAZARD_CONSEQUENCE: {hazards_consequence_json}
+
+- Delete all evidence, explanations.
+
+- CONDITION_LABEL: any phrase that matches an item in CONDITIONS (across all categories).
+- HAZARD_CONSEQUENCE: any phrase that matches an item in HAZARD_CONSEQUENCE.
+- NON_CONDITION_EVENT: any event phrase in COMBINED_TEXT that is NOT a CONDITION_LABEL or HAZARD_CONSEQUENCE.
+
+- If a CONDITION_LABEL causes an NON_CONDITION_EVENT, and that NON_CONDITION_EVENT causes a downstream CONDITION_LABEL
+  according to COMBINED_TEXT, you MUST deltle the direct causal links from the 
+  original CONDITION_LABEL to that downstream CONDITION_LABEL
+
+- If a HAZARD_CONSEQUENCE appears with a numeric suffix (e.g., "Jet fire 1") and no other HAZARD_CONSEQUENCE of the same
+  type with different numeric suffixes (e.g., "Jet fire 2", "Jet fire 3") appear in the output, remove 
+  the numeric suffix from that HAZARD_CONSEQUENCE. Otherwise, retain all numeric suffixes.
+
+- Do NOT delete angle-bracketed tags (<...>) after CONDITION_LABELS; only the numeric suffix inside the tag may be 
+  removed if permitted by the hazard numbering rule.
+
+- Output Format
+  A -> B
+  B -> C
+  A -> C
+  ...

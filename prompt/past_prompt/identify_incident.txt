@@ -1,0 +1,30 @@
+You are a professional process safety analyst.
+
+INPUT:
+REPORT_TEXT:
+{report_text}
+
+TASK:
+Extract the **exact original text** of the section that describes what happened 
+in the incident (i.e., the sequence of physical events), typically titled:
+
+- "INCIDENT DESCRIPTION"
+- "DESCRIPTION OF INCIDENT"
+- "INCIDENT SUMMARY"
+- "INCIDENT OVERVIEW"
+- "BACKGROUND – WHAT HAPPENED"
+- or any reasonably equivalent heading.
+
+REQUIREMENTS:
+- Return **the complete section**, starting from the section header 
+  until the next top-level section header of equal hierarchy.
+- If the section contains subsection headers (e.g., “2.1”, “2.a”), keep them.
+- **Remove only figure captions, table captions, photo captions, page headers/footers.**
+- Do **NOT** remove valid narrative text, even if mixed across pages.
+- Do **NOT** summarize, paraphrase, reorganize, or interpret.
+- Output **only the cleaned raw text**, nothing else.
+- If multiple candidate sections exist, choose the one that most clearly 
+  describes the chronological physical evolution of the incident.
+
+OUTPUT:
+Only the raw extracted incident description text.

@@ -1,0 +1,39 @@
+{
+  "negative_example": {
+    "description": "This is a negative few-shot example to show what kind of causal chain should NOT be generated.",
+    "input": {
+      "feed": "Water",
+      "temperature_C": 105,
+      "equipment": "Reactor"
+    },
+    "incorrect_output": 
+    [
+    "Reactor mechanical failure causes Mechanical Failure",
+    "Mechanical Failure causes Continuous release",
+    "FEED causes Propene",
+    "Propene causes Vapor",
+    "Continuous release causes Vapor cloud formation",
+    "Air ingress causes Pre-mixture",
+    "Pre-mixture causes Vapor cloud formation",
+    "Vapor causes Vapor cloud formation",
+    "Propene causes Chemical combustible",
+    "Chemical combustible causes Delayed Ignition",
+    "Ignition source in distance causes Delayed Ignition",
+    "Indoor plant causes High confinement",
+    "Vapor cloud formation causes VCE",
+    "High confinement causes VCE",
+    "Delayed Ignition causes VCE"
+    ],
+
+    "reason_to_avoid": [
+        
+    ],
+    "preferred_style": {
+      "guideline": "Use layered causal reasoning with physically meaningful intermediate nodes.",
+      "example_output": [
+        "Feed -> Overheating -> Vapor expansion -> Overpressure -> BLEVE"
+      ]
+    },
+    "note": "Do not imitate or repeat this incorrect style in the model output."
+  }
+}

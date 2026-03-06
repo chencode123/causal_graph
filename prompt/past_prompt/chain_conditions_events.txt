@@ -1,0 +1,98 @@
+You are a professional process safety analyst.
+
+INPUTS:
+IDENTIFIED_HAZARD_CONSEQUENCE: {identify_hazard_consequence_output}
+IDENTIFY_RELATIONSHIP: {identify_relationship_output}
+CHAIN_EVENTS_OUTPUT: {chain_events_output}
+CONDITION: {conditions_json}
+
+TASKS:
+
+1. Condition tagging (STRICT)
+   - If a node name exactly matches one of the CONDITION
+     (e.g., "Liquid", "Vapor", "Instant Ignition", "High confinement", etc.),
+     that node MUST be converted into a tagged condition in the following format:
+
+         Condition_name <Hazard_consequence>
+
+   - The <Hazard_consequence> in the tag MUST be the name of the hazard consequence
+     that this condition belongs to, as indicated in IDENTIFY_RELATIONSHIP.
+   - The tag MUST contain ONLY the hazard consequence name.
+     No explanations, no additional text.
+
+2. Causal connection generation (STRICT AND COMPLETE)
+   - ALL causal links MUST be created STRICTLY based on IDENTIFY_RELATIONSHIP.
+   - You MUST reproduce every causal relationship implied by IDENTIFY_RELATIONSHIP,
+     only including:
+        • condition -> condition
+        • condition -> event
+        • condition -> hazard consequence
+   - You MUST NOT limit causal connections to conditions only.
+   - If IDENTIFY_RELATIONSHIP indicates that two nodes are causally related,
+     you MUST create a corresponding causal link, even if neither node is a condition.
+
+3. Condition-to-condition relationships
+   - If IDENTIFY_RELATIONSHIP shows that one condition is required for,
+     enables, or directly causes another condition, you MUST create
+     a causal link between those conditions.
+
+4. Node cleanup and normalization (STRICT)
+   - If the following category labels appear as prefixes, they MUST be removed
+     in the final output:
+        MaterialProperties
+        Release
+        Confinement
+        Dispersion
+        ProcessFailure
+        EnergyState
+   - Example:
+        MaterialProperties – Vapor <Confined explosion>
+     MUST be output as:
+        Vapor <Confined explosion>
+
+5. Upstream exclusion rule based on CHAIN_EVENTS_OUTPUT (STRICT)
+  - Before determining any “directly caused” relationship, use CHAIN_EVENTS_OUTPUT 
+    to check topological direction.
+  - For a given condition C, any event or condition X that appears as an upstream node of 
+    C in CHAIN_EVENTS_OUTPUT (i.e., there exists a directed path X -> … -> C) is STRICTLY 
+    FORBIDDEN to be listed as directly caused by C.
+  - CHAIN_EVENTS_OUTPUT is used only for upstream exclusion, not as positive causal evidence.
+  - After excluding all upstream nodes, determine direct causation ONLY based on IDENTIFIED_CONDITION.
+  - All selected events must still:
+    appear verbatim in CHAIN_EVENTS_OUTPUT,
+    and all selected conditions must exactly match entries in CONDITION.
+
+6. Downstream usage rule (STRICT):
+
+  A condition MUST connect to the corresponding hazard consequence
+  ONLY IF it has NO downstream nodes at all.
+
+  A downstream node is defined as:
+  - any event node, OR
+  - any condition node, OR
+  - the hazard consequence itself
+
+  If a condition directly causes at least one downstream event or condition,
+  it MUST NOT additionally connect to the hazard consequence.
+
+
+7. Output rules (ZERO EXCEPTIONS):
+
+   - Only output causal links in the format:
+         A -> B
+         A -> B -> C is not allowed
+   - No explanations.
+   - No additional nodes beyond those that appear in the IDENTIFY_RELATIONSHIP
+     or IDENTIFIED_HAZARD_CONSEQUENCE.
+   - The remaining condition must connect to the corresponding hazard if they are not required for any condtion OR any event.
+
+OUTPUT FORMAT:
+
+A -> B
+B -> Condition <Dust explosion>
+Condition <Dust explosion> -> D
+E -> F
+D -> Dust explosion
+F -> Dust explosion
+
+######################tell the model A -> B -> C is not allowed

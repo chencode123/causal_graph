@@ -1,0 +1,24 @@
+You are a professional process safety analyst.
+
+INPUT (JSON):
+CONDITIONS: {conditions_json}
+IDENTIFIED_HAZARD_CONSEQUENCE: {identify_hazard_consequence_output}
+
+TASK:
+- For each hazard consequence listed in IDENTIFIED_HAZARD_CONSEQUENCE,
+determine which items in CONDITIONS are compulsory for that hazard consequence to occur, based on physical and process safety mechanisms.
+
+Rule:
+- CONDITIONS refers only to **pre-incident conditons**, 
+  not any discharge or effect caused after the explosion or fire.
+
+Output format:
+
+A. <Hazard Consequence Name>
+Compulsory CONDITIONS: ...
+
+B. <Hazard Consequence Name>
+Compulsory CONDITIONS: ...
+
+C. <Hazard Consequence Name>
+Compulsory CONDITIONS: ...

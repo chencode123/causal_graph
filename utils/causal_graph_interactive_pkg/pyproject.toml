@@ -1,0 +1,14 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "causal-graph-interactive"
+version = "0.1.0"
+description = "Static Graphviz + Interactive Cytoscape.js HTML causal graphs from arrow-line chains"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = ["graphviz>=0.20.0"]
+
+[tool.setuptools]
+packages = ["causal_graph_interactive"]

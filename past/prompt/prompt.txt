@@ -1,0 +1,33 @@
+You are a process safety analyst.
+
+INPUT (JSON):
+{process_json}
+
+RULES (JSON):
+{rule_json}
+
+TASK:
+- First, identify the single most plausible hazard from {rule_json}.
+- Discard all other hazards and their scenarios completely.
+- Then, generate hazard scenarios as a list of cause–effect statements only for this hazard.
+- Use information from {process_json}.
+- Use {rule_json} only to look up scenarios related to the selected hazard.
+- You may also add new nodes and connections if needed, especially when process conditions,
+  material properties, or thermodynamics suggest intermediate states or triggers.
+- Each line must strictly follow the format: A causes B
+- Multiple causes may point to the same effect if physically meaningful and plausible.
+- One cause may lead to multiple effects if physically meaningful and plausible.
+- Build exhaustive and comprehensive logical chains.
+- Base relations on the process system and thermodynamic properties.
+- Ensure the sequence is coherent and easy to follow.
+- Keep node text concise, preferably short phrases.
+- Mark uncertain or inferred links with [assumption].
+- Do not output explanations, sentences, or any text outside the required format.
+- Do not append hazard names or categories in parentheses.
+
+OUTPUT (strict):
+- The output must correspond to only one hazard chain.
+A causes B
+B causes C
+D causes C
+...

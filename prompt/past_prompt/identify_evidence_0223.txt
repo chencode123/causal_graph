@@ -1,0 +1,112 @@
+You are a professional process safety analyst.
+
+INPUT (JSON):
+IDENTIFIED_CONDITION: {identify_condition_output}
+INCIDENT_DESCRIPTION: {identify_incident_output}
+CONDITION: {conditions_json}
+
+TASK:
+
+1. You MUST iterate over every hazard section explicitly labeled with a letter
+    (A., B., C., D., etc.) in IDENTIFIED_CONDITION.
+
+    For EACH labeled hazard section (A, B, C, D, ...):
+    - Produce exactly ONE numbered "Hazard:" section in the output.
+    - Use the same hazard name as written in that labeled section.
+
+    Do NOT stop after processing A.
+    Continue until ALL labeled sections (A, B, C, D, ...) are covered.
+
+    Your output is incomplete if any labeled hazard section is missing.
+
+2. Followed are the questions:
+    1. Material Properties:
+        - What are the materials?
+        - Where are they located (equipment or area)?
+        - Explain the physicochemical properties of the material that make it capable of supporting this material property.
+
+
+        For each CONDITION:
+
+        - Material_id:
+            Provide a normalized identifier of the physical substance.
+            Use uppercase snake_case.
+            Do NOT include phase, classification, or descriptive modifiers.
+            If multiple condition blocks refer to the same substance,
+            the Material_id MUST be identical across blocks.
+            
+        - Location:
+        - Physicochemical_properties:
+
+    2. Release:
+        - What caused the release?
+        - Where are they located (equipment or area)?
+        - Explain the physical failure mechanism and release dynamics that define this event as a instant or continuous release.
+
+    3. Ignition:
+        If the condition is delyed or instant ignition, answer the following questions:
+            - What was the ignition source?
+            - Where did the ignition occur (equipment or area)?
+            - Explain the time-scale relationship that determines whether the ignition is instant or delayed.
+            
+        If the condition is pre-mixture, answer the following questions:
+            - What substances were already mixed prior to ignition?
+            - Where did the pre-mixed condition exist (equipment or area)?
+            - Explain how it satisfies the definition of a pre-mixed condition.
+
+
+    4. Confinement:
+        - What is the equipment or location?
+        - Explain how the physical boundaries, enclosure geometry, or pressure-retaining characteristics of this environment affect pressure buildup and confinement level.
+
+    5. Dispersion:
+        - Where did dispersion begin (equipment or area)?
+        - Explain the fluid dynamic or thermodynamic mechanisms that caused the material to spread or disperse from its source.
+
+    6. Process Failure:
+        - What is the process failure?
+        - Where did the failure occur?
+        - Explain the mechanical, thermal, chemical, or operational factors that led to this process failure.
+
+    7. Energy State:
+        - What are the materials involved?
+        - Where are they located (equipment or place)?
+        - Explain the thermodynamic or pressure-energy characteristics that define this state as the specified energy condition.
+
+3. IDENTIFIED_CONDITION have some causal conditions, answer only the corresponding question to those
+ causal conditions based on its category based on the INCIDENT_DESCRIPTION.
+
+4. The category of the conditions can be find in the CONDITIONS
+
+Output format
+    Follow exactly:
+
+    1. Hazard: <Hazard consequence>
+
+        Leading conditions:
+
+            - <Condition>:
+                Evidence: <Sentence(s) copied ONLY from IDENTIFIED_INCIDENT>
+                Explanation:
+                    - <Category-specific required fields>  
+
+            - <Condition>:
+                Evidence: <Sentence(s) copied ONLY from IDENTIFIED_INCIDENT>
+                Explanation:
+                    - <Category-specific required fields>  
+
+    2. Hazard: <Hazard consequence>
+        Leading conditions:
+
+            - <Condition>:
+                Evidence: <Sentence(s) copied ONLY from IDENTIFIED_INCIDENT>
+                Explanation:
+                    - <Category-specific required fields>  
+
+            - <Condition>:
+                Evidence: <Sentence(s) copied ONLY from IDENTIFIED_INCIDENT>
+                Explanation:
+                    - <Category-specific required fields>  
+
+    3. Hazard: <Hazard consequence>
+    ...
