@@ -1,8 +1,12 @@
 {
-  "hazard_consequence": {
-    "type": "HazardConsequence",
-    "label": "VCE | BLEVE | Dust explosion | Confined explosion | Pool fire | Jet fire | Fire ball | Flash fire | Toxicity dispersion | Asphyxiation",
-    "evidence": "short quote from the report"
+  "hazard_consequence_node": {
+      "label": "HazardConsequence",
+      "name": "VCE | BLEVE | Dust explosion | Confined explosion | Pool fire | Jet fire | Fire ball | Flash fire | Toxicity dispersion | Asphyxiation",
+      "node_id": "H#",
+      "node_type": "HazardConsequence",
+      "evidence": "string",
+      "explanation": "string",
+      "source": "incident_description | Not specified"
   },
   "explanation": {
     "reasoning": "brief explanation",
@@ -14,3 +18,4 @@
     ]
   }
 }
+

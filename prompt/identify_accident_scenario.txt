@@ -27,7 +27,7 @@ EXTRACTION RULES
 
 1. Use the incident description as the primary source of information.
 
-2. The hazard_consequence must match the label provided in IDENTIFIED_HAZARD_CONSEQUENCE.
+2. The hazard_consequence must copy the node provided in IDENTIFIED_HAZARD_CONSEQUENCE.
  
 3. Evidence must be a short quote copied directly from the incident description whenever possible.
 
@@ -37,7 +37,7 @@ EXTRACTION RULES
 
 6. When determining the hazardous material, select the material that most directly drives the hazard consequence.
 
-7. For material properties such as volatility, conductivity, toxicity, and combustibility, authoritative chemical knowledge sources may be used if the information is not explicitly stated in the incident description.
+7. For some nodes, if the sources are only official_source and not_specified, replace use the official source showed in the SCHEMA_DEFINITION.
 
 8. The initiating event should represent the earliest abnormal condition that begins the accident sequence.
 

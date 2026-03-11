@@ -1,61 +1,198 @@
 SCHEMA DEFINITION
 
-The output must follow the provided JSON schema. Each field has a specific meaning.
+The output must strictly follow the provided JSON schema. Each field has a specific meaning and must be filled according to the rules below.
 
-General rules
+General Rules
 
 Evidence
 
-Evidence must be a short quote copied directly from the source
-that supports the extracted value.
+The "evidence" field must contain a short quote copied directly from the source that supports the extracted value.
 
-If source = incident_description
-Evidence must be copied directly from the incident report.
+If source = "incident_description":
+The evidence must be copied verbatim from the incident report text.
 
-If source = official_source
-Evidence must be copied directly from the authoritative knowledge source
-such as SDS, PubChem, or NIST.
-
-Do not invent or paraphrase evidence.
-
-If evidence cannot be found, use "Not specified", Set the evidence as N/A.
-
-Source
-
-incident_description
-Information directly extracted from the incident report text.
-
-official_source
-Information derived from authoritative chemical knowledge sources.
-Typical sources include:
-
-• Safety Data Sheets
+If source = "official_source":
+The evidence must be copied verbatim from an authoritative knowledge source, such as:
+• Safety Data Sheets (SDS)
 • PubChem chemical database
 • NIST Chemistry WebBook
 • NFPA chemical hazard references
 • CCPS process safety literature
-如果确定使用official source，就将official_source替换为以上的来源名
 
-Not specified
-Used when the information cannot be determined from the report or reliable knowledge sources.
+In this case, replace the string "official_source" with the specific source name (e.g., "PubChem", "NIST", "SDS").
 
+Do not invent, paraphrase, or infer evidence.
+
+If no supporting evidence can be found, set:
+evidence = "N/A"
+source = "Not specified".
+
+Source
+
+The "source" field indicates where the information was obtained, the allowed source are listed in each nodes.
+
+Allowed values:
+
+incident_description  
+Information directly extracted from the incident report.
+
+official_source  
+Information obtained from authoritative chemical knowledge sources (e.g., SDS, PubChem, NIST, NFPA, CCPS).
+
+Not specified  
+Used when the information cannot be determined from the incident report or reliable external knowledge sources.
+
+Node ID
+
+Each node must include a `node_id`, which serves as a unique identifier in the graph.
+
+The `node_id` must follow the prefix corresponding to the node type:
+
+- H#  → HazardConsequence nodes
+- En# → Entity nodes
+- C#  → Condition nodes
+- Ev# → Event nodes
+
+Where # is a sequential integer starting from 1 within each node category.
+
+Examples:
+H1, En1, C1, Ev1
+
+Rules:
+- Each node must have exactly one `node_id`.
+- All `node_id` values must be unique within the output.
+- The prefix must match the node's `node_type`.
+- Do not invent other ID formats.
+- The `node_id` is only an identifier and must not contain semantic meaning.
 
 --------------------------------------------------
-hazard_consequence
+Material
 --------------------------------------------------
 
 Definition
-The final hazardous outcome of the accident scenario such as fire, explosion, toxic release, or asphyxiation.
+The hazardous substance involved in the accident scenario.
+
+This refers to the chemical or material present in the process that participates in the release, dispersion, ignition, or hazard consequence.
 
 
 --------------------------------------------------
-InitiatingEvent
+Location
 --------------------------------------------------
 
 Definition
-The first observable abnormal event that initiates the accident sequence.
+The physical place or equipment where the accident-related event occurs.
 
-This represents the earliest operational deviation or condition that starts the chain of events leading to the accident.
+This may include process units, storage tanks, pipelines, packaging areas, or other facility locations relevant to the accident.
+
+
+--------------------------------------------------
+Phase
+--------------------------------------------------
+
+Definition
+The physical phase of the material at the time of the accident.
+
+This condition describes whether the material exists as liquid, vapor, solid, or a two-phase mixture, which can influence release behavior and hazard consequences.
+
+
+--------------------------------------------------
+Temperature
+--------------------------------------------------
+
+Definition
+The temperature condition of the material or environment during the accident scenario.
+
+Temperature can affect vapor generation, chemical stability, and the likelihood of ignition or hazardous reactions.
+
+
+--------------------------------------------------
+Volatility
+--------------------------------------------------
+
+Definition
+The tendency of a substance to vaporize.
+
+High volatility substances can easily form flammable or toxic vapor clouds that may contribute to explosion or dispersion hazards.
+
+
+--------------------------------------------------
+Combustibility
+--------------------------------------------------
+
+Definition
+Whether the material is capable of burning in the presence of an ignition source.
+
+Combustible materials can participate in fires or explosions when mixed with air and exposed to ignition.
+
+
+--------------------------------------------------
+ToxicSubstance
+--------------------------------------------------
+
+Definition
+Whether the material has toxic properties that can cause harm to humans or the environment.
+
+Toxic substances may produce hazardous exposure through vapor dispersion or direct contact.
+
+
+--------------------------------------------------
+Asphyxiant
+--------------------------------------------------
+
+Definition
+Whether the substance can cause oxygen displacement or interfere with oxygen transport in the body.
+
+Asphyxiants may lead to suffocation or oxygen deficiency hazards in confined or poorly ventilated spaces.
+
+
+--------------------------------------------------
+Conductivity
+--------------------------------------------------
+
+Definition
+The electrical conductivity property of the material.
+
+Low conductivity liquids may accumulate static electricity during transfer operations, increasing the risk of static discharge ignition.
+
+
+--------------------------------------------------
+ReleaseType
+--------------------------------------------------
+
+Definition
+The manner in which hazardous material is released into the environment.
+
+This condition distinguishes between instantaneous releases and continuous releases, which influence dispersion behavior and accident escalation.
+
+
+--------------------------------------------------
+IgnitionSource
+--------------------------------------------------
+
+Definition
+The source of energy that can ignite a flammable mixture.
+
+Examples include static electricity sparks, open flames, hot surfaces, electrical equipment, or mechanical sparks.
+
+
+--------------------------------------------------
+Confinement
+--------------------------------------------------
+
+Definition
+The degree to which flammable or hazardous material is enclosed within a confined space.
+
+High confinement can increase explosion overpressure and significantly influence explosion severity.
+
+
+--------------------------------------------------
+Dispersion
+--------------------------------------------------
+
+Definition
+The spreading of released material into the surrounding environment.
+
+Dispersion determines how vapors, gases, or toxic substances distribute in air and whether hazardous concentrations can form.
 
 
 --------------------------------------------------
@@ -63,146 +200,6 @@ MechanicalFailure
 --------------------------------------------------
 
 Definition
-The specific equipment or mechanical failure that directly causes the loss of containment or material release.
+A physical failure of equipment that contributes to the accident.
 
-
---------------------------------------------------
-Material
---------------------------------------------------
-
-Definition
-The hazardous substance whose release, presence, or properties directly contribute to the accident and its hazardous consequence.
-
-The material represents the primary substance responsible for the hazard scenario such as fire, explosion, toxicity, or asphyxiation.
-
-Background substances such as air should not be selected unless they are the primary hazardous substance involved in the accident.
-
-
---------------------------------------------------
-Material.name.mentioned_name
---------------------------------------------------
-
-Definition
-The name of the hazardous material exactly as written in the incident report.
-
-
---------------------------------------------------
-Material.name.canonical_name
---------------------------------------------------
-
-Definition
-The standardized chemical name used for classification and analysis.
-
-
---------------------------------------------------
-Material.phase
---------------------------------------------------
-
-Definition
-Physical phase of the hazardous material at the time of release or during the relevant stage of the accident scenario.
-
-
---------------------------------------------------
-Material.thermodynamic_state.pressure
---------------------------------------------------
-
-Definition
-Approximate pressure condition of the hazardous material at the time of release.
-
-
---------------------------------------------------
-Material.thermodynamic_state.temperature
---------------------------------------------------
-
-Definition
-Approximate temperature condition of the hazardous material at the time of release.
-
-
---------------------------------------------------
-Material.thermophysical_properties.volatility
---------------------------------------------------
-
-Definition
-Relative tendency of the material to vaporize and form vapor under normal conditions.
-
-
---------------------------------------------------
-Material.hazardous_properties.chemical_combustible
---------------------------------------------------
-
-Definition
-Indicates whether the material can burn or support combustion when mixed with air.
-
-
---------------------------------------------------
-Material.hazardous_properties.toxic_substance
---------------------------------------------------
-
-Definition
-Indicates whether the material presents a toxic hazard to humans through inhalation, contact, or exposure.
-
-
---------------------------------------------------
-Material.hazardous_properties.asphyxiant
---------------------------------------------------
-
-Definition
-Indicates whether the material can cause asphyxiation, typically by displacing oxygen or preventing adequate oxygen availability.
-This can only be identify when the hazard consequence is asphyxiation.
-
---------------------------------------------------
-Material.electrical_properties.conductivity
---------------------------------------------------
-
-Definition
-Electrical conductivity of the material relevant to static electricity accumulation during handling or transfer.
-
-
---------------------------------------------------
-Material.location.name
---------------------------------------------------
-
-Definition
-
-The equipment, unit, vessel, process area, or physical location where the hazardous material is present or where the release occurs.
-
-Two representations are recorded:
-
-mentioned_name
-The location name exactly as written in the incident report.
-
-canonical_name
-A normalized equipment or process-unit category derived from the mentioned name.
-Non-essential modifiers such as capacity, orientation, and descriptive adjectives
-should be removed so that the location is represented by a stable equipment type.
-
---------------------------------------------------
-Release.type
---------------------------------------------------
-
-Definition
-The mode of hazardous material release from containment.
-
-
---------------------------------------------------
-Ignition.type
---------------------------------------------------
-
-Definition
-Timing of ignition relative to the release of the hazardous material.
-
-
---------------------------------------------------
-Confinement.level
---------------------------------------------------
-
-Definition
-Degree of physical enclosure surrounding the released material or vapor cloud.
-
-
---------------------------------------------------
-Dispersion.presence
---------------------------------------------------
-
-Definition
-Indicates whether the released material formed a vapor or gas cloud that dispersed before ignition or harmful exposure.
+This may include rupture, leakage, seal failure, structural failure, or malfunction of process equipment that leads to loss of containment.
