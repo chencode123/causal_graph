@@ -71,14 +71,22 @@ def save_step_input_snapshot(
     debug_dir.mkdir(parents=True, exist_ok=True)
 
     materialized = {k: resolve_var_value(v) for k, v in vars_dict.items()}
-    materialized_trunc = {k: truncate_text(str(v), truncate_limit) for k, v in materialized.items()}
+    materialized_trunc = {
+        k: truncate_text(str(v), truncate_limit) for k, v in materialized.items()
+    }
 
     write_text(
         debug_dir / f"{step_key}_vars_materialized.json",
         json.dumps(materialized_trunc, ensure_ascii=False, indent=2),
     )
-    write_text(debug_dir / f"{step_key}_prompt_template.txt", truncate_text(template, truncate_limit))
-    write_text(debug_dir / f"{step_key}_prompt_rendered.txt", truncate_text(prompt_text, truncate_limit))
+    write_text(
+        debug_dir / f"{step_key}_prompt_template.txt",
+        truncate_text(template, truncate_limit),
+    )
+    write_text(
+        debug_dir / f"{step_key}_prompt_rendered.txt",
+        truncate_text(prompt_text, truncate_limit),
+    )
     write_text(
         debug_dir / f"{step_key}_messages.json",
         json.dumps(messages, ensure_ascii=False, indent=2),

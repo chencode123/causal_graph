@@ -1,0 +1,132 @@
+{
+  "hazard_consequence": {
+    "type": "HazardConsequence",
+    "label": "VCE | BLEVE | Dust explosion | Confined explosion | Pool fire | Jet fire | Fire ball | Flash fire | Toxicity dispersion | Asphyxiation",
+    "evidence": "short quote from the report"
+  },
+
+  "InitiatingEvent": {
+    "name": {
+      "value": "string | Not specified",
+      "evidence": "string",
+      "description": "The first observable event that starts the accident sequence, such as an operational deviation or equipment malfunction that leads to loss of containment."
+    }
+  },
+
+  "MechanicalFailure": {
+    "name": {
+      "value": "string | Not specified",
+      "evidence": "string",
+      "description": "The specific mechanical or equipment failure that directly causes the loss of containment or material release."
+    }
+  },
+
+  "Material": {
+    "name": {
+      "mentioned_name": {
+        "value": "string | Not specified",
+        "evidence": "string",
+        "source": "incident_description"
+      },
+
+      "canonical_name": {
+        "value": "string | Not specified",
+        "source": "official_source"
+      }
+    },
+
+    "phase": {
+      "value": "Liquid | Vapor | Solid | TwoPhase | Not specified",
+      "evidence": "string",
+      "source": "incident_description | not specified"
+    },
+
+    "thermodynamic_state": {
+      "pressure": {
+        "value": "Low | Atmospheric | High | Not specified",
+        "evidence": "string",
+        "source": "incident_description | not specified"
+      },
+      "temperature": {
+        "value": "Low | Atmospheric | High | Not specified",
+        "evidence": "string",
+        "source": "incident_description | not specified"
+      }
+    },
+
+    "thermophysical_properties": {
+      "volatility": {
+        "value": "Low | Medium | High | Not specified",
+        "evidence": "string",
+        "source": "official_source | not specified"
+      }
+    },
+
+    "hazardous_properties": {
+      "chemical_combustible": {
+        "value": "true | false | Not specified",
+        "evidence": "string",
+        "source": "official_source | not specified"
+      },
+      "toxic_substance": {
+        "value": "true | false | Not specified",
+        "evidence": "string",
+        "source": "official_source | not specified"
+      },
+      "asphyxiant": {
+        "value": "true | false | Not specified",
+        "evidence": "string",
+        "source": "incident_description | not specified"
+      }
+    },
+
+    "electrical_properties": {
+      "conductivity": {
+        "value": "Low | High | Not specified",
+        "evidence": "string",
+        "source": "official_source | not specified"
+      }
+    },
+
+    "location": {
+      "name": {
+        "value": "string | Not specified",
+        "evidence": "string",
+        "source": "incident_description | not specified"
+      }
+    }
+  },
+
+#添加原理
+  "Release": {
+    "type": {
+      "value": "Continuous release | Instant release | Not specified",
+      "evidence": "string",
+      "source": "incident_description | not specified"
+    }
+  },
+
+  "Ignition": {
+    "source": {
+      "value": "String | Not specified",
+      "evidence": "string",
+      "source": "incident_description | not specified"
+    }
+  },
+
+  "Confinement": {
+    "level": {
+      "value": "High confinement | Low confinement | Not specified",
+      "evidence": "string",
+      "source": "incident_description |  not specified"
+    }
+  },
+
+  "Dispersion": {
+    "presence": {
+      "value": "true | false | Not specified",
+      "evidence": "string",
+      "source": "incident_description | not specified"
+    }
+  }
+}

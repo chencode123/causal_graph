@@ -1,134 +1,24 @@
-You are a professional process safety analyst.
+You are a process safety analyst.
 
 INPUT (JSON):
 HAZARD_CONSEQUENCE: {hazards_consequence_json}
 IDENTIFIED_INCIDENT: {identify_incident_output}
+OUTPUT_SCHEMA: {identify_hazard_consequence_scheme}
 
-TASK:
-Based strictly on the IDENTIFIED_INCIDENT ONLY:
+Task:
+Identify the primary hazard consequence of the incident.
 
-0. Incident Boundary Rule (MANDATORY)
+You must choose exactly one value from this HAZARD_CONSEQUENCE:
 
-Hazard consequences MUST be derived strictly from the primary physical incident described in IDENTIFIED_INCIDENT.
+Selection rules
 
-The following MUST NOT be treated as separate hazard consequence occurrences:
+1. Select the hazard consequence that is the primary focus of the incident analysis in the report.
+2. The selected hazard consequence should correspond to the event whose mechanism, causes, or development is mainly analyzed in the incident description.
+3. If multiple hazardous events occurred (e.g., fire followed by explosion), select the event that represents the central hazardous phenomenon rather than secondary escalation events.
+4. Prefer the hazardous event that best represents the main accident mechanism discussed in the report.
+5. Use the incident summary, accident description, and cause statement as the highest-priority evidence.
+6. You must explicitly consider every label in HAZARD_CONSEQUENCE before selecting the final label.
+7. excluded_alternatives must include all non-selected labels, each with a brief exclusion reason.
+8. Do not omit any label from the evaluation.
 
-a) Historical incidents mentioned for background context.
-b) Narrative references to prior similar accidents.
-c) Long-term environmental persistence described as continuation of the same release mechanism.
-d) Minor worker exposures during cleanup that do NOT involve a distinct new initiating failure.
-e) Residual off-gassing from previously released material unless a new physical release source is explicitly described.
-
-1. Hazard Identification Rule
-
-Identify all hazard consequences that:
-
-a) Are explicitly mentioned in IDENTIFIED_INCIDENT, OR
-b) Are implicitly present because the described operational conditions and physical behavior clearly satisfy the defining mechanism of a hazard consequence listed in HAZARD_CONSEQUENCE.
-
-Mechanism-based matching is REQUIRED:
-
-- A hazard consequence MUST be selected if the incident description clearly satisfies the physical mechanism.
-- Matching must rely strictly on operational conditions and physical behavior explicitly described.
-- Do NOT introduce external knowledge, assumptions, or typical industry scenarios.
-
-
-2. Multiple-Instance Handling (CRITICAL RULE)
-
-2.1 Default Rule — Separate by Initiating Mechanism
-
-If the same TYPE of hazard consequence occurs multiple times AND:
-
-- The occurrences result from distinct initiating physical mechanisms, OR
-- A new independent release source is explicitly described, OR
-- An escalation creates a separate hazard chain,
-
-Then you MUST treat them as separate hazard consequence instances.
-
-In such cases:
-
-a) Output each occurrence separately.
-b) Append a numeric suffix (e.g., "Pool fire 1", "Pool fire 2").
-c) Keep the base hazard consequence name exactly as defined in HAZARD_CONSEQUENCE.
-
-
-2.2 Aggregation Rule — When NOT to Separate
-
-If multiple occurrences:
-
-- Share the same initiating mechanism,
-- Occur within the same physical release chain,
-- Are described as continuation, persistence, or extended duration of the same release,
-- Differ only by equipment identity, location, or affected count,
-- OR represent cleanup-stage emissions of previously released material,
-
-Then they MUST be represented as a single aggregated hazard consequence.
-
-In such cases:
-
-- Do NOT append numeric suffixes.
-- The explanation MUST explicitly state that multiple locations or equipment were involved.
-- Evidence must include the sentence(s) indicating plurality.
-
-
-2.3 Temporal Safeguard Rule (MANDATORY)
-
-Temporal separation alone does NOT justify separate hazard consequence instances.
-
-Separate instances are permitted ONLY if:
-
-- A new initiating physical failure is explicitly described, OR
-- A new release source is explicitly identified, OR
-- An escalation creates a new hazard type.
-
-If the narrative describes:
-
-- Continued release,
-- Residual off-gassing,
-- Post-incident persistence,
-- Delayed exposure from the same material source,
-
-These MUST be modeled as continuation of the original hazard consequence unless a new independent initiating mechanism is explicitly stated.
-
-You MUST NOT infer causal independence from time separation alone.
-
-
-3. Evidence Requirement
-
-For each identified hazard consequence occurrence:
-
-- Provide evidence copied verbatim ONLY from IDENTIFIED_INCIDENT.
-- Provide a concise explanation describing how the evidence satisfies the physical mechanism.
-- Explanations must remain mechanism-based and physically grounded.
-
-
-4. Prohibitions
-
-Do NOT:
-
-- Infer hazards not supported by IDENTIFIED_INCIDENT.
-- Treat historical references as current incident consequences.
-- Create new instances based solely on duration.
-- Create new instances based solely on cleanup-stage emissions.
-- Collapse truly independent initiating mechanisms into one.
-- Rename hazard consequence types beyond numeric instance identifiers.
-
-
-OUTPUT FORMAT (STRICT):
-
-Hazard consequence happened:
-
-Name: <Hazard consequence name exactly as in HAZARD_CONSEQUENCE> <instance number if applicable>
-Evidence: <Sentence(s) copied ONLY from IDENTIFIED_INCIDENT>
-Explanation: <Concise mechanism-based explanation>
-
-(Repeat for each identified hazard consequence occurrence)
-
-
-Hazard consequence NOT happened:
-
-Name: <Hazard consequence name exactly as in HAZARD_CONSEQUENCE>
-Evidence: <Sentence(s) copied ONLY from IDENTIFIED_INCIDENT if relevant>
-Explanation: <Concise mechanism-based explanation>
-
-(Repeat for all remaining hazard consequence types)
+Return JSON only in the following format OUTPUT_SCHEMA:

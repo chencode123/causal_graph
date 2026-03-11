@@ -15,6 +15,7 @@ from causal_graphviz.plot_conditions import draw_causal_graph as draw_causal_gra
 from utils.causal_graph_interactive_pkg.causal_graph_interactive import (
     draw_causal_graph_interactive as draw_causal_graph_html,
 )
+from utils.prompt_validator import assert_prompt_step_configuration_valid
 
 from .io_utils import (
     extract_text_from_responses_body,
@@ -24,7 +25,8 @@ from .io_utils import (
     save_step_input_snapshot,
     write_text,
 )
-from .pipeline_steps import Step, build_pipeline
+from .step_factory import Step, build_pipeline
+from .step_registry import STEP_REGISTRY
 
 
 def _mask(key: str | None) -> str:
@@ -83,20 +85,23 @@ def run_step_sync(
             reasoning_effort = step.reasoning_effort or config.reasoning_effort
             step_temperature = step.temperature
             verbosity = step.verbosity or config.verbosity
+            force_json_output = getattr(config, "force_json_output", False)
+
+            text_cfg: Dict[str, Any] = {"verbosity": verbosity}
+            if force_json_output:
+                text_cfg["format"] = {"type": "json_object"}
 
             request_payload = {
                 "model": config.model_name,
                 "input": messages,
                 "max_output_tokens": config.max_output_tokens,
-                "text": {"verbosity": verbosity},
+                "text": text_cfg,
             }
-            # `temperature` and `reasoning` cannot be sent together for your target flow.
             if step_temperature is not None:
                 request_payload["temperature"] = step_temperature
             else:
                 request_payload["reasoning"] = {"effort": reasoning_effort}
 
-            # print(f"[DEBUG][{step.key}] request_payload = {request_payload}")
             resp = client.responses.create(**request_payload)
 
             body = resp.model_dump() if hasattr(resp, "model_dump") else dict(resp)
@@ -173,6 +178,8 @@ def run_local_postprocess(
 
 
 def run_batch_pipeline(config: Any) -> None:
+    assert_prompt_step_configuration_valid(step_registry=STEP_REGISTRY)
+
     client = OpenAI()
     print("[RUNTIME] OPENAI_API_KEY =", _mask(os.getenv("OPENAI_API_KEY")))
     print("[RUNTIME] OPENAI_BASE_URL env =", os.getenv("OPENAI_BASE_URL"))
