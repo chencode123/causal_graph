@@ -11,16 +11,14 @@ from tqdm import tqdm
 
 import utils.incident_card_to_word as incident_card_to_word
 import utils.prompt_manager as prompt_manager
-from causal_graphviz.plot_conditions import draw_causal_graph as draw_causal_graph_png
 from utils.causal_graph_interactive_pkg.causal_graph_interactive import (
-    draw_causal_graph_interactive as draw_causal_graph_html,
+    draw_causal_graph_interactive_from_json,
 )
 from utils.prompt_validator import assert_prompt_step_configuration_valid
 
 from .io_utils import (
     extract_text_from_responses_body,
     get_response_dir,
-    read_text,
     render_prompt,
     save_step_input_snapshot,
     write_text,
@@ -35,6 +33,84 @@ def _mask(key: str | None) -> str:
     return key[:8] + "..." + key[-4:]
 
 
+def _build_causal_graph_json(
+    *,
+    identify_accident_scenario_path: Path,
+    causal_edge_linking_path: Path,
+    output_path: Path,
+) -> None:
+    with identify_accident_scenario_path.open("r", encoding="utf-8") as fp:
+        scenario_data = json.load(fp)
+    with causal_edge_linking_path.open("r", encoding="utf-8") as fp:
+        edge_data = json.load(fp)
+
+    edges = edge_data.get("edges", [])
+    linked_node_ids = {
+        node_id
+        for edge in edges
+        for node_id in (edge.get("source"), edge.get("target"))
+        if node_id
+    }
+
+    graph_data = {
+        "hazard_consequence_node": [],
+        "entity_nodes": [],
+        "condition_nodes": [],
+        "event_nodes": [],
+        "edges": [],
+    }
+
+    for key in (
+        "hazard_consequence_node",
+        "entity_nodes",
+        "condition_nodes",
+        "event_nodes",
+    ):
+        graph_data[key] = [
+            node
+            for node in scenario_data.get(key, [])
+            if node.get("node_id") in linked_node_ids
+        ]
+
+    valid_node_ids = {
+        node.get("node_id")
+        for key in (
+            "hazard_consequence_node",
+            "entity_nodes",
+            "condition_nodes",
+            "event_nodes",
+        )
+        for node in graph_data[key]
+        if node.get("node_id")
+    }
+    graph_data["edges"] = [
+        edge
+        for edge in edges
+        if edge.get("source") in valid_node_ids and edge.get("target") in valid_node_ids
+    ]
+
+    write_text(output_path, json.dumps(graph_data, ensure_ascii=False, indent=2))
+
+
+def ensure_causal_graph_json(folder: Path) -> None:
+    """Build causal_graph.json if the required upstream step outputs are present."""
+    identify_accident_scenario_path = folder / "identify_accident_scenario_output.json"
+    causal_edge_linking_path = folder / "causal_edge_linking_output.json"
+    if not identify_accident_scenario_path.exists():
+        raise FileNotFoundError(
+            f"Missing identify_accident_scenario_output.json for {folder.name}"
+        )
+    if not causal_edge_linking_path.exists():
+        raise FileNotFoundError(
+            f"Missing causal_edge_linking_output.json for {folder.name}"
+        )
+    _build_causal_graph_json(
+        identify_accident_scenario_path=identify_accident_scenario_path,
+        causal_edge_linking_path=causal_edge_linking_path,
+        output_path=folder / "causal_graph.json",
+    )
+
+
 def run_step_sync(
     client: OpenAI,
     all_prompts: Dict[str, str],
@@ -43,16 +119,19 @@ def run_step_sync(
     config: Any,
     call_sleep_seconds: float = 0.0,
 ) -> None:
-    if step.key == "prep_final_check":
-        ok = 0
+    if step.key == "review_causal_graph":
+        prep_ok = 0
+        prep_fail = 0
         for folder in folders:
             try:
-                step.build_vars(folder)
-                ok += 1
+                ensure_causal_graph_json(folder)
+                prep_ok += 1
             except Exception as exc:
-                write_text(folder / f"{step.key}_error.txt", f"{exc}\n")
-        print(f"[{step.key}] Local preprocessing done for {ok}/{len(folders)} folders.")
-        return
+                prep_fail += 1
+                write_text(folder / f"{step.key}_error.txt", f"Graph prep failed: {exc}\n")
+        print(
+            f"[{step.key}] Graph prep done. ok={prep_ok}, fail={prep_fail}"
+        )
 
     template = all_prompts[step.key]
     ok, fail = 0, 0
@@ -130,49 +209,37 @@ def run_local_postprocess(
     all_prompts: Dict[str, str],
     folder: Path,
     hazards_json_path: Path,
-    conditions_json_path: Path,
+    accident_scenario_schema_path: Path,
 ) -> None:
-    chain_text = read_text(folder / "prep_final_check_output.txt")
+    identify_accident_scenario_path = folder / "identify_accident_scenario_output.json"
+    causal_edge_linking_path = folder / "causal_edge_linking_output.json"
+    ensure_causal_graph_json(folder)
 
-    draw_causal_graph_png(
-        chain_lines=chain_text,
-        conditions=str(conditions_json_path),
-        hazards=str(hazards_json_path),
-        save_path=folder / "causal_graph.png",
-    )
-
-    draw_causal_graph_html(
-        chain_lines=chain_text,
-        conditions=str(conditions_json_path),
-        hazards=str(hazards_json_path),
+    draw_causal_graph_interactive_from_json(
+        identify_accident_scenario=identify_accident_scenario_path,
+        causal_edge_linking=causal_edge_linking_path,
         save_path=folder / "causal_graph.html",
+        accident_scenario_schema=accident_scenario_schema_path,
+        review_causal_graph=(
+            folder / "review_causal_graph_output.json"
+            if (folder / "review_causal_graph_output.json").exists()
+            else None
+        ),
+        revision_decisions=None,
+        case_id=folder.name,
     )
 
     incident_card_to_word.incident_card_to_word(
         identify_incident_prompt=all_prompts.get("identify_incident", ""),
         identify_hazard_consequence_prompt=all_prompts.get("identify_hazard_consequence", ""),
-        identify_condition_prompt=all_prompts.get("identify_condition", ""),
-        identify_evidence_prompt=all_prompts.get("identify_evidence", ""),
-        chain_events_prompt=all_prompts.get("chain_events", ""),
-        identify_relationship_prompt=all_prompts.get("identify_relationship", ""),
-        chain_conditions_events_prompt=all_prompts.get("chain_conditions_events", ""),
-        chain_scenario_prompt=all_prompts.get("chain_scenario", ""),
-        chain_hazards_prompt=all_prompts.get("chain_hazards", ""),
-        prep_final_check_prompt=all_prompts.get("prep_final_check", ""),
-        identify_incident_output=folder / "identify_incident_output.txt",
-        identify_hazard_consequence_output=folder / "identify_hazard_consequence_output.txt",
-        identify_condition_output=folder / "identify_condition_output.txt",
-        identify_evidence_output=folder / "identify_evidence_output.txt",
-        chain_events_output=folder / "chain_events_output.txt",
-        identify_relationship_output=folder / "identify_relationship_output.txt",
-        chain_conditions_events_output=folder / "chain_conditions_events_output.txt",
-        chain_scenario_output=folder / "chain_scenario_output.txt",
-        chain_hazards_output=folder / "chain_hazards_output.txt",
-        prep_final_check_output=folder / "prep_final_check_output.txt",
-        prep_final_check_removed_edges_report=folder / "prep_final_check_removed_edges_report.txt",
+        identify_accident_scenario_prompt=all_prompts.get("identify_accident_scenario", ""),
+        causal_edge_linking_prompt=all_prompts.get("causal_edge_linking", ""),
+        identify_incident_output=folder / "identify_incident_output.json",
+        identify_hazard_consequence_output=folder / "identify_hazard_consequence_output.json",
+        identify_accident_scenario_output=folder / "identify_accident_scenario_output.json",
+        causal_edge_linking_output=folder / "causal_edge_linking_output.json",
         hazard_consequence_json=str(hazards_json_path),
-        conditions_json=str(conditions_json_path),
-        graph_png=folder / "causal_graph.png",
+        accident_scenario_schema_json=str(accident_scenario_schema_path),
         output_docx_path=folder / "incident_card_report.docx",
     )
 
@@ -218,7 +285,7 @@ def run_batch_pipeline(config: Any) -> None:
                 all_prompts=all_prompts,
                 folder=folder,
                 hazards_json_path=config.hazards_json_path,
-                conditions_json_path=config.conditions_json_path,
+                accident_scenario_schema_path=Path("scheme/accident_scenario_schema.json"),
             )
         except Exception as exc:
             print(f"Postprocess skipped for {folder.name}: {exc}")

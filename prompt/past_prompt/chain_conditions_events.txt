@@ -9,90 +9,33 @@ CONDITION: {conditions_json}
 TASKS:
 
 1. Condition tagging (STRICT)
-   - If a node name exactly matches one of the CONDITION
-     (e.g., "Liquid", "Vapor", "Instant Ignition", "High confinement", etc.),
-     that node MUST be converted into a tagged condition in the following format:
-
+   - If a node name exactly matches one of the CONDITION, convert it to:
          Condition_name <Hazard_consequence>
+   - The <Hazard_consequence> MUST be the hazard consequence name indicated in IDENTIFY_RELATIONSHIP.
+   - The characters "<" and ">" MUST appear literally in the output.
+      They are part of the node name.
+      Do NOT remove them.
+      Do NOT replace them.
+      Do NOT interpret them as placeholders.
 
-   - The <Hazard_consequence> in the tag MUST be the name of the hazard consequence
-     that this condition belongs to, as indicated in IDENTIFY_RELATIONSHIP.
-   - The tag MUST contain ONLY the hazard consequence name.
-     No explanations, no additional text.
+2. New link generation (STRICT)
+   - Generate ONLY the NEW causal links that are implied by IDENTIFY_RELATIONSHIP.
 
-2. Causal connection generation (STRICT AND COMPLETE)
-   - ALL causal links MUST be created STRICTLY based on IDENTIFY_RELATIONSHIP.
-   - You MUST reproduce every causal relationship implied by IDENTIFY_RELATIONSHIP,
-     only including:
-        • condition -> condition
-        • condition -> event
-        • condition -> hazard consequence
-   - You MUST NOT limit causal connections to conditions only.
-   - If IDENTIFY_RELATIONSHIP indicates that two nodes are causally related,
-     you MUST create a corresponding causal link, even if neither node is a condition.
+3. Output MUST include ALL links from CHAIN_EVENTS_OUTPUT,
+   except that exact CONDITION node names must be tagged
+   according to Task 1.
 
-3. Condition-to-condition relationships
-   - If IDENTIFY_RELATIONSHIP shows that one condition is required for,
-     enables, or directly causes another condition, you MUST create
-     a causal link between those conditions.
+4. Upstream exclusion rule (STRICT)
+   - A node X is considered upstream of C if there exists
+     a directed path of any length X -> ... -> C.
+   - Upstream nodes are strictly forbidden as direct effects of C.
 
-4. Node cleanup and normalization (STRICT)
-   - If the following category labels appear as prefixes, they MUST be removed
-     in the final output:
-        MaterialProperties
-        Release
-        Confinement
-        Dispersion
-        ProcessFailure
-        EnergyState
-   - Example:
-        MaterialProperties – Vapor <Confined explosion>
-     MUST be output as:
-        Vapor <Confined explosion>
-
-5. Upstream exclusion rule based on CHAIN_EVENTS_OUTPUT (STRICT)
-  - Before determining any “directly caused” relationship, use CHAIN_EVENTS_OUTPUT 
-    to check topological direction.
-  - For a given condition C, any event or condition X that appears as an upstream node of 
-    C in CHAIN_EVENTS_OUTPUT (i.e., there exists a directed path X -> … -> C) is STRICTLY 
-    FORBIDDEN to be listed as directly caused by C.
-  - CHAIN_EVENTS_OUTPUT is used only for upstream exclusion, not as positive causal evidence.
-  - After excluding all upstream nodes, determine direct causation ONLY based on IDENTIFIED_CONDITION.
-  - All selected events must still:
-    appear verbatim in CHAIN_EVENTS_OUTPUT,
-    and all selected conditions must exactly match entries in CONDITION.
-
-6. Downstream usage rule (STRICT):
-
-  A condition MUST connect to the corresponding hazard consequence
-  ONLY IF it has NO downstream nodes at all.
-
-  A downstream node is defined as:
-  - any event node, OR
-  - any condition node, OR
-  - the hazard consequence itself
-
-  If a condition directly causes at least one downstream event or condition,
-  it MUST NOT additionally connect to the hazard consequence.
-
-
-7. Output rules (ZERO EXCEPTIONS):
-
-   - Only output causal links in the format:
-         A -> B
-         A -> B -> C is not allowed
-   - No explanations.
-   - No additional nodes beyond those that appear in the IDENTIFY_RELATIONSHIP
-     or IDENTIFIED_HAZARD_CONSEQUENCE.
-   - The remaining condition must connect to the corresponding hazard if they are not required for any condtion OR any event.
+OUTPUT RULES:
+- Only output links in the format: A -> B
+- One link per line.
+- No explanations.
+- Output  all processed links from CHAIN_EVENTS_OUTPUT
 
 OUTPUT FORMAT:
-
 A -> B
-B -> Condition <Dust explosion>
-Condition <Dust explosion> -> D
-E -> F
-D -> Dust explosion
-F -> Dust explosion
-
-######################tell the model A -> B -> C is not allowed
+Condition_name <Hazard_consequence> -> C

@@ -1,15 +1,9 @@
 {
-  "identify_incident": {
-    "template_file": "identify_incident.txt",
-    "required_vars": [],
-    "optional_vars": []
-  },
-  "identify_hazard_consequence": {
-    "template_file": "identify_hazard_consequence.txt",
+  "causal_edge_linking": {
+    "template_file": "causal_edge_linking.txt",
     "required_vars": [
-      "hazards_consequence_json",
-      "identify_hazard_consequence_scheme",
-      "identify_incident_output"
+      "incident_description",
+      "identify_accident_scenario"
     ],
     "optional_vars": []
   },
@@ -23,77 +17,25 @@
     ],
     "optional_vars": []
   },
-  "identify_condition": {
-    "template_file": "identify_condition.txt",
+  "identify_hazard_consequence": {
+    "template_file": "identify_hazard_consequence.txt",
     "required_vars": [
-      "conditions_json",
-      "identify_hazard_consequence_output",
+      "hazards_consequence_json",
+      "identify_hazard_consequence_scheme",
       "identify_incident_output"
     ],
     "optional_vars": []
   },
-  "identify_evidence": {
-    "template_file": "identify_evidence.txt",
+  "review_causal_graph": {
+    "template_file": "review_causal_graph.txt",
     "required_vars": [
-      "conditions_json",
-      "identify_condition_output",
-      "identify_incident_output"
+      "incident_description",
+      "accident_scenario_schema",
+      "accident_scenario_schema_definition",
+      "identify_accident_scenario_output",
+      "causal_edge_linking_output",
+      "causal_graph_json"
     ],
-    "optional_vars": []
-  },
-  "extract_event": {
-    "template_file": "extract_event.txt",
-    "required_vars": [
-      "conditions_json",
-      "identify_evidence_output"
-    ],
-    "optional_vars": []
-  },
-  "identify_relationship": {
-    "template_file": "identify_relationship.txt",
-    "required_vars": [
-      "chain_events_output",
-      "conditions_json",
-      "identify_incident_output"
-    ],
-    "optional_vars": []
-  },
-  "chain_events": {
-    "template_file": "chain_events.txt",
-    "required_vars": [
-      "conditions_json",
-      "extract_event_output"
-    ],
-    "optional_vars": []
-  },
-  "chain_conditions_events": {
-    "template_file": "chain_conditions_events.txt",
-    "required_vars": [
-      "chain_events_output",
-      "conditions_json",
-      "identify_hazard_consequence_output",
-      "identify_relationship_output"
-    ],
-    "optional_vars": []
-  },
-  "chain_scenario": {
-    "template_file": "chain_scenario.txt",
-    "required_vars": [],
-    "optional_vars": []
-  },
-  "chain_hazards": {
-    "template_file": "chain_hazards.txt",
-    "required_vars": [
-      "chain_scenario_output",
-      "conditions_json",
-      "identify_hazard_consequence_output",
-      "identify_incident_output"
-    ],
-    "optional_vars": []
-  },
-  "prep_final_check": {
-    "template_file": "prep_final_check.txt",
-    "required_vars": [],
     "optional_vars": []
   }
 }

@@ -10,7 +10,15 @@ def read_text(path: Path) -> str:
 
 
 def write_text(path: Path, content: str) -> None:
-    path.write_text(content, encoding="utf-8")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        path.write_text(content, encoding="utf-8")
+    except OSError as exc:
+        # On Windows, some relative-path writes can fail intermittently with
+        # "Invalid argument"; retry once with an absolute normalized path.
+        resolved_path = path.resolve()
+        resolved_path.parent.mkdir(parents=True, exist_ok=True)
+        resolved_path.write_text(content, encoding="utf-8")
 
 
 def resolve_var_value(value: Any) -> str:

@@ -1,39 +1,78 @@
 You are a professional process safety analyst.
 
-TASK:
+Analyze the input PDF text and return valid JSON only.
 
-1. Extract the **exact original text** of the section that summarize the incident,
-typically titled:
-- "EXECUTIVE SUMMARY"
-- "SUMMARY"
+Your tasks:
+1. Determine whether the document is:
+   - a full incident report,
+   - a summary-style document,
+   - or a document containing multiple independent incidents.
+2. Extract the exact original text of:
+   - the incident summary section,
+   - the incident description section,
+   - and any other sections related to hazard evolution or consequence development.
+3. If multiple independent incidents are present, separate them into different incident entries.
 
-2. Extract the **exact original text** of the section that describes what happened 
-in the incident (i.e., the sequence of physical events), typically titled:
+Definitions:
+- Separate incidents are accident occurrences that happened at different times/dates and do not belong to the same causal chain, escalation sequence, or consequence development.
+- Do not split one incident into multiple incidents just because it has multiple stages or consequences.
+- Distinguish between primary incident subjects and referenced incidents. Primary incident subjects are the incidents that the document is mainly trying to report, analyze, compare, or study in their own right. Referenced incidents are mentioned only as background, precedent, comparison, lessons learned, literature examples, or supporting context.
+- Only create separate incident entries for primary incident subjects of the document.
+- Only use split_incidents when the document's primary purpose is to analyze multiple incidents as co-equal case subjects.
+- If the document primarily discusses a theme, hazard type, lesson, method, regulation, or safety issue and mentions multiple incidents mainly as examples or supporting cases, do not split them into separate incident entries.
+- For thematic studies, hazard investigations, lessons-learned reports, comparative reviews, or issue-focused reports that cite many incidents in support of one broader topic, prefer recommended_output_mode = "summary_only" unless the incidents are clearly treated as co-equal primary case subjects.
+- If one incident is the main focus of the document and other incidents are cited only for context, comparison, or lessons learned, output only the main incident.
+- Do not create separate incident entries for incidents mentioned only in introduction, background, discussion, recommendations, lessons learned, literature review, comparison, benchmark, or supporting-example sections, unless the document clearly gives them equal report-level treatment as main analysis targets.
+- A summary-style document mainly contains bullet points, short summaries, case listings, or brief overviews without a full chronological narrative.
+- A document may still be treated as summary_only even when it is long and detailed, if its main purpose is thematic synthesis across many cited incidents rather than detailed standalone reporting of co-equal incident cases.
+- A document can still be a full incident report even if it contains multiple independent incidents, as long as each incident is described with substantial narrative, chronology, technical analysis, or causal detail.
+- Do not classify a document as non-full only because it is written as a case study, special study, or multi-incident investigation. If the document contains substantial incident narrative and analysis, classify it as a full incident report.
+- If the document is summary-style, do not split it into multiple incident entries even if it mentions multiple incidents. In that case, set recommended_output_mode to "summary_only" and requires_incident_split to false.
 
-- "INCIDENT DESCRIPTION"
-- "DESCRIPTION OF INCIDENT"
-- "INCIDENT SUMMARY"
-- "INCIDENT OVERVIEW"
-- "BACKGROUND – WHAT HAPPENED"
+Extraction rules:
+- Extract the complete section from its header until the next top-level section header of equal hierarchy.
+- Keep subsection headers.
+- Remove only figure captions, table captions, photo captions, and page headers/footers.
+- Do not summarize, paraphrase, or interpret.
+- Preserve original wording.
+- If multiple candidate sections exist, choose the one that most clearly describes the chronological physical evolution.
+- Prefer the incident or incidents that are the document's main analysis targets over cited historical examples.
+- If multiple independent incidents are present, shared background text, shared summary text, or shared description text may be repeated across multiple incident entries when it is relevant to each incident.
+- Do not remove or rewrite shared text only to avoid duplication. Preserving incident-relevant original text is more important than deduplication.
+- When a section contains both shared context and incident-specific content, keep the full original text for each relevant incident entry, even if this causes overlap between incidents.
+- If not found, use null.
 
-- or any reasonably equivalent heading.
+Return JSON with this schema:
 
-3. Extract other **exact original text** of the section that you think is related to the evolution hazard consequence
-
-RULES:
-- Return **the complete section**, starting from the section header 
-  until the next top-level section header of equal hierarchy.
-- If the section contains subsection headers (e.g., “2.1”, “2.a”), keep them.
-- **Remove only figure captions, table captions, photo captions, page headers/footers.**
-- Do **NOT** remove valid narrative text, even if mixed across pages.
-- Do **NOT** summarize, paraphrase, reorganize, or interpret.
-- Output **only the cleaned raw text**, nothing else.
-- If multiple candidate sections exist, choose the one that most clearly 
-  describes the chronological physical evolution of the incident.
-
-Output format:
-Only the raw extracted incident description text.
-For example:
-SUMMARY: ...
-INCEIDENT DESCRIPTION: ...
-OTHERS THAT IS RELATED: ...
+{
+  "document_classification": {
+    "is_summary_style": true,
+    "is_full_incident_report": false,
+    "contains_multiple_independent_incidents": true,
+    "requires_incident_split": true,
+    "recommended_output_mode": "single_incident | split_incidents | summary_only",
+    "classification_reason": "string"
+  },
+  "incidents": [
+    {
+      "incident_id": "incident_1",
+      "is_independent_incident": true,
+      "time_reference": "string or null",
+      "incident_summary_section": {
+        "section_title": "string or null",
+        "text": "string or null"
+      },
+      "incident_description_section": {
+        "section_title": "string or null",
+        "text": "string or null"
+      },
+      "other_related_sections": [
+        {
+          "section_title": "string",
+          "text": "string"
+        }
+      ],
+      "extraction_notes": "string"
+    }
+  ]
+}

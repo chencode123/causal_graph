@@ -1,15 +1,64 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 from typing import Any, Callable, Dict, List
-
 from pipeline.step_registry import STEP_REGISTRY
 
 
 ACTIVE_STEP_KEYS: List[str] = [
     # "identify_hazard_consequence",
-    "identify_accident_scenario",
+    # "identify_accident_scenario",
+    "causal_edge_linking",
+    "review_causal_graph",
 ]
+
+
+def _extract_incident_text_from_json(path: Path) -> str:
+    """Extract prompt-ready incident text from identify_incident JSON output."""
+    with path.open("r", encoding="utf-8") as fp:
+        data = json.load(fp)
+
+    incidents = data.get("incidents", [])
+    if not isinstance(incidents, list) or not incidents:
+        return path.read_text(encoding="utf-8")
+
+    incident = incidents[0] if isinstance(incidents[0], dict) else {}
+    blocks: List[str] = []
+
+    summary = incident.get("incident_summary_section", {})
+    if isinstance(summary, dict):
+        summary_text = str(summary.get("text") or "").strip()
+        if summary_text:
+            blocks.append("SUMMARY:")
+            blocks.append(summary_text)
+
+    description = incident.get("incident_description_section", {})
+    if isinstance(description, dict):
+        description_text = str(description.get("text") or "").strip()
+        if description_text:
+            blocks.append("INCIDENT DESCRIPTION:")
+            blocks.append(description_text)
+
+    related_sections = incident.get("other_related_sections", [])
+    if isinstance(related_sections, list):
+        related_texts: List[str] = []
+        for section in related_sections:
+            if not isinstance(section, dict):
+                continue
+            title = str(section.get("section_title") or "").strip()
+            text = str(section.get("text") or "").strip()
+            if not text:
+                continue
+            if title:
+                related_texts.append(f"{title}\n{text}")
+            else:
+                related_texts.append(text)
+        if related_texts:
+            blocks.append("OTHER RELATED SECTIONS:")
+            blocks.extend(related_texts)
+
+    return "\n\n".join(blocks).strip() or path.read_text(encoding="utf-8")
 
 
 def _resolve_required_var(
@@ -44,6 +93,15 @@ def _resolve_required_var(
         return conditions_json
 
     if var_name == "incident_description":
+        incident_json_path = folder / "identify_incident_output.json"
+        if incident_json_path.exists():
+            return _extract_incident_text_from_json(incident_json_path)
+        return folder / "identify_incident_output.txt"
+
+    if var_name == "identify_incident_output":
+        incident_json_path = folder / "identify_incident_output.json"
+        if incident_json_path.exists():
+            return _extract_incident_text_from_json(incident_json_path)
         return folder / "identify_incident_output.txt"
 
     if var_name.endswith("_output"):

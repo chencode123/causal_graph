@@ -91,16 +91,24 @@ def draw_causal_graph(
     rules: Union[None, str, Iterable[str]] = None,
     highlight_color: str = "#cfe8ff",  # 浅蓝色
     *,
-    save_path: str | None = None,      # ← 新增：指定文件名保存（含目录和扩展名）
-    fmt: str = "png",                  # ← 新增：输出格式（png/svg/pdf等）；可被 save_path 扩展名覆盖
+    save_path: str | None = None,      # 指定文件名保存（含目录和扩展名）
+    fmt: str = "png",                # 输出格式（png/svg/pdf等）；可被 save_path 扩展名覆盖
     dpi: int = 180,
 ):
     """
     chain_lines: 待画的因果链（字符串或字符串列表）
     rules:      用于高亮的规则来源（文件路径/字符串/字符串列表）
-    save_path:  若提供，则保存到该文件（返回保存后的最终路径）；否则返回 Digraph 对象
+    save_path:  保存到该文件（返回保存后的最终路径）。
+                若为 None，则自动创建一个 `outputs/` 目录并保存到当前工作目录下。
     fmt:        输出格式（默认 png），若 save_path 带扩展名则以扩展名为准
     """
+    # 如果没有传 save_path，则默认写入当前工作目录下的 outputs/ 文件夹
+    if save_path is None:
+        out_dir = os.path.join(os.getcwd(), "outputs")
+        os.makedirs(out_dir, exist_ok=True)
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        save_path = os.path.join(out_dir, f"causal_graph_{timestamp}.{fmt}")
+
     lines = _to_cause_lines(chain_lines)
     nodes = _collect_nodes_from_cause_lines(lines)
 

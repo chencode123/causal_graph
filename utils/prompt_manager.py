@@ -4,6 +4,8 @@ import json
 from pathlib import Path
 from typing import Dict
 
+from utils.prompt_manifest import resolve_template_path
+
 
 class PromptPaths:
     def __init__(self, base: str = "prompt", manifest_file: str = "manifest.json"):
@@ -11,7 +13,8 @@ class PromptPaths:
         self.manifest_path = self.base / manifest_file
         self.manifest = self._load_manifest()
         self.prompts = {
-            key: self.base / entry["template_file"] for key, entry in self.manifest.items()
+            key: resolve_template_path(self.base, str(entry["template_file"]))
+            for key, entry in self.manifest.items()
         }
 
     def _load_manifest(self) -> Dict[str, Dict[str, object]]:

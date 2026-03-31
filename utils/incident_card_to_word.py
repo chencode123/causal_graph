@@ -1,7 +1,7 @@
 from datetime import datetime
 from pathlib import Path
 import docx
-from docx.shared import Pt, Inches
+from docx.shared import Pt
 from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
 from docx.oxml.ns import qn
 from docx.enum.style import WD_STYLE_TYPE
@@ -29,33 +29,19 @@ def incident_card_to_word(
     # Prompts
     identify_incident_prompt=None,
     identify_hazard_consequence_prompt=None,
-    identify_condition_prompt=None,
-    identify_evidence_prompt=None,
-    chain_events_prompt=None,
-    identify_relationship_prompt=None,
-    chain_conditions_events_prompt=None,
-    chain_scenario_prompt=None,
-    chain_hazards_prompt=None,
-    prep_final_check_prompt=None,
+    identify_accident_scenario_prompt=None,
+    causal_edge_linking_prompt=None,
 
     # Outputs (file paths or strings)
     identify_incident_output=None,
     identify_hazard_consequence_output=None,
-    identify_condition_output=None,
-    identify_evidence_output=None,
-    chain_events_output=None,
-    identify_relationship_output=None,
-    chain_conditions_events_output=None,
-    chain_scenario_output=None,
-    chain_hazards_output=None,
-    prep_final_check_output=None,
-    prep_final_check_removed_edges_report = None,
+    identify_accident_scenario_output=None,
+    causal_edge_linking_output=None,
 
     # Appendix content (file path or string)
     hazard_consequence_json=None,
-    conditions_json=None,
+    accident_scenario_schema_json=None,
 
-    graph_png=None,
     output_docx_path="incident_card_report.docx"
 ):
     """Generate a clean academic-style Word report (.docx). Robust with XML-cleaning."""
@@ -211,29 +197,30 @@ def incident_card_to_word(
 
 
     add_sec("Identify Incident", identify_incident_prompt, identify_incident_output)
-    add_sec("Identify Hazard Consequence", identify_hazard_consequence_prompt, identify_hazard_consequence_output)
-    add_sec("Identify Conditions", identify_condition_prompt, identify_condition_output)
-    add_sec("Identify Evidence", identify_evidence_prompt, identify_evidence_output)
-    add_sec("Chain Events", chain_events_prompt, chain_events_output)
-    add_sec("Identify Relationship", identify_relationship_prompt, identify_relationship_output)
-    add_sec("Chain Conditions and Events", chain_conditions_events_prompt, chain_conditions_events_output)
-    add_sec("Chain Scenario", chain_scenario_prompt, chain_scenario_output)
-    add_sec("Chain Hazard Consequence", chain_hazards_prompt, chain_hazards_output)
-    add_sec("Prep final Check Outputs", prep_final_check_prompt, prep_final_check_output, prep_final_check_removed_edges_report)
-
-    # ----------------------------------------
-    # Graph Image
-    # ----------------------------------------
-    if graph_png and isinstance(graph_png, (str, Path)) and Path(graph_png).exists():
-        doc.add_paragraph("Final Visualization", style="H2_Aca")
-        doc.add_picture(str(graph_png), width=Inches(6))
-        doc.add_paragraph("")
+    add_sec(
+        "Identify Hazard Consequence",
+        identify_hazard_consequence_prompt,
+        identify_hazard_consequence_output,
+    )
+    add_sec(
+        "Identify Accident Scenarios",
+        identify_accident_scenario_prompt,
+        identify_accident_scenario_output,
+    )
+    add_sec(
+        "Causal Edge Linking",
+        causal_edge_linking_prompt,
+        causal_edge_linking_output,
+    )
 
     # ----------------------------------------
     # Appendix
     # ----------------------------------------
     write_appendix_section("Appendix - hazard consequence list", hazard_consequence_json)
-    write_appendix_section("Appendix - conditions list", conditions_json)
+    write_appendix_section(
+        "Appendix - accident scenarios schema",
+        accident_scenario_schema_json,
+    )
 
     # ----------------------------------------
     # Save file

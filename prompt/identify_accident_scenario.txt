@@ -37,7 +37,7 @@ EXTRACTION RULES
 
 6. When determining the hazardous material, select the material that most directly drives the hazard consequence.
 
-7. For some nodes, if the sources are only official_source and not_specified, replace use the official source showed in the SCHEMA_DEFINITION.
+7. For source, only use values allowed by the SCHEMA.
 
 8. The initiating event should represent the earliest abnormal condition that begins the accident sequence.
 
@@ -57,20 +57,22 @@ EXTRACTION RULES
 
 16. Do not generate a generic hazard template. Generate only the accident scenario that was actually realized in this incident.
 
+17. If ignition clearly occurred but the exact ignition source is not identified in the incident description, create an IgnitionSource event with the name "Unknown ignition source" instead of "Not specified".
+
+18. If a mechanical failure clearly occurred but the exact failed component or exact failure mode is not identified in the incident description, create a MechanicalFailure event with the name "Unknown mechanical failure" instead of "Not specified".
+
+19. Use "Not specified" for IgnitionSource or MechanicalFailure only when the report does not provide enough support to identify whether that event should be represented at all.
+
+20. If the incident description presents a tightly connected upstream operational or physical process that directly leads to the first abnormal event, the InitiatingEvent name may summarize that connected process in one concise event name.
+
+21. Do not merge multiple distinct downstream events, failure events, ignition events, or hazard consequences into the InitiatingEvent name. Only combine closely connected precursor steps that jointly define the same initiating mechanism.
+
+22. For example, if stop-start transfer pumping caused turbulence and bubbling, which directly caused rapid static charge accumulation, these closely connected steps may be summarized in one InitiatingEvent. However, later mechanical failure or ignition steps should remain separate events.
+
 Source rules
 
 If the information is derived from the incident report,
 set source to "incident_description".
-
-If the information is derived from an authoritative chemical knowledge source,
-replace "official_source" with the specific source name.
-
-Allowed examples include:
-SDS
-PubChem
-NIST Chemistry WebBook
-NFPA
-CCPS
 
 If the information cannot be determined, use "Not specified".
 

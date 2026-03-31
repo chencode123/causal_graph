@@ -102,3 +102,8 @@ pytest tests/test_prompt_keys_sync.py tests/test_prompt_vars_sync.py -q -p no:ca
 
 4. `Registry mismatch`
 - 含义：`step_registry.required_vars`（变量名集合）与 `manifest.required_vars` 不一致。
+
+## 5. 关于测试输出 “2 passed” 的含义
+
+- 当你运行 `.\scripts\test_prompt.ps1`（或文档中给出的 `pytest ...` 命令）并看到 `2 passed`，表示运行了两个 pytest 测试用例并全部通过：`tests/test_prompt_keys_sync.py` 和 `tests/test_prompt_vars_sync.py`。这只说明这两个同步/一致性检查通过了，并不表示项目中 prompt 文件的数量。
+- 如果你想确认自己新增的 prompt 是否被包含并校验通过，请检查 `prompt/manifest.json`、`prompt/*.txt` 和 `pipeline/step_registry.py`（或运行校验命令，参见文档第 1 节的“运行测试”）。

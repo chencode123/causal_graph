@@ -20,7 +20,7 @@
       "node_type": "Entity",
       "evidence": "string",
       "explanation": "string",
-      "source": "incident_description | official_source | Not specified"
+      "source": "incident_description | Not specified"
     },
 
     {
@@ -47,6 +47,16 @@
     },
 
     {
+      "label": "Pressure",
+      "name": "High pressure | Low pressure | Not specified",
+      "node_id": "C#",
+      "node_type": "Condition",
+      "evidence": "string | N/A",
+      "explanation": "string",
+      "source": "incident_description | Not specified"
+    },
+
+    {
       "label": "Temperature",
       "name": "Low temperature| Atmospheric temperature| High temperature| Not specified",
       "node_id": "C#",
@@ -63,7 +73,7 @@
       "node_type": "Condition",
       "evidence": "string | N/A",
       "explanation": "string",
-      "source": "official_source | Not specified"
+      "source": "incident_description | Not specified"
     },
 
     {
@@ -73,7 +83,7 @@
       "node_type": "Condition",
       "evidence": "string | N/A",
       "explanation": "string",
-      "source": "official_source | Not specified"
+      "source": "incident_description | Not specified"
     },
 
     {
@@ -83,7 +93,7 @@
       "node_type": "Condition",
       "evidence": "string | N/A",
       "explanation": "string",
-      "source": "official_source | Not specified"
+      "source": "incident_description | Not specified"
     },
 
     {
@@ -93,7 +103,7 @@
       "node_type": "Condition",
       "evidence": "string | N/A",
       "explanation": "string",
-      "source": "incident_description | official_source | Not specified"
+      "source": "incident_description | Not specified"
     },
 
     {
@@ -103,22 +113,12 @@
       "node_type": "Condition",
       "evidence": "string | N/A",
       "explanation": "string",
-      "source": "official_source | incident_description | Not specified"
+      "source": "incident_description | Not specified"
     },
 
     {
       "label": "ReleaseType",
       "name": "Continuous release | Instant release | Not specified",
-      "node_id": "C#",
-      "node_type": "Condition",
-      "evidence": "string | N/A",
-      "explanation": "string",
-      "source": "incident_description | Not specified"
-    },
-
-    {
-      "label": "IgnitionSource",
-      "name": "string | Not specified",
       "node_id": "C#",
       "node_type": "Condition",
       "evidence": "string | N/A",
@@ -161,10 +161,20 @@
 
     {
       "label": "MechanicalFailure",
-      "name": "string | Not specified",
+      "name": "string | Unknown mechanical failure | Not specified",
       "node_id": "Ev#",
       "node_type": "Event",
       "evidence": "string",
+      "explanation": "string",
+      "source": "incident_description | Not specified"
+    },
+
+    {
+      "label": "IgnitionSource",
+      "name": "string | Unknown ignition source | Not specified",
+      "node_id": "Ev#",
+      "node_type": "Event",
+      "evidence": "string | N/A",
       "explanation": "string",
       "source": "incident_description | Not specified"
     }

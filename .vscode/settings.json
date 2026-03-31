@@ -4,7 +4,8 @@
             "viewType": "markdown-preview-enhanced",
             "filenamePattern": "*.md"
         },
-        "*.md": "markdown-preview-enhanced"
+        "*.md": "vscode.markdown.preview.editor",
+        "*.copilotmd": "vscode.markdown.preview.editor"
     },
     "python.analysis.extraPaths": [
         "./utils/causal_graph_interactive_pkg"

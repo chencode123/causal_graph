@@ -23,42 +23,55 @@ TASK:
     1. Material Properties:
         - What are the materials?
         - Where are they located (equipment or area)?
-        - Why do these materials satisfy this material-property condition?
+        - Explain the physicochemical properties of the material that make it capable of supporting this material property.
+
+
+        For each CONDITION:
+
+        - Material_id:
+            Provide a normalized identifier of the physical substance.
+            Use uppercase snake_case.
+            Do NOT include phase, classification, or descriptive modifiers.
+            If multiple condition blocks refer to the same substance,
+            the Material_id MUST be identical across blocks.
+            
+        - Location:
+        - Explain the physicochemical properties of the material that make it capable of supporting this material property.:
 
     2. Release:
         - What caused the release?
         - Where are they located (equipment or area)?
-        - Why does this event correspond to this release condition?
+        - Explain the physical failure mechanism and release dynamics that define this event as a instant or continuous release.
 
     3. Ignition:
         If the condition is delyed or instant ignition, answer the following questions:
             - What was the ignition source?
             - Where did the ignition occur (equipment or area)?
-            - Why is the ignition classified as instant or delayed?
+            - Explain the time-scale relationship that determines whether the ignition is instant or delayed.
             
         If the condition is pre-mixture, answer the following questions:
             - What substances were already mixed prior to ignition?
             - Where did the pre-mixed condition exist (equipment or area)?
-            - Why does the mixture qualify as pre-mixed?
+            - Explain how it satisfies the definition of a pre-mixed condition.
 
 
     4. Confinement:
         - What is the equipment or location?
-        - Why does this environment constitute high or low confinement?
+        - Explain how the physical boundaries, enclosure geometry, or pressure-retaining characteristics of this environment affect pressure buildup and confinement level.
 
     5. Dispersion:
         - Where did dispersion begin (equipment or area)?
-        - Why did dispersion of this material occur?
+        - Explain the fluid dynamic or thermodynamic mechanisms that caused the material to spread or disperse from its source.
 
     6. Process Failure:
         - What is the process failure?
         - Where did the failure occur?
-        - Why did this failure happen?
+        - Explain the mechanical, thermal, chemical, or operational factors that led to this process failure.
 
     7. Energy State:
         - What are the materials involved?
         - Where are they located (equipment or place)?
-        - Why does the observed state correspond to this energy condition?
+        - Explain the thermodynamic or pressure-energy characteristics that define this state as the specified energy condition.
 
 3. IDENTIFIED_CONDITION have some causal conditions, answer only the corresponding question to those
  causal conditions based on its category based on the INCIDENT_DESCRIPTION.
@@ -97,5 +110,3 @@ Output format
 
     3. Hazard: <Hazard consequence>
     ...
-
-    

@@ -1,28 +1,71 @@
 You are a professional process safety analyst.
 
-TASK:
-- You MUST use only the information explicitly written in the previous assistant message.
-- You MUST NOT introduce any new facts, background knowledge, inferred mechanisms, ignition behavior, 
-  storage conditions, or upstream causes. 
-- If a word or concept does NOT appear verbatim in the previous assistant message, you MUST NOT mention it.
+INPUTS:
+IDENTIFIED_HAZARD_CONSEQUENCE: {identify_hazard_consequence_output}
+IDENTIFIED_INCIDENT_OUTPUT: {identify_incident_output}
+CHAIN_SCENARIO: {chain_scenario_output}
+CONDITIONS: {conditions_json}
 
-- For each pair of hazard consequences that are related, convert each explanation into a causal chain.
-- Delete pairs of hazard consequencesthat are NOT related
-- Chains must be minimal and strictly derived from the given explanation.
-- Each event must be a short phrase (no more than 4–5 words).
-Requirements:
-- The chain should start from the **first hazard** identified in the previous step.
-- It should end at the **final hazard** (the last one in the previous chain).
-- Every intermediate step should clearly represent a physical or logical connection.
-- if there is only only one hazard, you should say: there is only one hazard
+GOAL:
+Create causal links from each hazard consequence to downstream events, with strict source and temporal constraints.
 
-Example:
+DEFINITIONS (STRICT):
+- EVENT_FROM_CHAIN_SCENARIO: an event phrase that appears verbatim in CHAIN_SCENARIO.
+  Only these event phrases may appear on the right side of "->".
+  Do not use any event text from IDENTIFIED_INCIDENT_OUTPUT, CONDITIONS, or IDENTIFIED_HAZARD_CONSEQUENCE.
 
-Expected style of output:
+EVIDENCE (STRICT):
+- Evidence must be copied verbatim from IDENTIFIED_INCIDENT_OUTPUT only.
 
-    Flash fire -> Bag dump station
-    Bag dump station -> Dust collector
-    Dust collector -> Dust explosion
-    Dust explosion -> Pre-mix room
-    Pre-mix room -> Suspended dust ignition
-    Suspended dust ignition -> Fireball
+TEMPORAL RULES (STRICT):
+    1) An event can be linked to a hazard consequence only if IDENTIFIED_INCIDENT_OUTPUT explicitly places the event AFTER that hazard consequence.
+    2) Process hazard consequences in chronological order (using IDENTIFIED_INCIDENT_OUTPUT).
+    3) Each EVENT_FROM_CHAIN_SCENARIO can be assigned to ONLY ONE hazard consequence:
+    it must be assigned to the earliest hazard consequence that causes it.
+    4) If a hazard consequence is the last one in time, output "No causal links".
+    5) A hazard consequence MUST NOT be linked to any EVENT_FROM_CHAIN_SCENARIO or CONDITIONS that is upstream of it.
+        In other words, no hazard consequence may point to its own causes or any earlier event in the incident timeline.
+
+OUTPUT RULES (STRICT):
+    - Do not invent events or causal links.
+    - One line = one link. No multi-step chains. Exactly one arrow per line.
+    - No narrative outside the required fields.
+
+INTERNAL WORK (DO NOT OUTPUT):
+    A) Identify and extract the list of EVENT_FROM_CHAIN_SCENARIO
+        (verbatim phrases) from CHAIN_SCENARIO for internal reasoning
+        and for producing the required EVENT_FROM_CHAIN_SCENARIO LIST
+        in the OUTPUT FORMAT.
+    B) Determine chronological order of hazard consequences using IDENTIFIED_INCIDENT_OUTPUT.
+    C) For each hazard consequence in that order, assign eligible downstream events that occur AFTER it,
+    but skip any event already assigned to an earlier hazard consequence.
+
+OUTPUT FORMAT:
+
+EVENT_FROM_CHAIN_SCENARIO LIST:
+    - <verbatim event phrase 1>
+    - <verbatim event phrase 2>
+    - ...
+
+CAUSAL LINKS:
+
+For each <Hazard consequence>:
+
+    - If there are downstream EVENT_FROM_CHAIN_SCENARIOs:
+        1. <Hazard consequence> -> <EVENT_FROM_CHAIN_SCENARIO>
+            Evidence:
+                <verbatim quote(s) from IDENTIFIED_INCIDENT_OUTPUT showing that the hazard consequence occurs before the event>
+            Explanation:
+                <brief explanation of direct causation and temporal order, based only on IDENTIFIED_INCIDENT_OUTPUT>
+        ...
+
+    - If there are no downstream EVENT_FROM_CHAIN_SCENARIOs:
+        1. <Hazard consequence> has no direct EVENT_FROM_CHAIN_SCENARIOs
+            Evidence:
+                <verbatim quote(s) from IDENTIFIED_INCIDENT_OUTPUT showing no subsequent event>
+            Explanation:
+                <brief explanation>
+        ...
+        
+    - If this is the final hazard consequence in the incident:
+        No causal links beyond this point.

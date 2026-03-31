@@ -11,16 +11,6 @@ The "evidence" field must contain a short quote copied directly from the source 
 If source = "incident_description":
 The evidence must be copied verbatim from the incident report text.
 
-If source = "official_source":
-The evidence must be copied verbatim from an authoritative knowledge source, such as:
-• Safety Data Sheets (SDS)
-• PubChem chemical database
-• NIST Chemistry WebBook
-• NFPA chemical hazard references
-• CCPS process safety literature
-
-In this case, replace the string "official_source" with the specific source name (e.g., "PubChem", "NIST", "SDS").
-
 Do not invent, paraphrase, or infer evidence.
 
 If no supporting evidence can be found, set:
@@ -36,8 +26,6 @@ Allowed values:
 incident_description  
 Information directly extracted from the incident report.
 
-official_source  
-Information obtained from authoritative chemical knowledge sources (e.g., SDS, PubChem, NIST, NFPA, CCPS).
 
 Not specified  
 Used when the information cannot be determined from the incident report or reliable external knowledge sources.
@@ -104,6 +92,15 @@ The temperature condition of the material or environment during the accident sce
 
 Temperature can affect vapor generation, chemical stability, and the likelihood of ignition or hazardous reactions.
 
+--------------------------------------------------
+Pressure
+--------------------------------------------------
+
+Definition
+The pressure condition of the material or process system during the accident scenario.
+
+Pressure influences the containment, release rate, and phase behavior of the material.
+Elevated pressure can increase the driving force for a release and accelerate discharge from equipment, while low or atmospheric pressure conditions may affect vapor formation and dispersion behavior.
 
 --------------------------------------------------
 Volatility
@@ -203,3 +200,34 @@ Definition
 A physical failure of equipment that contributes to the accident.
 
 This may include rupture, leakage, seal failure, structural failure, or malfunction of process equipment that leads to loss of containment.
+
+If a mechanical failure clearly occurred and contributed to the accident,
+but the exact failed component or exact failure mode cannot be determined
+from the incident description, use "Unknown mechanical failure" as the name.
+
+Use "Not specified" only when the incident description does not provide enough
+support to identify whether a mechanical failure should be represented at all.
+
+--------------------------------------------------
+InitiatingEvent
+--------------------------------------------------
+
+Definition
+The first abnormal operational or physical event
+that directly initiates the accident sequence
+within the process system.
+
+The initiating event may summarize closely related
+operational actions and conditions that immediately
+lead to the hazardous sequence.
+
+--------------------------------------------------
+IgnitionSource Special Rule
+--------------------------------------------------
+
+If ignition clearly occurred in the incident, but the exact ignition source
+cannot be determined from the incident description, use
+"Unknown ignition source" as the name.
+
+Use "Not specified" only when the incident description does not provide enough
+support to identify whether an ignition source should be represented at all.

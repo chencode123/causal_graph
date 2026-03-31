@@ -1,25 +1,57 @@
-You are a professional process safety analyst.
+This prompt does not call the API.
 
-IDENTIFIED_HAZARD_CONSEQUENCE: {identify_hazard_consequence_output}
+INPUT:
+A list of causal links in the format:
+A -> B
 
 TASK:
-- Review the previous assistant message together and create the causal links between the events and corresponding condiitons
-- For every condition that appears as the final node (i.e., it does not act as a cause for any subsequent event in the previous assistant message), 
-  create a causal link that connects it directly to the relevant IDENTIFIED_HAZARD_CONSEQUENCE.
-- Don't include "-" in the final output
-- When attaching a hazard to a condition, explicitly mark it using: Condition_name <Hazard_consequence>
 
-Example:
-Previous assistant message:
-    A -> B
-    B -> C
-    C -> D
-    E -> F
+1. Condition node identification:
+   - Any node that contains angle brackets "< >" is a condition node.
+   - The text inside the brackets represents the corresponding Hazard consequence.
+   - Example:
+         Liquid <Confined explosion>
+     means:
+         Condition node = Liquid
+         Hazard consequence = Confined explosion
 
-Desired output:
-    A -> B
-    B -> Condition <Dust explosion>
-    Condition <Dust explosion> -> D
-    E -> F
-    D -> Dust explosion
-    F -> Dust explosion
+2. For EACH hazard consequence separately:
+
+   Step 1 — Identify all condition nodes that belong to that hazard.
+   Step 2 — Determine downstream relationships using the provided causal links.
+
+   A downstream node is defined as:
+      - Any node that appears on the right-hand side of a link originating from that condition.
+
+3. Terminal condition handling:
+
+   Case A:
+   If one or more condition nodes have NO downstream nodes,
+   then for EACH such condition, create a new causal link:
+
+         Condition <Hazard consequence> -> Hazard consequence
+
+   Case B:
+   If ALL condition nodes have at least one downstream node,
+   then:
+      - Identify the most downstream condition node(s).
+      - A most downstream condition is defined as:
+            A condition that does NOT directly lead to another condition.
+      - For EACH most downstream condition, create:
+
+            Condition <Hazard consequence> -> Hazard consequence
+
+4. Output rules:
+
+   - Only output causal links in the format:
+         A -> B
+   - One link per line.
+   - Do NOT modify existing links.
+   - Do NOT remove any links.
+   - Do NOT add explanations.
+   - Do NOT add new nodes beyond hazard consequence names.
+   - Preserve all original node text exactly as written.
+   - Do NOT alter spacing or characters.
+
+OUTPUT:
+Return the full updated set of causal links, including the newly created connections.

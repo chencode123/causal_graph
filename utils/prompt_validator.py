@@ -5,6 +5,8 @@ import string
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Set
 
+from utils.prompt_manifest import resolve_template_path
+
 
 PROMPT_DIR = Path("prompt")
 MANIFEST_PATH = PROMPT_DIR / "manifest.json"
@@ -61,7 +63,7 @@ def collect_prompt_step_validation_errors(
             )
             continue
 
-        template_path = prompt_dir / template_file
+        template_path = resolve_template_path(prompt_dir, template_file)
         if not template_path.exists():
             errors.append(
                 f"[Missing file] Step '{step_key}' template file not found: {template_path}."

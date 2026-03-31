@@ -1,22 +1,29 @@
 You are a professional process safety analyst.
 
 INPUT
-IDENTIFIED_EVIDENCE: {identify_evidence_output}
+EXTRACT_EVENT: {extract_event_output}
+CONDITIONS: {conditions_json}
 
 TASK:
-    - You MUST use only the information explicitly written in the explianations of IDENTIFIED_EVIDENCE.
+    - You MUST use only the information explicitly written in the EXTRACT_EVENT.
     - You MUST NOT introduce any new facts, background knowledge, inferred mechanisms, ignition behavior, 
     storage conditions, or upstream causes. 
-    - If a word or concept does NOT appear verbatim in the IDENTIFIED_EVIDENCE, you MUST NOT mention it.
     - For each hazard consequence, convert each related condition into a causal chain.
-    - Each event must be a short phrase (no more than 6 words).
-    - Chains must follow the order of the questions and dervive explicitly from IDENTIFIED_EVIDENCE. For example
+    - Chains must follow the order of the questions from EXTRACT_EVENT. For example
     - <Condition>:
         - <Short answer to Question 1> -> <Short answer to Question 2>
         - <Short answer to Question 2> -> <Condition>
     - The short answer must directly address the central focus of the question.
 
     - Remove all top-level category names (e.g., "Ignition", "Release", "EnergyState", "MaterialProperties", "Confinement", "Dispersion", "ProcessFailure").
+    - The category of conditions can be found in CONDITIONS
+
+N/A RULE (MANDATORY):
+
+    - If a short answer is "N/A", skip it.
+    - Do NOT create a node for "N/A".
+    - Only chain NON-N/A answers.
+    - If all answers are N/A, do NOT generate a chain.
 
 CROSS-HAZARD CANONICALIZATION (MANDATORY):
 
@@ -27,30 +34,6 @@ CROSS-HAZARD CANONICALIZATION (MANDATORY):
 
     2) You MUST NOT introduce paraphrases or alternate wording for a previously used phrase.
     This includes tense changes, noun/verb form changes, and synonyms.
-
-    3) If multiple phrases could refer to the same item, prefer the phrase that is:
-    a) more specific (contains an explicit identifier, e.g., "Tank 409", "WWT area"), then
-    b) already used earlier in the overall output.
-
-    4) Once a phrase is used, it becomes the canonical phrase and MUST be reused verbatim
-    in later hazard sections.
-
-CHAIN LENGTH AND COUNT CONSTRAINT (MANDATORY):
-
-    1. The number of causal links MUST equal the number of explanation questions.
-        For example:
-            If there are two explanation questions, generate:
-
-            <Answer 1> -> <Answer 2>
-            <Answer 2> -> <CONDITION>
-
-    2. You MUST NOT:
-
-        Merge multiple answers into one node
-        Skip a question
-        Add extra intermediate nodes
-        Create additional parallel chains
-        Each answer must directly correspond to one explanation question in order.
 
 OUTPUT FORMAT
     A. Hazard: <HAZARD_NAME>
@@ -87,17 +70,14 @@ OUTPUT FORMAT
 
 EXAMPLE
 
-    IDENTIFIED_EVIDENCE:
-    - Instant Ignition:
-    Evidence: The initial explosion occurred soon after the tank farm supervisor started the transfer of the final compartment of a tanker-trailer containing VM&P naphtha into a 15,000 gallon above-ground storage tank.
-    Explanation:
-    - Why did ignition occur?: The incident indicates ignition occurred shortly after transfer began, consistent with a spark/static ignition mechanism during filling operations.
-    - Where did the ignition occur (equipment or place)?: In/at the tank being filled (the explosion is described as occurring inside the storage tank).
-    - Why is the ignition classified as instant or delayed?: The phrase “occurred soon after” the transfer started indicates ignition occurred essentially immediately during the filling evolution, not after a prolonged delay.
+INPUT: 
+    Delayed Ignition
+    - What was the ignition source?: fire exposure
+    - Where did the ignition occur (equipment or area)?: storage tanks
+    - Explain the time-scale relationship that determines whether the ignition is instant or delayed.: as the fire burned
 
-    Output:
-
-    1. Instant Ignition:
-        Spark/static ignition during filling -> Inside the storage tank
-        Inside the storage tank -> Occurred soon after transfer started
-        Occurred soon after transfer started -> Instant Ignition
+OUTPUT:
+    Delayed Ignition:
+        fire exposure -> storage tanks
+        storage tanks -> as the fire burned
+        as the fire burned -> Delayed Ignition
