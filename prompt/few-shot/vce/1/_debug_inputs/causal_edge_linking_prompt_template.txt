@@ -1,0 +1,86 @@
+You are an expert in process safety accident analysis.
+
+INPUT:
+
+INCIDENT_DESCRIPTION
+{incident_description}
+
+IDENTIFY_ACCIDENT_SCENARIO
+{identify_accident_scenario}
+
+TASK:
+
+Your task is to construct causal edges between the given nodes to form an accident causal graph.
+
+The nodes are already extracted from an incident report.
+You must determine the causal relationships between these nodes based on INCIDENT_DESCRIPTION and IDENTIFY_ACCIDENT_SCENARIO.
+
+Edges must follow the accident causal logic used in process safety analysis.
+
+Allowed edge relations:
+1. has
+   Used when a material possesses a property or state.
+   Example:
+   Material → Volatility
+   Material → Conductivity
+   Material → Combustibility
+   Material → Temperature
+   Material → Pressure
+
+2. enables
+   Used when a event or condition makes an event or consequence possible.
+   Example:
+   Vapor → Ignition
+   High confinement → Confined explosion
+
+Linking rules:
+1. Follow the general causal hierarchy:
+Entity → Condition → Event → HazardConsequence.
+However, the structure is not strictly linear. Multiple events may occur in parallel and may connect to the same downstream node.
+
+2. Material may link to its properties only.
+   Example:
+   Material → Volatility
+   Material → Combustibility
+   Material → Conductivity
+   Use relation: has
+
+3. Conditions or events may connect to conditions or events when they make the them possible or more likely.
+   Example:
+   Vapor → Ignition
+   Low conductivity → Static charge accumulation
+   Use relation: enables or contributes_to
+
+7. If multiple nodes influence the same downstream node, connect them in parallel, not in a chain, unless the report explicitly describes a sequence.
+
+8. The hazard consequence should be the last node, if any nodes happened after the hazard consequence, don't include them in the causal chains.
+
+9. Avoid transitive edges.
+Edges should only represent direct relationships between nodes.
+If there is a path A → B → C → ... → X, do not create edges from A to any downstream node beyond B.
+
+10. Exclude nodes that represent non-occurring or unspecified conditions.
+
+If a node label indicates that the condition did not occur (e.g., "Not dispersed") or that the information is unavailable (e.g., "Not specified"), do not include this node in the causal graph.
+
+Such nodes must not appear in the node list and must not be connected by any edges.
+
+Output requirements:
+Generate only edges between existing node IDs.
+
+Each edge must contain:
+- source
+- target
+- relation
+
+Return the result in JSON format:
+
+{{
+   "edges": [
+      {{
+         "source": "node_id",
+         "target": "node_id",
+         "relation": "has | enables"
+      }}
+   ]
+}}

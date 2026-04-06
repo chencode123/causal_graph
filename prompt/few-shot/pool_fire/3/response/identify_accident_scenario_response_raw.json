@@ -1,0 +1,77 @@
+{
+  "id": "resp_0515130407cafc1c0069b8ccaaecd8819482e7c34b3df5a9a8",
+  "object": "response",
+  "created_at": 1773718698,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1773718809,
+  "error": null,
+  "frequency_penalty": 0.0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": 128000,
+  "max_tool_calls": null,
+  "model": "gpt-5.4-2026-03-05",
+  "output": [
+    {
+      "id": "rs_0515130407cafc1c0069b8ccab48048194a32191db0cd0bf16",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_0515130407cafc1c0069b8cd0e96b8819488d694da19ef6ef4",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "{\n  \"hazard_consequence_node\": [\n    {\n      \"label\": \"HazardConsequence\",\n      \"name\": \"Pool fire\",\n      \"node_id\": \"H1\",\n      \"node_type\": \"HazardConsequence\",\n      \"evidence\": \"The report states, \\\"This case study examines a fire at the Environmental Quality Company (EQ) hazardous waste facility in Apex, North Carolina.\\\" It further says, \\\"Within minutes, the fire spread to the flammable liquid storage area, causing 55-gallon drums of flammable hazardous waste to explode and sending fireballs hundreds of feet into the air.\\\"\",\n      \"explanation\": \"The incident is analyzed primarily as a large uncontrolled fire involving stored flammable liquid hazardous wastes. The report's main discussion centers on fire detection, fire control equipment, and lack of fire barriers that allowed the fire to spread. Drum explosions/fireballs and the toxic smoke cloud are treated as escalation effects and consequences of the main fire. Among the available labels, \\\"Pool fire\\\" is the closest match to the sustained flammable-liquid fire that drove the incident.\",\n      \"source\": \"incident_description\"\n    }\n  ],\n  \"entity_nodes\": [\n    {\n      \"label\": \"Material\",\n      \"name\": \"flammable hazardous waste\",\n      \"node_id\": \"En1\",\n      \"node_type\": \"Entity\",\n      \"evidence\": \"55-gallon drums of flammable hazardous waste\",\n      \"explanation\": \"Flammable hazardous waste was the principal fuel involved in the major fire after the incident spread into the flammable liquid storage area.\",\n      \"source\": \"incident_description\"\n    },\n    {\n      \"label\": \"Location\",\n      \"name\": \"oxidizer bay\",\n      \"node_id\": \"En2\",\n      \"node_type\": \"Entity\",\n      \"evidence\": \"The initial “sofa-size” fire observed by firefighters was in the oxidizer bay\",\n      \"explanation\": \"The earliest identified fire was located in the oxidizer bay, where the accident sequence began.\",\n      \"source\": \"incident_description\"\n    },\n    {\n      \"label\": \"Location\",\n      \"name\": \"flammable liquid storage area\",\n      \"node_id\": \"En3\",\n      \"node_type\": \"Entity\",\n      \"evidence\": \"the fire spread to the flammable liquid storage area\",\n      \"explanation\": \"The main pool-fire consequence developed after the fire spread into this storage area.\",\n      \"source\": \"incident_description\"\n    }\n  ],\n  \"condition_nodes\": [\n    {\n      \"label\": \"Phase\",\n      \"name\": \"Liquid\",\n      \"node_id\": \"C1\",\n      \"node_type\": \"Condition\",\n      \"evidence\": \"flammable liquid storage area\",\n      \"explanation\": \"The principal burning material was stored in an area designated for flammable liquids, indicating a liquid-phase fuel for the main fire.\",\n      \"source\": \"incident_description\"\n    },\n    {\n      \"label\": \"Pressure\",\n      \"name\": \"Not specified\",\n      \"node_id\": \"C2\",\n      \"node_type\": \"Condition\",\n      \"evidence\": \"N/A\",\n      \"explanation\": \"The incident description does not specify the storage or release pressure of the hazardous waste.\",\n      \"source\": \"Not specified\"\n    },\n    {\n      \"label\": \"Temperature\",\n      \"name\": \"High temperature\",\n      \"node_id\": \"C3\",\n      \"node_type\": \"Condition\",\n      \"evidence\": \"burning chemicals\",\n      \"explanation\": \"The materials were involved in an active fire, indicating high-temperature conditions during the accident.\",\n      \"source\": \"incident_description\"\n    },\n    {\n      \"label\": \"Volatility\",\n      \"name\": \"Not specified\",\n      \"node_id\": \"C4\",\n      \"node_type\": \"Condition\",\n      \"evidence\": \"N/A\",\n      \"explanation\": \"The report does not characterize the volatility of the hazardous waste involved in the fire.\",\n      \"source\": \"Not specified\"\n    },\n    {\n      \"label\": \"Combustibility\",\n      \"name\": \"Combustible\",\n      \"node_id\": \"C5\",\n      \"node_type\": \"Condition\",\n      \"evidence\": \"flammable hazardous waste\",\n      \"explanation\": \"The material is explicitly described as flammable, so it was capable of burning and sustaining the fire.\",\n      \"source\": \"incident_description\"\n    },\n    {\n      \"label\": \"ToxicSubstance\",\n      \"name\": \"Toxic\",\n      \"node_id\": \"C6\",\n      \"node_type\": \"Condition\",\n      \"evidence\": \"strong chlorine smell\",\n      \"explanation\": \"A chemical cloud with chlorine odor and associated respiratory effects indicates toxic or irritating airborne substances were present during the incident.\",\n      \"source\": \"incident_description\"\n    },\n    {\n      \"label\": \"Asphyxiant\",\n      \"name\": \"Not specified\",\n      \"node_id\": \"C7\",\n      \"node_type\": \"Condition\",\n      \"evidence\": \"N/A\",\n      \"explanation\": \"The report does not identify the released materials as asphyxiants or describe oxygen-deficiency conditions.\",\n      \"source\": \"Not specified\"\n    },\n    {\n      \"label\": \"Conductivity\",\n      \"name\": \"Not specified\",\n      \"node_id\": \"C8\",\n      \"node_type\": \"Condition\",\n      \"evidence\": \"N/A\",\n      \"explanation\": \"The electrical conductivity of the hazardous waste is not provided in the incident description.\",\n      \"source\": \"Not specified\"\n    },\n    {\n      \"label\": \"ReleaseType\",\n      \"name\": \"Not specified\",\n      \"node_id\": \"C9\",\n      \"node_type\": \"Condition\",\n      \"evidence\": \"N/A\",\n      \"explanation\": \"The report does not clearly define the loss of containment as either an instantaneous release or a continuous release.\",\n      \"source\": \"Not specified\"\n    },\n    {\n      \"label\": \"Confinement\",\n      \"name\": \"Not specified\",\n      \"node_id\": \"C10\",\n      \"node_type\": \"Condition\",\n      \"evidence\": \"N/A\",\n      \"explanation\": \"The incident description does not explicitly characterize the degree of confinement of the burning or released materials.\",\n      \"source\": \"Not specified\"\n    },\n    {\n      \"label\": \"Dispersion\",\n      \"name\": \"Dispersed\",\n      \"node_id\": \"C11\",\n      \"node_type\": \"Condition\",\n      \"evidence\": \"chemical cloud\",\n      \"explanation\": \"Airborne hazardous material or combustion products dispersed from the facility, forming a chemical cloud that affected the surrounding community.\",\n      \"source\": \"incident_description\"\n    }\n  ],\n  \"event_nodes\": [\n    {\n      \"label\": \"InitiatingEvent\",\n      \"name\": \"small fire in the oxidizer bay\",\n      \"node_id\": \"Ev1\",\n      \"node_type\": \"Event\",\n      \"evidence\": \"The initial “sofa-size” fire observed by firefighters was in the oxidizer bay\",\n      \"explanation\": \"The earliest identified abnormal event was a small fire in the oxidizer bay, which then spread to the adjacent flammable-liquid storage area.\",\n      \"source\": \"incident_description\"\n    },\n    {\n      \"label\": \"MechanicalFailure\",\n      \"name\": \"55-gallon drums of flammable hazardous waste explode\",\n      \"node_id\": \"Ev2\",\n      \"node_type\": \"Event\",\n      \"evidence\": \"causing 55-gallon drums of flammable hazardous waste to explode\",\n      \"explanation\": \"The heated waste drums failed explosively, releasing burning contents and escalating the fire severity.\",\n      \"source\": \"incident_description\"\n    },\n    {\n      \"label\": \"IgnitionSource\",\n      \"name\": \"Unknown ignition source\",\n      \"node_id\": \"Ev3\",\n      \"node_type\": \"Event\",\n      \"evidence\": \"Firefighters located a small “sofa-size” fire\",\n      \"explanation\": \"The report clearly indicates ignition had occurred, but it does not identify the specific source that ignited the initial materials.\",\n      \"source\": \"incident_description\"\n    }\n  ]\n}"
+        }
+      ],
+      "phase": "final_answer",
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0.0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": null,
+  "reasoning": {
+    "effort": "high",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1.0,
+  "text": {
+    "format": {
+      "type": "json_object"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 0.98,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 6225,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 12624,
+    "output_tokens_details": {
+      "reasoning_tokens": 10902
+    },
+    "total_tokens": 18849
+  },
+  "user": null,
+  "metadata": {}
+}

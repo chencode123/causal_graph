@@ -32,6 +32,8 @@
       "explanation": "string",
       "source": "incident_description | Not specified"
     }
+
+
   ],
 
   "condition_nodes": [
@@ -172,6 +174,16 @@
     {
       "label": "IgnitionSource",
       "name": "string | Unknown ignition source | Not specified",
+      "node_id": "Ev#",
+      "node_type": "Event",
+      "evidence": "string | N/A",
+      "explanation": "string",
+      "source": "incident_description | Not specified"
+    },
+    
+    {
+      "label": "IntermediateEvent",
+      "name": "string | Not specified",
       "node_id": "Ev#",
       "node_type": "Event",
       "evidence": "string | N/A",

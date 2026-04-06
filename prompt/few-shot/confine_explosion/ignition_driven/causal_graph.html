@@ -1,0 +1,2652 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Interactive Causal Graph - 1</title>
+  <script src="https://unpkg.com/cytoscape/dist/cytoscape.min.js"></script>
+  <script src="https://unpkg.com/dagre@0.8.5/dist/dagre.min.js"></script>
+  <script src="https://unpkg.com/cytoscape-dagre/cytoscape-dagre.js"></script>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f7f7f7;
+      color: #222;
+    }
+    .page {
+      --left-panel-width: 280px;
+      --right-panel-width: 380px;
+      display: grid;
+      grid-template-columns: var(--left-panel-width) 8px minmax(0, 1fr) 8px var(--right-panel-width);
+      gap: 12px;
+      height: 100vh;
+      padding: 16px;
+      box-sizing: border-box;
+    }
+    .page.right-panel-collapsed {
+      --right-panel-width: 0px;
+      grid-template-columns: var(--left-panel-width) 8px minmax(0, 1fr);
+    }
+    .page.left-panel-collapsed {
+      --left-panel-width: 0px;
+      grid-template-columns: minmax(0, 1fr) 8px var(--right-panel-width);
+    }
+    .page.left-panel-collapsed.right-panel-collapsed {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .canvas {
+      position: relative;
+      overflow: hidden;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+    }
+    .panel, .canvas {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+    }
+    .panel {
+      min-width: 0;
+      grid-column: 1;
+    }
+    .detail-panel {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+      padding: 16px;
+      overflow: hidden;
+      min-width: 0;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+      grid-column: 5;
+    }
+    .detail-panel-header {
+      display: grid;
+      gap: 14px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid #ececec;
+      background: #fff;
+      position: relative;
+      z-index: 2;
+    }
+    .left-resizer {
+      grid-column: 2;
+    }
+    .canvas {
+      grid-column: 3;
+    }
+    .right-resizer {
+      grid-column: 4;
+    }
+    .page.left-panel-collapsed .canvas {
+      grid-column: 1;
+    }
+    .page.left-panel-collapsed .right-resizer {
+      grid-column: 2;
+    }
+    .page.left-panel-collapsed .detail-panel {
+      grid-column: 3;
+    }
+    .page.right-panel-collapsed .canvas {
+      grid-column: 3;
+    }
+    .page.right-panel-collapsed .panel {
+      grid-column: 1;
+    }
+    .page.left-panel-collapsed.right-panel-collapsed .canvas {
+      grid-column: 1;
+    }
+    .page.right-panel-collapsed .detail-panel,
+    .page.left-panel-collapsed .panel {
+      display: none;
+    }
+    .canvas-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 14px;
+      border-bottom: 1px solid #ececec;
+      background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+    }
+    .toolbar-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .toolbar-button {
+      border: 1px solid #d1d5db;
+      border-radius: 999px;
+      padding: 7px 12px;
+      font: inherit;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      background: #fff;
+      color: #111827;
+    }
+    .toolbar-button:hover {
+      background: #f3f4f6;
+    }
+    .toolbar-button.active {
+      border-color: #bfdbfe;
+      background: #eff6ff;
+      color: #1d4ed8;
+    }
+    .toolbar-hint {
+      font-size: 12px;
+      color: #6b7280;
+      white-space: nowrap;
+    }
+    .canvas-body {
+      position: relative;
+      min-height: 0;
+    }
+    .page-resizer {
+      position: relative;
+      border-radius: 999px;
+      background: transparent;
+      cursor: col-resize;
+      user-select: none;
+      touch-action: none;
+    }
+    .page-resizer::before {
+      content: "";
+      position: absolute;
+      top: 12px;
+      bottom: 12px;
+      left: 50%;
+      width: 4px;
+      transform: translateX(-50%);
+      border-radius: 999px;
+      background: #e5e7eb;
+      transition: background 0.15s ease;
+    }
+    .page-resizer:hover::before,
+    .page-resizer.dragging::before {
+      background: #93c5fd;
+    }
+    .page.right-panel-collapsed .right-resizer,
+    .page.left-panel-collapsed .left-resizer {
+      visibility: hidden;
+    }
+    .detail-tabs {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      margin-bottom: 0;
+    }
+    .detail-tab {
+      width: 100%;
+      min-width: 0;
+      border: 1px solid #d1d5db;
+      border-radius: 999px;
+      padding: 7px 12px;
+      font: inherit;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      background: #fff;
+      color: #111827;
+    }
+    .detail-tab.active {
+      border-color: #bfdbfe;
+      background: #eff6ff;
+      color: #1d4ed8;
+    }
+    .detail-panel-scroll {
+      min-height: 0;
+      overflow: auto;
+      padding-top: 16px;
+      position: relative;
+      z-index: 1;
+    }
+    .detail-panel-body {
+      min-height: 0;
+    }
+    .detail-summary {
+      margin: 0;
+      padding: 10px 12px;
+      border: 1px solid #dbeafe;
+      border-radius: 12px;
+      background: #f8fbff;
+    }
+    .detail-summary-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: #64748b;
+      margin-bottom: 4px;
+    }
+    .detail-summary-value {
+      font-size: 14px;
+      line-height: 1.5;
+      color: #0f172a;
+      word-break: break-word;
+    }
+    .panel-view {
+      display: none;
+    }
+    .panel-view.active {
+      display: block;
+    }
+    .revision-panel {
+      display: grid;
+      gap: 12px;
+    }
+    .revision-title {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 700;
+      color: #111827;
+    }
+    .revision-subtitle {
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.5;
+      color: #6b7280;
+    }
+    .revision-list {
+      display: grid;
+      gap: 10px;
+    }
+    .revision-empty {
+      color: #6b7280;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .revision-card {
+      border: 1px solid #e5e7eb;
+      border-radius: 14px;
+      background: #f9fafb;
+      padding: 12px;
+      display: grid;
+      gap: 8px;
+    }
+    .revision-card.relevant {
+      border-color: #60a5fa;
+      background: #eff6ff;
+      box-shadow: inset 0 0 0 1px rgba(96, 165, 250, 0.25);
+    }
+    .revision-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .revision-kind {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+      color: #1f2937;
+    }
+    .revision-badges {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+    .revision-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+      border: 1px solid transparent;
+      white-space: nowrap;
+    }
+    .revision-badge.severity-high {
+      color: #991b1b;
+      background: #fee2e2;
+      border-color: #fecaca;
+    }
+    .revision-badge.severity-medium {
+      color: #92400e;
+      background: #fef3c7;
+      border-color: #fde68a;
+    }
+    .revision-badge.severity-low {
+      color: #1f2937;
+      background: #e5e7eb;
+      border-color: #d1d5db;
+    }
+    .revision-badge.confidence-high,
+    .revision-badge.confidence-medium,
+    .revision-badge.confidence-low {
+      color: #1d4ed8;
+      background: #dbeafe;
+      border-color: #bfdbfe;
+    }
+    .revision-text {
+      font-size: 13px;
+      line-height: 1.5;
+      color: #111827;
+    }
+    .revision-meta {
+      display: grid;
+      gap: 6px;
+    }
+    .revision-meta-row {
+      font-size: 12px;
+      line-height: 1.45;
+      color: #4b5563;
+    }
+    .revision-meta-row strong {
+      color: #111827;
+      font-weight: 700;
+    }
+    .revision-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+    }
+    .revision-actions button {
+      border: 1px solid #d1d5db;
+      border-radius: 10px;
+      padding: 7px 12px;
+      font: inherit;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      background: #fff;
+      color: #111827;
+    }
+    .revision-actions button:hover {
+      background: #f3f4f6;
+    }
+    .revision-actions .accept-btn {
+      border-color: #86efac;
+      background: #f0fdf4;
+      color: #166534;
+    }
+    .revision-actions .accept-btn:hover {
+      background: #dcfce7;
+    }
+    .revision-actions .reject-btn {
+      border-color: #fecaca;
+      background: #fef2f2;
+      color: #991b1b;
+    }
+    .revision-actions .reject-btn:hover {
+      background: #fee2e2;
+    }
+    .revision-actions button:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+    .revision-state {
+      font-size: 12px;
+      font-weight: 600;
+      line-height: 1.4;
+    }
+    .revision-state.accepted {
+      color: #166534;
+    }
+    .revision-state.rejected {
+      color: #991b1b;
+    }
+    .panel {
+      padding: 16px;
+      overflow: auto;
+    }
+    .panel h1 {
+      font-size: 18px;
+      margin: 0 0 12px 0;
+    }
+    .panel p {
+      font-size: 13px;
+      line-height: 1.5;
+      margin: 0 0 10px 0;
+    }
+    .panel-section {
+      margin-top: 18px;
+      padding-top: 18px;
+      border-top: 1px solid #ececec;
+    }
+    .panel-section h3 {
+      margin: 0 0 10px 0;
+      font-size: 15px;
+    }
+    .panel button {
+      border: 1px solid #d7d7d7;
+      border-radius: 8px;
+      padding: 8px 10px;
+      font: inherit;
+      background: #fff;
+      color: #111827;
+    }
+    .form-grid textarea {
+      min-height: 74px;
+      resize: vertical;
+    }
+    .panel button {
+      margin-top: 10px;
+      cursor: pointer;
+      background: #eef4ff;
+      border-color: #cddcff;
+      font-weight: 600;
+    }
+    .panel button:hover {
+      background: #e2ecff;
+    }
+    .panel-status {
+      margin-top: 10px;
+      font-size: 12px;
+      line-height: 1.5;
+      color: #4b5563;
+      min-height: 18px;
+    }
+    .panel-hint {
+      font-size: 12px;
+      line-height: 1.5;
+      color: #4b5563;
+      margin-top: 8px;
+    }
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(17, 24, 39, 0.42);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      padding: 16px;
+      box-sizing: border-box;
+    }
+    .modal-backdrop.open {
+      display: flex;
+    }
+    .modal-card {
+      width: min(520px, 100%);
+      background: #fff;
+      border-radius: 14px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.18);
+      padding: 18px;
+      box-sizing: border-box;
+    }
+    .modal-card h3 {
+      margin: 0 0 8px 0;
+      font-size: 18px;
+    }
+    .modal-card p {
+      margin: 0 0 14px 0;
+      font-size: 13px;
+      line-height: 1.5;
+      color: #4b5563;
+    }
+    .modal-grid {
+      display: grid;
+      gap: 10px;
+    }
+    .modal-grid label {
+      display: grid;
+      gap: 6px;
+      font-size: 12px;
+      color: #4b5563;
+    }
+    .modal-grid select,
+    .modal-grid input,
+    .modal-grid textarea {
+      width: 100%;
+      box-sizing: border-box;
+      border: 1px solid #d7d7d7;
+      border-radius: 8px;
+      padding: 8px 10px;
+      font: inherit;
+      background: #fff;
+      color: #111827;
+    }
+    .modal-grid textarea {
+      min-height: 80px;
+      resize: vertical;
+    }
+    .modal-error {
+      display: none;
+      margin-top: 12px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      color: #b91c1c;
+      font-size: 12px;
+      line-height: 1.5;
+      white-space: pre-wrap;
+    }
+    .modal-error.open {
+      display: block;
+    }
+    .field-invalid {
+      border-color: #dc2626 !important;
+      box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.12);
+    }
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 14px;
+    }
+    .modal-actions button {
+      border: 1px solid #d7d7d7;
+      border-radius: 8px;
+      padding: 8px 12px;
+      font: inherit;
+      cursor: pointer;
+      background: #fff;
+    }
+    .modal-actions button.primary {
+      background: #eef4ff;
+      border-color: #cddcff;
+      font-weight: 600;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 8px 0;
+      font-size: 13px;
+    }
+    .swatch {
+      width: 14px;
+      height: 14px;
+      border-radius: 4px;
+      border: 1px solid rgba(0,0,0,0.15);
+      flex: 0 0 auto;
+    }
+    .detail-title {
+      font-size: 18px;
+      margin: 0 0 12px 0;
+    }
+    .detail-subtitle {
+      font-size: 13px;
+      line-height: 1.5;
+      color: #4b5563;
+      margin: 0 0 14px 0;
+    }
+    .detail-empty {
+      font-size: 13px;
+      line-height: 1.6;
+      color: #6b7280;
+    }
+    .detail-section {
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid #ececec;
+    }
+    .detail-section:first-child {
+      margin-top: 0;
+      padding-top: 0;
+      border-top: 0;
+    }
+    .detail-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: #6b7280;
+      margin-bottom: 4px;
+    }
+    .detail-value {
+      font-size: 14px;
+      line-height: 1.5;
+      color: #111827;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .detail-form {
+      display: grid;
+      gap: 14px;
+    }
+    .detail-form label {
+      display: grid;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: #6b7280;
+    }
+    .detail-form input,
+    .detail-form select,
+    .detail-form textarea {
+      width: 100%;
+      box-sizing: border-box;
+      border: 1px solid #d1d5db;
+      border-radius: 10px;
+      padding: 10px 12px;
+      font: inherit;
+      color: #111827;
+      background: #fff;
+    }
+    .detail-form textarea {
+      min-height: 96px;
+      resize: vertical;
+    }
+    .detail-form input[readonly] {
+      background: #f3f4f6;
+      color: #6b7280;
+    }
+    .detail-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+    .detail-actions button {
+      border: 1px solid #cddcff;
+      border-radius: 10px;
+      padding: 9px 14px;
+      font: inherit;
+      font-weight: 600;
+      color: #1d4ed8;
+      background: #eef4ff;
+      cursor: pointer;
+    }
+    .detail-actions button:hover {
+      background: #e2ecff;
+    }
+    .detail-status {
+      font-size: 13px;
+      line-height: 1.5;
+      color: #4b5563;
+    }
+    .detail-status.error {
+      color: #b91c1c;
+    }
+    .detail-status.success {
+      color: #166534;
+    }
+    #cy {
+      width: 100%;
+      height: 100%;
+    }
+    #node-label-overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+    .node-overlay {
+      position: absolute;
+      box-sizing: border-box;
+      padding: 8px 10px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      color: #111827;
+      line-height: 1.2;
+      font-size: 14px;
+      overflow: hidden;
+    }
+    .node-overlay.deleted-overlay {
+      opacity: 0.45;
+      text-decoration: line-through;
+    }
+    .node-overlay-label {
+      font-weight: 700;
+      margin-bottom: 4px;
+      white-space: pre-line;
+    }
+    .node-overlay-name {
+      font-weight: 400;
+      white-space: pre-line;
+    }
+    @media (max-width: 1100px) {
+      .page {
+        --left-panel-width: 240px;
+        --right-panel-width: 320px;
+      }
+      .toolbar-hint {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="panel">
+      <h1>Interactive Causal Graph - 1</h1>
+      <p>Nodes come from <code>identify_accident_scenario_output.json</code>.</p>
+      <p>Edges come from <code>causal_edge_linking_output.json</code>.</p>
+      <p>Node text shows <code>label</code> and <code>name</code>. Edge text shows the relation.</p>
+      <div class="legend-item"><span class="swatch" style="background:#ddf5df"></span>Entity</div>
+      <div class="legend-item"><span class="swatch" style="background:#d8ebff"></span>Condition</div>
+      <div class="legend-item"><span class="swatch" style="background:#f3e7ff"></span>Event</div>
+      <div class="legend-item"><span class="swatch" style="background:#ffd6d6"></span>Hazard consequence</div>
+      <p id="summary"></p>
+      <div class="panel-section">
+        <h3>Add Node</h3>
+        <button id="add-node-button" type="button">Add Node</button>
+        <div class="panel-hint">Click the button to open a dialog and fill in node fields.</div>
+        <div id="node-form-status" class="panel-status"></div>
+      </div>
+      <div class="panel-section">
+        <h3>Add Edge</h3>
+        <button id="add-edge-button" type="button">Add Edge</button>
+        <div class="panel-hint">Click the button, then left-click two nodes in order. Left-drag empty canvas to box-select. Right-drag the canvas to pan.</div>
+        <div id="edge-form-status" class="panel-status"></div>
+      </div>
+      <div class="panel-section">
+        <h3>Deletion</h3>
+        <button id="delete-selected-button" type="button">Delete Selected</button>
+        <button id="toggle-deleted-button" type="button">Hide Deleted</button>
+        <div class="panel-hint">Delete keeps visual traces instead of removing elements permanently.</div>
+        <div id="delete-form-status" class="panel-status"></div>
+      </div>
+      <div class="panel-section">
+        <h3>Export</h3>
+        <button id="save-updates-button" type="button">Save Updates</button>
+        <div class="panel-hint">Download the current graph as JSON and HTML, including change traces.</div>
+        <div id="save-form-status" class="panel-status"></div>
+      </div>
+    </div>
+    <div class="page-resizer left-resizer" data-resize-target="left" aria-hidden="true"></div>
+    <div class="canvas">
+      <div class="canvas-toolbar">
+        <div class="toolbar-group">
+          <button id="toggle-left-panel-button" class="toolbar-button" type="button">Tools</button>
+          <button id="show-details-button" class="toolbar-button" type="button">Details</button>
+          <button id="show-revisions-button" class="toolbar-button" type="button">Revisions</button>
+          <button id="hide-right-panel-button" class="toolbar-button" type="button">Hide Panel</button>
+        </div>
+        <div class="toolbar-hint">Drag the rails to resize side panels.</div>
+      </div>
+      <div class="canvas-body">
+        <div id="cy"></div>
+        <div id="node-label-overlay"></div>
+      </div>
+    </div>
+    <div class="page-resizer right-resizer" data-resize-target="right" aria-hidden="true"></div>
+    <div class="detail-panel">
+      <div class="detail-panel-header">
+        <div>
+          <h2 class="detail-title">Details</h2>
+          <p class="detail-subtitle">Click a node or edge to inspect all available fields.</p>
+        </div>
+        <div class="detail-tabs">
+          <button id="detail-tab-button" class="detail-tab active" type="button">Details</button>
+          <button id="revision-tab-button" class="detail-tab" type="button">Revisions</button>
+        </div>
+        <div id="detail-summary" class="detail-summary">
+          <div class="detail-summary-label">Selection</div>
+          <div id="detail-summary-value" class="detail-summary-value">Review suggestions are open by default.</div>
+        </div>
+      </div>
+      <div class="detail-panel-scroll">
+        <div class="detail-panel-body">
+          <div id="detail-view" class="panel-view active">
+            <div id="detail-content" class="detail-empty">Nothing selected.</div>
+          </div>
+          <div id="revision-view" class="panel-view">
+            <div class="revision-panel">
+              <h2 class="revision-title">Suggested Revisions</h2>
+              <p class="revision-subtitle">Review-only preview of graph revision suggestions for this case.</p>
+              <div id="revision-content" class="revision-empty">No review suggestions loaded.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="modal-backdrop" class="modal-backdrop"></div>
+  <script>
+    cytoscape.use(cytoscapeDagre);
+    const elements = {"nodes": [{"data": {"id": "H1", "nodeId": "H1", "label": "HazardConsequence", "name": "Confined explosion", "nodeType": "HazardConsequence", "labelWrapped": "HazardConsequence", "nameWrapped": "Confined explosion", "evidence": "The report states that \"the initial explosion occurred inside a vertical above-ground storage tank that was being filled with VM&P naphtha\" and that the tank head space likely contained an ignitable vapor-air mixture that was ignited by a likely static spark during filling.", "explanation": "The incident analysis is centered on an internal tank explosion during filling. The report mainly examines how an ignitable vapor-air mixture formed in the tank headspace and how static accumulation and a likely spark from the gauging float linkage ignited it. The later fireball, tank ruptures, and tank farm fire were escalation effects following the primary internal explosion.", "fill": "#ffd6d6", "nodeWidth": 260, "nodeHeight": 64, "title": "ID: H1\nLabel: HazardConsequence\nName: Confined explosion\nType: HazardConsequence\nEvidence: The report states that \"the initial explosion occurred inside a vertical above-ground storage tank that was being filled with VM&P naphtha\" and that the tank head space likely contained an ignitable vapor-air mixture that was ignited by a likely static spark during filling.\nExplanation: The incident analysis is centered on an internal tank explosion during filling. The report mainly examines how an ignitable vapor-air mixture formed in the tank headspace and how static accumulation and a likely spark from the gauging float linkage ignited it. The later fireball, tank ruptures, and tank farm fire were escalation effects following the primary internal explosion."}}, {"data": {"id": "En1", "nodeId": "En1", "label": "Material", "name": "VM&P naphtha", "nodeType": "Entity", "labelWrapped": "Material", "nameWrapped": "VM&P naphtha", "evidence": "being filled with VM&P naphtha", "explanation": "VM&P naphtha was the flammable liquid being transferred into the tank and generated the ignitable headspace vapor-air mixture involved in the explosion.", "fill": "#ddf5df", "nodeWidth": 260, "nodeHeight": 64, "title": "ID: En1\nLabel: Material\nName: VM&P naphtha\nType: Entity\nEvidence: being filled with VM&P naphtha\nExplanation: VM&P naphtha was the flammable liquid being transferred into the tank and generated the ignitable headspace vapor-air mixture involved in the explosion."}}, {"data": {"id": "En2", "nodeId": "En2", "label": "Location", "name": "15,000 gallon above-ground storage tank", "nodeType": "Entity", "labelWrapped": "Location", "nameWrapped": "15,000 gallon above-\nground storage tank", "evidence": "into a 15,000 gallon above-ground storage tank", "explanation": "The initial explosion occurred in the storage tank that was receiving the final compartment of the tanker-trailer.", "fill": "#ddf5df", "nodeWidth": 260, "nodeHeight": 82, "title": "ID: En2\nLabel: Location\nName: 15,000 gallon above-ground storage tank\nType: Entity\nEvidence: into a 15,000 gallon above-ground storage tank\nExplanation: The initial explosion occurred in the storage tank that was receiving the final compartment of the tanker-trailer."}}, {"data": {"id": "C1", "nodeId": "C1", "label": "Phase", "name": "Vapor", "nodeType": "Condition", "labelWrapped": "Phase", "nameWrapped": "Vapor", "evidence": "The tank contained an ignitable vapor-air mixture in its head space.", "explanation": "The confined explosion involved the vapor phase in the tank headspace.", "fill": "#d8ebff", "nodeWidth": 260, "nodeHeight": 64, "title": "ID: C1\nLabel: Phase\nName: Vapor\nType: Condition\nEvidence: The tank contained an ignitable vapor-air mixture in its head space.\nExplanation: The confined explosion involved the vapor phase in the tank headspace."}}, {"data": {"id": "C3", "nodeId": "C3", "label": "Temperature", "name": "Atmospheric temperature", "nodeType": "Condition", "labelWrapped": "Temperature", "nameWrapped": "Atmospheric temperature", "evidence": "at approximately 77˚F (25˚C) (the handling temperature of the VM&P naphtha at the time of the incident)", "explanation": "The material was handled at ambient conditions when the ignitable vapor-air mixture was present.", "fill": "#d8ebff", "nodeWidth": 260, "nodeHeight": 64, "title": "ID: C3\nLabel: Temperature\nName: Atmospheric temperature\nType: Condition\nEvidence: at approximately 77˚F (25˚C) (the handling temperature of the VM&P naphtha at the time of the incident)\nExplanation: The material was handled at ambient conditions when the ignitable vapor-air mixture was present."}}, {"data": {"id": "C4", "nodeId": "C4", "label": "Volatility", "name": "High volatility", "nodeType": "Condition", "labelWrapped": "Volatility", "nameWrapped": "High volatility", "evidence": "can produce ignitable vapor-air mixtures inside tanks", "explanation": "The material readily generated ignitable vapors in the tank at the incident temperature.", "fill": "#d8ebff", "nodeWidth": 260, "nodeHeight": 64, "title": "ID: C4\nLabel: Volatility\nName: High volatility\nType: Condition\nEvidence: can produce ignitable vapor-air mixtures inside tanks\nExplanation: The material readily generated ignitable vapors in the tank at the incident temperature."}}, {"data": {"id": "C5", "nodeId": "C5", "label": "Combustibility", "name": "Combustible", "nodeType": "Condition", "labelWrapped": "Combustibility", "nameWrapped": "Combustible", "evidence": "VM&P naphtha is a National Fire Protection Association (NFPA) Class IB flammable liquid", "explanation": "The substance was a flammable liquid capable of burning and exploding when mixed with air and ignited.", "fill": "#d8ebff", "nodeWidth": 260, "nodeHeight": 64, "title": "ID: C5\nLabel: Combustibility\nName: Combustible\nType: Condition\nEvidence: VM&P naphtha is a National Fire Protection Association (NFPA) Class IB flammable liquid\nExplanation: The substance was a flammable liquid capable of burning and exploding when mixed with air and ignited."}}, {"data": {"id": "C8", "nodeId": "C8", "label": "Conductivity", "name": "Low conductivity", "nodeType": "Condition", "labelWrapped": "Conductivity", "nameWrapped": "Low conductivity", "evidence": "because of its low electrical conductivity, can accumulate dangerous levels of static electricity.", "explanation": "Low conductivity allowed static charge to accumulate during transfer operations.", "fill": "#d8ebff", "nodeWidth": 260, "nodeHeight": 64, "title": "ID: C8\nLabel: Conductivity\nName: Low conductivity\nType: Condition\nEvidence: because of its low electrical conductivity, can accumulate dangerous levels of static electricity.\nExplanation: Low conductivity allowed static charge to accumulate during transfer operations."}}, {"data": {"id": "C10", "nodeId": "C10", "label": "Confinement", "name": "High confinement", "nodeType": "Condition", "labelWrapped": "Confinement", "nameWrapped": "High confinement", "evidence": "the initial explosion occurred inside a vertical above-ground storage tank", "explanation": "The flammable vapor-air mixture was enclosed within the storage tank, creating a highly confined explosion environment.", "fill": "#d8ebff", "nodeWidth": 260, "nodeHeight": 64, "title": "ID: C10\nLabel: Confinement\nName: High confinement\nType: Condition\nEvidence: the initial explosion occurred inside a vertical above-ground storage tank\nExplanation: The flammable vapor-air mixture was enclosed within the storage tank, creating a highly confined explosion environment."}}, {"data": {"id": "Ev1", "nodeId": "Ev1", "label": "InitiatingEvent", "name": "Rapid static charge accumulation during stop-start filling", "nodeType": "Event", "labelWrapped": "InitiatingEvent", "nameWrapped": "Rapid static charge\naccumulation during\nstop-start filling", "evidence": "Stop-start filling, air in the transfer piping, and sediment and water (likely present in the tank) caused a rapid static charge accumulation inside the VM&P naphtha tank.", "explanation": "This was the earliest abnormal process condition identified as initiating the sequence that led to ignition of the headspace vapor-air mixture.", "fill": "#f3e7ff", "nodeWidth": 260, "nodeHeight": 100, "title": "ID: Ev1\nLabel: InitiatingEvent\nName: Rapid static charge accumulation during stop-start filling\nType: Event\nEvidence: Stop-start filling, air in the transfer piping, and sediment and water (likely present in the tank) caused a rapid static charge accumulation inside the VM&P naphtha tank.\nExplanation: This was the earliest abnormal process condition identified as initiating the sequence that led to ignition of the headspace vapor-air mixture."}}, {"data": {"id": "Ev2", "nodeId": "Ev2", "label": "MechanicalFailure", "name": "Loose linkage in tank liquid level gauging float separated", "nodeType": "Event", "labelWrapped": "MechanicalFailure", "nameWrapped": "Loose linkage in tank\nliquid level gauging\nfloat separated", "evidence": "The design of the tank liquid level gauging system float used by Barton incorporates a loose linkage at the float/tape junction that can separate slightly", "explanation": "The gauging float linkage design created a mechanical malfunction potential that likely separated during filling and enabled spark generation.", "fill": "#f3e7ff", "nodeWidth": 260, "nodeHeight": 100, "title": "ID: Ev2\nLabel: MechanicalFailure\nName: Loose linkage in tank liquid level gauging float separated\nType: Event\nEvidence: The design of the tank liquid level gauging system float used by Barton incorporates a loose linkage at the float/tape junction that can separate slightly\nExplanation: The gauging float linkage design created a mechanical malfunction potential that likely separated during filling and enabled spark generation."}}, {"data": {"id": "Ev3", "nodeId": "Ev3", "label": "IgnitionSource", "name": "Spark from separated gauging float linkage", "nodeType": "Event", "labelWrapped": "IgnitionSource", "nameWrapped": "Spark from separated\ngauging float linkage", "evidence": "The tank had a liquid level gauging system float with a loose linkage that likely separated and created a spark during filling.", "explanation": "The likely ignition source was a spark generated by the gauging float linkage during filling, which ignited the headspace vapor-air mixture.", "fill": "#f3e7ff", "nodeWidth": 260, "nodeHeight": 82, "title": "ID: Ev3\nLabel: IgnitionSource\nName: Spark from separated gauging float linkage\nType: Event\nEvidence: The tank had a liquid level gauging system float with a loose linkage that likely separated and created a spark during filling.\nExplanation: The likely ignition source was a spark generated by the gauging float linkage during filling, which ignited the headspace vapor-air mixture."}}], "edges": [{"data": {"id": "e0", "source": "En1", "target": "C3", "label": "has", "relation": "has", "title": "En1 -> C3\nRelation: has"}}, {"data": {"id": "e1", "source": "En1", "target": "C4", "label": "has", "relation": "has", "title": "En1 -> C4\nRelation: has"}}, {"data": {"id": "e2", "source": "En1", "target": "C5", "label": "has", "relation": "has", "title": "En1 -> C5\nRelation: has"}}, {"data": {"id": "e3", "source": "En1", "target": "C8", "label": "has", "relation": "has", "title": "En1 -> C8\nRelation: has"}}, {"data": {"id": "e4", "source": "En2", "target": "C10", "label": "enables", "relation": "enables", "title": "En2 -> C10\nRelation: enables"}}, {"data": {"id": "e5", "source": "C3", "target": "C1", "label": "enables", "relation": "enables", "title": "C3 -> C1\nRelation: enables"}}, {"data": {"id": "e6", "source": "C4", "target": "C1", "label": "enables", "relation": "enables", "title": "C4 -> C1\nRelation: enables"}}, {"data": {"id": "e7", "source": "C8", "target": "Ev1", "label": "enables", "relation": "enables", "title": "C8 -> Ev1\nRelation: enables"}}, {"data": {"id": "e8", "source": "Ev1", "target": "Ev3", "label": "enables", "relation": "enables", "title": "Ev1 -> Ev3\nRelation: enables"}}, {"data": {"id": "e9", "source": "Ev2", "target": "Ev3", "label": "enables", "relation": "enables", "title": "Ev2 -> Ev3\nRelation: enables"}}, {"data": {"id": "e10", "source": "C1", "target": "H1", "label": "enables", "relation": "enables", "title": "C1 -> H1\nRelation: enables"}}, {"data": {"id": "e11", "source": "C5", "target": "H1", "label": "enables", "relation": "enables", "title": "C5 -> H1\nRelation: enables"}}, {"data": {"id": "e12", "source": "C10", "target": "H1", "label": "enables", "relation": "enables", "title": "C10 -> H1\nRelation: enables"}}, {"data": {"id": "e13", "source": "Ev3", "target": "H1", "label": "enables", "relation": "enables", "title": "Ev3 -> H1\nRelation: enables"}}]};
+    const schemaForm = {"labels": ["HazardConsequence", "Material", "Location", "Phase", "Pressure", "Temperature", "Volatility", "Combustibility", "ToxicSubstance", "Asphyxiant", "Conductivity", "ReleaseType", "Confinement", "Dispersion", "InitiatingEvent", "MechanicalFailure", "IgnitionSource"], "types": ["HazardConsequence", "Entity", "Condition", "Event"], "label_to_type": {"HazardConsequence": "HazardConsequence", "Material": "Entity", "Location": "Entity", "Phase": "Condition", "Pressure": "Condition", "Temperature": "Condition", "Volatility": "Condition", "Combustibility": "Condition", "ToxicSubstance": "Condition", "Asphyxiant": "Condition", "Conductivity": "Condition", "ReleaseType": "Condition", "Confinement": "Condition", "Dispersion": "Condition", "InitiatingEvent": "Event", "MechanicalFailure": "Event", "IgnitionSource": "Event"}, "relations": ["has", "enables"]};
+    const reviewSuggestions = {"case_assessment": {"overall_quality": "good", "summary": "The graph captures the main accident logic reasonably well: ignitable vapor-air mixture in a confined tank, static accumulation in low-conductivity VM&P naphtha, likely spark generation at the gauging float linkage, and resulting internal tank explosion. The main improvements are to make the hazard evidence schema-compliant, clarify the mechanical failure node as the actual linkage separation event rather than only a design weakness, and optionally add the shared operational precursor of stop-start turbulent transfer that the report says contributed to both static buildup and linkage separation.", "main_problems": ["H1 uses paraphrased evidence instead of a direct quote from the incident text.", "Ev2 is phrased and evidenced more like a latent design vulnerability than the actual mechanical failure event that occurred during filling.", "The common operational precursor of turbulence/bubbling during stop-start transfer pumping is not explicitly represented, so the upstream cause of both Ev1 and Ev2 is compressed."]}, "node_updates": [{"target_id": "H1", "change_type": "update_evidence", "current_state": "The evidence is a paraphrased sentence beginning with \"The report states that...\" rather than a direct quote.", "suggested_state": "\"the initial explosion occurred inside a vertical above-ground storage tank that was being filled with VM&P naphtha.\"", "reason": "The current evidence does not follow the schema rule requiring verbatim evidence from the incident description.", "evidence": "The incident summary states that \"the initial explosion occurred inside a vertical above-ground storage tank that was being filled with VM&P naphtha.\"", "severity": "low", "confidence": "high"}, {"target_id": "Ev2", "change_type": "rename", "current_state": "Loose linkage in tank liquid level gauging float separated", "suggested_state": "Gauge float linkage likely separated during filling", "reason": "The current name mixes the latent loose-linkage design feature with the actual accident-step mechanical event. The report identifies the relevant contributing failure as the linkage likely separating during filling.", "evidence": "The tank had a liquid level gauging system float with a loose linkage that likely separated and created a spark during filling.", "severity": "medium", "confidence": "high"}, {"target_id": "Ev2", "change_type": "update_evidence", "current_state": "\"The design of the tank liquid level gauging system float used by Barton incorporates a loose linkage at the float/tape junction that can separate slightly\"", "suggested_state": "\"turbulence and bubbling during the stop-start transfer pumping, in addition to creating rapid static charge accumulation, also likely created slack in the gauge tape connected to the float, causing the linkage to separate\"", "reason": "The current evidence supports only design susceptibility. The suggested evidence better supports the actual separation event during the incident sequence.", "evidence": "The report states that \"turbulence and bubbling during the stop-start transfer pumping, in addition to creating rapid static charge accumulation, also likely created slack in the gauge tape connected to the float, causing the linkage to separate\".", "severity": "medium", "confidence": "high"}, {"target_id": "Ev2", "change_type": "update_explanation", "current_state": "The explanation emphasizes that the float design created malfunction potential.", "suggested_state": "The explanation should emphasize that Ev2 represents the actual linkage separation during filling; the loose-linkage design is the latent feature that made that separation possible.", "reason": "This improves causal role clarity and avoids treating a design attribute as if it were the same thing as the failure event.", "evidence": "The tank had a liquid level gauging system float with a loose linkage that likely separated and created a spark during filling.", "severity": "low", "confidence": "high"}], "node_additions": [{"suggested_label": "InitiatingEvent", "suggested_name": "Turbulence and bubbling during stop-start transfer pumping", "suggested_node_type": "Event", "suggested_upstream_links": [], "suggested_downstream_links": [{"target": "Ev1", "relation": "enables"}, {"target": "Ev2", "relation": "enables"}], "reason": "The report describes stop-start transfer turbulence/bubbling as the shared operational precursor that contributed both to rapid static accumulation and to slack/separation in the gauging linkage. Adding this node makes the causal chain more explicit without changing the main scenario.", "evidence": "The report states that \"turbulence and bubbling during the stop-start transfer pumping, in addition to creating rapid static charge accumulation, also likely created slack in the gauge tape connected to the float, causing the linkage to separate and spark.\"", "severity": "medium", "confidence": "high"}], "node_deletions": [], "edge_additions": [], "edge_deletions": [], "edge_updates": [], "issues_summary": [{"issue_type": "schema_mismatch", "description": "H1 evidence is paraphrased rather than a verbatim quote from the incident description.", "severity": "low"}, {"issue_type": "missing_step", "description": "The graph does not explicitly represent the stop-start transfer turbulence/bubbling that the report identifies as a common upstream cause of both rapid static accumulation and linkage separation.", "severity": "medium"}, {"issue_type": "other", "description": "Ev2 currently blends a latent design vulnerability with the actual mechanical separation event, which weakens role clarity in the causal chain.", "severity": "medium"}]};
+    const initialRevisionDecisions = {};
+    const originalDocumentHtml = document.documentElement.outerHTML;
+    document.getElementById("summary").textContent =
+      `${elements.nodes.length} nodes, ${elements.edges.length} edges`;
+
+    const cy = cytoscape({
+      container: document.getElementById("cy"),
+      elements: [...elements.nodes, ...elements.edges],
+      wheelSensitivity: 2,
+      userZoomingEnabled: true,
+      selectionType: "additive",
+      boxSelectionEnabled: true,
+      userPanningEnabled: false,
+      style: [
+        {
+          selector: "node",
+          style: {
+            "shape": "round-rectangle",
+            "background-color": "data(fill)",
+            "border-color": "#8f8f8f",
+            "border-width": 1.2,
+            "label": "",
+            "width": "data(nodeWidth)",
+            "height": "data(nodeHeight)",
+          }
+        },
+        {
+          selector: "edge",
+          style: {
+            "curve-style": "bezier",
+            "line-color": "#6d6d6d",
+            "target-arrow-shape": "triangle",
+            "target-arrow-color": "#6d6d6d",
+            "arrow-scale": 0.9,
+            "width": 2,
+            "label": "data(label)",
+            "font-size": 18,
+            "color": "#111",
+            "text-rotation": "autorotate",
+            "text-margin-y": -10,
+            "text-background-color": "#ffffff",
+            "text-background-opacity": 1,
+            "text-background-padding": 3
+          }
+        },
+        {
+          selector: "edge.edge-label-hidden",
+          style: {
+            "label": ""
+          }
+        },
+        {
+          selector: "node.added-highlight",
+          style: {
+            "border-color": "#dc2626",
+            "border-width": 3
+          }
+        },
+        {
+          selector: "edge.added-highlight",
+          style: {
+            "line-color": "#dc2626",
+            "target-arrow-color": "#dc2626",
+            "width": 3
+          }
+        },
+        {
+          selector: "node.delete-mark",
+          style: {
+            "border-color": "#b45309",
+            "border-width": 3,
+            "border-style": "dashed",
+            "background-opacity": 0.35
+          }
+        },
+        {
+          selector: "edge.delete-mark",
+          style: {
+            "line-color": "#b45309",
+            "target-arrow-color": "#b45309",
+            "line-style": "dashed",
+            "opacity": 0.45,
+            "width": 3
+          }
+        },
+        {
+          selector: ":selected",
+          style: {
+            "border-color": "#2563eb",
+            "line-color": "#2563eb",
+            "target-arrow-color": "#2563eb"
+          }
+        },
+        {
+          selector: ".added-highlight:selected",
+          style: {
+            "border-color": "#dc2626",
+            "line-color": "#dc2626",
+            "target-arrow-color": "#dc2626"
+          }
+        }
+      ],
+      layout: {
+        name: "dagre",
+        rankDir: "LR",
+        nodeSep: 40,
+        rankSep: 100,
+        edgeSep: 16,
+        padding: 30
+      }
+    });
+
+    const page = document.querySelector(".page");
+    const overlay = document.getElementById("node-label-overlay");
+    const detailContent = document.getElementById("detail-content");
+    const revisionContent = document.getElementById("revision-content");
+    const detailView = document.getElementById("detail-view");
+    const revisionView = document.getElementById("revision-view");
+    const detailSummaryValue = document.getElementById("detail-summary-value");
+    const detailTabButton = document.getElementById("detail-tab-button");
+    const revisionTabButton = document.getElementById("revision-tab-button");
+    const toggleLeftPanelButton = document.getElementById("toggle-left-panel-button");
+    const showDetailsButton = document.getElementById("show-details-button");
+    const showRevisionsButton = document.getElementById("show-revisions-button");
+    const hideRightPanelButton = document.getElementById("hide-right-panel-button");
+    const leftResizer = document.querySelector(".left-resizer");
+    const rightResizer = document.querySelector(".right-resizer");
+    const addNodeButton = document.getElementById("add-node-button");
+    const nodeFormStatus = document.getElementById("node-form-status");
+    const addEdgeButton = document.getElementById("add-edge-button");
+    const edgeFormStatus = document.getElementById("edge-form-status");
+    const deleteSelectedButton = document.getElementById("delete-selected-button");
+    const toggleDeletedButton = document.getElementById("toggle-deleted-button");
+    const deleteFormStatus = document.getElementById("delete-form-status");
+    const saveUpdatesButton = document.getElementById("save-updates-button");
+    const saveFormStatus = document.getElementById("save-form-status");
+    const modalBackdrop = document.getElementById("modal-backdrop");
+    let edgeCreationSource = null;
+    let edgeCreationMode = false;
+    let deletedVisible = true;
+    const undoStack = [];
+    const redoStack = [];
+    const MAX_HISTORY = 50;
+    let dragUndoSnapshot = null;
+    let dragUndoCommitted = false;
+    const revisionDecisions = { ...initialRevisionDecisions };
+    const revisionGeneratedEdges = {};
+    let revisionFocus = null;
+    let activeRightPanelTab = "details";
+    let leftPanelVisible = true;
+    let rightPanelVisible = false;
+    let initialViewportApplied = false;
+
+    function setDetailSummary(text) {
+      if (!detailSummaryValue) return;
+      detailSummaryValue.textContent = text || "Nothing selected.";
+    }
+
+    function ensureNameVisibleInitialViewport() {
+      if (initialViewportApplied) return;
+      initialViewportApplied = true;
+      cy.fit(cy.elements(), 40);
+      const minNameZoom = 0.65;
+      if (cy.zoom() < minNameZoom) {
+        cy.zoom(minNameZoom);
+        cy.center(cy.elements());
+      }
+      syncNodeOverlay();
+    }
+
+    function refreshCanvasViewport() {
+      window.requestAnimationFrame(() => {
+        cy.resize();
+        syncNodeOverlay();
+      });
+    }
+
+    function setRightPanelTab(tab) {
+      activeRightPanelTab = tab === "revisions" ? "revisions" : "details";
+      if (detailView) detailView.classList.toggle("active", activeRightPanelTab === "details");
+      if (revisionView) revisionView.classList.toggle("active", activeRightPanelTab === "revisions");
+      if (detailTabButton) detailTabButton.classList.toggle("active", activeRightPanelTab === "details");
+      if (revisionTabButton) revisionTabButton.classList.toggle("active", activeRightPanelTab === "revisions");
+      if (showDetailsButton) showDetailsButton.classList.toggle("active", rightPanelVisible && activeRightPanelTab === "details");
+      if (showRevisionsButton) showRevisionsButton.classList.toggle("active", rightPanelVisible && activeRightPanelTab === "revisions");
+    }
+
+    function setLeftPanelVisibility(visible) {
+      leftPanelVisible = !!visible;
+      if (page) page.classList.toggle("left-panel-collapsed", !leftPanelVisible);
+      if (toggleLeftPanelButton) {
+        toggleLeftPanelButton.classList.toggle("active", leftPanelVisible);
+        toggleLeftPanelButton.textContent = leftPanelVisible ? "Hide Tools" : "Show Tools";
+      }
+      refreshCanvasViewport();
+    }
+
+    function setRightPanelVisibility(visible, tab = activeRightPanelTab) {
+      rightPanelVisible = !!visible;
+      if (page) page.classList.toggle("right-panel-collapsed", !rightPanelVisible);
+      if (hideRightPanelButton) hideRightPanelButton.disabled = !rightPanelVisible;
+      if (rightPanelVisible) {
+        setRightPanelTab(tab);
+      } else {
+        if (showDetailsButton) showDetailsButton.classList.remove("active");
+        if (showRevisionsButton) showRevisionsButton.classList.remove("active");
+      }
+      if (hideRightPanelButton) {
+        hideRightPanelButton.textContent = rightPanelVisible ? "Hide Panel" : "Panel Hidden";
+      }
+      refreshCanvasViewport();
+    }
+
+    function enableHorizontalResize(handle, side) {
+      if (!handle || !page) return;
+      handle.addEventListener("pointerdown", (event) => {
+        event.preventDefault();
+        const pageRect = page.getBoundingClientRect();
+        const styles = getComputedStyle(page);
+        const currentLeft = Number.parseFloat(styles.getPropertyValue("--left-panel-width")) || 280;
+        const currentRight = Number.parseFloat(styles.getPropertyValue("--right-panel-width")) || 380;
+        const startX = event.clientX;
+        handle.classList.add("dragging");
+
+        const onMove = (moveEvent) => {
+          const delta = moveEvent.clientX - startX;
+          if (side === "left" && leftPanelVisible) {
+            const maxLeft = Math.max(220, pageRect.width - (rightPanelVisible ? currentRight : 0) - 320);
+            const next = Math.max(220, Math.min(maxLeft, currentLeft + delta));
+            page.style.setProperty("--left-panel-width", `${next}px`);
+          }
+          if (side === "right" && rightPanelVisible) {
+            const maxRight = Math.max(260, pageRect.width - (leftPanelVisible ? currentLeft : 0) - 320);
+            const next = Math.max(260, Math.min(maxRight, currentRight - delta));
+            page.style.setProperty("--right-panel-width", `${next}px`);
+          }
+          refreshCanvasViewport();
+        };
+
+        const onUp = () => {
+          handle.classList.remove("dragging");
+          window.removeEventListener("pointermove", onMove);
+          window.removeEventListener("pointerup", onUp);
+          window.removeEventListener("pointercancel", onUp);
+        };
+
+        window.addEventListener("pointermove", onMove);
+        window.addEventListener("pointerup", onUp);
+        window.addEventListener("pointercancel", onUp);
+      });
+    }
+
+    function severityBadgeClass(value) {
+      const normalized = String(value || "").toLowerCase();
+      if (normalized === "high") return "severity-high";
+      if (normalized === "medium") return "severity-medium";
+      return "severity-low";
+    }
+
+    function confidenceBadgeClass(value) {
+      const normalized = String(value || "").toLowerCase();
+      if (normalized === "high") return "confidence-high";
+      if (normalized === "medium") return "confidence-medium";
+      return "confidence-low";
+    }
+
+    function collectReviewCards() {
+      const cards = [];
+      const coveredEdgeAdditions = new Set();
+      Object.values(revisionGeneratedEdges).forEach((edges) => {
+        (edges || []).forEach((edgeKey) => coveredEdgeAdditions.add(edgeKey));
+      });
+      const nextIndexByPrefix = {
+        H: 0,
+        En: 0,
+        C: 0,
+        Ev: 0,
+      };
+      cy.nodes().forEach((node) => {
+        const nodeId = String(node.data("nodeId") || node.data("id") || "");
+        const match = nodeId.match(/^(H|En|C|Ev)(\d+)$/);
+        if (!match) return;
+        const prefix = match[1];
+        const value = Number.parseInt(match[2], 10);
+        if (Number.isFinite(value)) {
+          nextIndexByPrefix[prefix] = Math.max(nextIndexByPrefix[prefix], value);
+        }
+      });
+      function reservePreviewNodeId(nodeType) {
+        const normalized = String(nodeType || "").toLowerCase();
+        const prefixMap = {
+          hazardconsequence: "H",
+          entity: "En",
+          condition: "C",
+          event: "Ev",
+        };
+        const prefix = prefixMap[normalized] || "N";
+        if (!(prefix in nextIndexByPrefix)) {
+          nextIndexByPrefix[prefix] = 0;
+        }
+        nextIndexByPrefix[prefix] += 1;
+        return `${prefix}${nextIndexByPrefix[prefix]}`;
+      }
+      (reviewSuggestions.issues_summary || []).forEach((item, index) => {
+        cards.push({
+          kind: "Issue Summary",
+          actionable: false,
+          key: `issue_summary_${index}`,
+          relatedNodeIds: [],
+          relatedEdgeKeys: [],
+          summary: item.description || "",
+          details: [
+            ["Issue type", item.issue_type || ""],
+          ],
+          severity: item.severity || "low",
+          confidence: "",
+          payload: item,
+        });
+      });
+      (reviewSuggestions.node_updates || []).forEach((item, index) => {
+        cards.push({
+          kind: "Node Update",
+          actionable: true,
+          key: `node_update_${index}`,
+          relatedNodeIds: [item.target_id].filter(Boolean),
+          relatedEdgeKeys: [],
+          summary: item.suggested_state || item.reason || "Update node",
+          details: [
+            ["Target", item.target_id || ""],
+            ["Change", item.change_type || ""],
+            ["Reason", item.reason || ""],
+            ["Evidence", item.evidence || ""],
+          ],
+          severity: item.severity || "low",
+          confidence: item.confidence || "",
+          payload: item,
+        });
+      });
+      (reviewSuggestions.node_additions || []).forEach((item, index) => {
+        const relatedNodeIds = [];
+        const suggestedNodeType = String(item.suggested_node_type || "").trim();
+        const previewNodeId = reservePreviewNodeId(suggestedNodeType);
+        const coveredByThisNode = [];
+        (item.suggested_upstream_links || []).forEach((link) => {
+          if (link && link.source) {
+            relatedNodeIds.push(link.source);
+            const relation = link.relation || "enables";
+            const edgeKey = `${link.source}|${previewNodeId}|${relation}`;
+            coveredEdgeAdditions.add(edgeKey);
+            coveredByThisNode.push(edgeKey);
+          }
+        });
+        (item.suggested_downstream_links || []).forEach((link) => {
+          if (link && link.target) {
+            relatedNodeIds.push(link.target);
+            const relation = link.relation || "enables";
+            const edgeKey = `${previewNodeId}|${link.target}|${relation}`;
+            coveredEdgeAdditions.add(edgeKey);
+            coveredByThisNode.push(edgeKey);
+          }
+        });
+        cards.push({
+          kind: "Node Addition",
+          actionable: true,
+          key: `node_addition_${index}`,
+          relatedNodeIds,
+          relatedEdgeKeys: coveredByThisNode,
+          summary: `${item.suggested_label || "Node"}: ${item.suggested_name || ""}`,
+          details: [
+            ["Preview node ID", previewNodeId],
+            ["Suggested label", item.suggested_label || ""],
+            ["Suggested name", item.suggested_name || ""],
+            ["Suggested type", item.suggested_node_type || ""],
+            ["Upstream links", (item.suggested_upstream_links || []).map((link) => `${link.source} -> new (${link.relation})`).join("; ")],
+            ["Downstream links", (item.suggested_downstream_links || []).map((link) => `new -> ${link.target} (${link.relation})`).join("; ")],
+            ["Reason", item.reason || ""],
+            ["Evidence", item.evidence || ""],
+          ],
+          severity: item.severity || "low",
+          confidence: item.confidence || "",
+          payload: item,
+        });
+      });
+      (reviewSuggestions.node_deletions || []).forEach((item, index) => {
+        cards.push({
+          kind: "Node Deletion",
+          actionable: true,
+          key: `node_deletion_${index}`,
+          relatedNodeIds: [item.target_id].filter(Boolean),
+          relatedEdgeKeys: [],
+          summary: `Delete node ${item.target_id || ""}`,
+          details: [
+            ["Target", item.target_id || ""],
+            ["Reason", item.reason || ""],
+            ["Evidence", item.evidence || ""],
+          ],
+          severity: item.severity || "low",
+          confidence: item.confidence || "",
+          payload: item,
+        });
+      });
+      (reviewSuggestions.edge_additions || []).forEach((item, index) => {
+        const edgeKey = `${item.source}|${item.target}|${item.relation}`;
+        if (coveredEdgeAdditions.has(edgeKey)) {
+          return;
+        }
+        cards.push({
+          kind: "Edge Addition",
+          actionable: true,
+          key: `edge_addition_${index}`,
+          relatedNodeIds: [item.source, item.target].filter(Boolean),
+          relatedEdgeKeys: [`${item.source}|${item.target}|${item.relation}`],
+          summary: `${item.source || ""} -> ${item.target || ""} (${item.relation || ""})`,
+          details: [
+            ["Source", item.source || ""],
+            ["Target", item.target || ""],
+            ["Relation", item.relation || ""],
+            ["Reason", item.reason || ""],
+            ["Evidence", item.evidence || ""],
+          ],
+          severity: item.severity || "low",
+          confidence: item.confidence || "",
+          payload: item,
+        });
+      });
+      (reviewSuggestions.edge_deletions || []).forEach((item, index) => {
+        cards.push({
+          kind: "Edge Deletion",
+          actionable: true,
+          key: `edge_deletion_${index}`,
+          relatedNodeIds: [item.source, item.target].filter(Boolean),
+          relatedEdgeKeys: [`${item.source}|${item.target}|${item.relation}`],
+          summary: `Delete edge ${item.source || ""} -> ${item.target || ""} (${item.relation || ""})`,
+          details: [
+            ["Source", item.source || ""],
+            ["Target", item.target || ""],
+            ["Relation", item.relation || ""],
+            ["Reason", item.reason || ""],
+            ["Evidence", item.evidence || ""],
+          ],
+          severity: item.severity || "low",
+          confidence: item.confidence || "",
+          payload: item,
+        });
+      });
+      (reviewSuggestions.edge_updates || []).forEach((item, index) => {
+        cards.push({
+          kind: "Edge Update",
+          actionable: true,
+          key: `edge_update_${index}`,
+          relatedNodeIds: [item.source, item.target].filter(Boolean),
+          relatedEdgeKeys: [`${item.source}|${item.target}|${item.current_relation}`],
+          summary: `${item.source || ""} -> ${item.target || ""}: ${item.current_relation || ""} -> ${item.suggested_relation || ""}`,
+          details: [
+            ["Source", item.source || ""],
+            ["Target", item.target || ""],
+            ["Current relation", item.current_relation || ""],
+            ["Suggested relation", item.suggested_relation || ""],
+            ["Reason", item.reason || ""],
+            ["Evidence", item.evidence || ""],
+          ],
+          severity: item.severity || "low",
+          confidence: item.confidence || "",
+          payload: item,
+        });
+      });
+      return cards;
+    }
+
+    function severityRank(value) {
+      const normalized = String(value || "").toLowerCase();
+      if (normalized === "high") return 0;
+      if (normalized === "medium") return 1;
+      return 2;
+    }
+
+    function kindRank(value) {
+      const normalized = String(value || "").toLowerCase();
+      if (normalized === "issue summary") return 0;
+      if (normalized === "node update") return 1;
+      if (normalized === "node addition") return 2;
+      if (normalized === "node deletion") return 3;
+      if (normalized === "edge addition") return 4;
+      if (normalized === "edge deletion") return 5;
+      if (normalized === "edge update") return 6;
+      return 99;
+    }
+
+    function renderRevisionSuggestions(focus = null) {
+      if (!revisionContent) return;
+      revisionFocus = focus;
+      const cards = collectReviewCards().sort((a, b) => {
+        const issueSummaryDiff = kindRank(a.kind) === 0 ? -1 : kindRank(b.kind) === 0 ? 1 : 0;
+        if (issueSummaryDiff !== 0) return issueSummaryDiff;
+        const severityDiff = severityRank(a.severity) - severityRank(b.severity);
+        if (severityDiff !== 0) return severityDiff;
+        return kindRank(a.kind) - kindRank(b.kind);
+      });
+      if (!cards.length) {
+        revisionContent.className = "revision-empty";
+        revisionContent.innerHTML = "No review suggestions loaded.";
+        return;
+      }
+
+      const focusNodeId = focus && focus.type === "node" ? focus.id : null;
+      const focusEdgeKey = focus && focus.type === "edge"
+        ? `${focus.source}|${focus.target}|${focus.relation || ""}`
+        : null;
+
+      const html = cards.map((card) => {
+        const relatedNodes = Array.isArray(card.relatedNodeIds) ? card.relatedNodeIds.filter(Boolean) : [];
+        const relatedEdges = Array.isArray(card.relatedEdgeKeys) ? card.relatedEdgeKeys.filter(Boolean) : [];
+        const relevant = (
+          (focusNodeId && relatedNodes.includes(focusNodeId)) ||
+          (focusEdgeKey && relatedEdges.includes(focusEdgeKey))
+        );
+        const detailsHtml = (card.details || [])
+          .filter(([_, value]) => String(value || "").trim())
+          .map(([label, value]) => `<div class="revision-meta-row"><strong>${escapeHtml(label)}:</strong> ${escapeHtml(value)}</div>`)
+          .join("");
+        const badges = [
+          `<span class="revision-badge ${severityBadgeClass(card.severity)}">Severity: ${escapeHtml(card.severity || "low")}</span>`,
+          card.confidence ? `<span class="revision-badge ${confidenceBadgeClass(card.confidence)}">Confidence: ${escapeHtml(card.confidence)}</span>` : "",
+        ].join("");
+        const decision = revisionDecisions[card.key] || "";
+        const stateHtml = decision
+          ? `<div class="revision-state ${decision}">${decision === "accepted" ? "Accepted and applied." : "Rejected."}</div>`
+          : "";
+        const actionsHtml = card.actionable ? `
+          <div class="revision-actions">
+            <button type="button" class="accept-btn" data-revision-key="${escapeHtml(card.key)}" data-revision-action="accept"${decision ? " disabled" : ""}>Accept</button>
+            <button type="button" class="reject-btn" data-revision-key="${escapeHtml(card.key)}" data-revision-action="reject"${decision ? " disabled" : ""}>Reject</button>
+          </div>
+        ` : `
+          <div class="revision-actions">
+            <button type="button" disabled>Info only</button>
+          </div>
+        `;
+        return `
+          <div class="revision-card${relevant ? " relevant" : ""}">
+            <div class="revision-head">
+              <div class="revision-kind">${escapeHtml(card.kind)}</div>
+              <div class="revision-badges">${badges}</div>
+            </div>
+            <div class="revision-text">${escapeHtml(card.summary || "")}</div>
+            <div class="revision-meta">${detailsHtml}</div>
+            ${stateHtml}
+            ${actionsHtml}
+          </div>
+        `;
+      }).join("");
+
+      revisionContent.className = "revision-list";
+      revisionContent.innerHTML = html;
+      revisionContent.querySelectorAll("[data-revision-action]").forEach((button) => {
+        button.addEventListener("click", () => {
+          const key = button.getAttribute("data-revision-key") || "";
+          const action = button.getAttribute("data-revision-action") || "";
+          handleRevisionDecision(key, action);
+        });
+      });
+    }
+
+    function findNodeByNodeId(nodeId) {
+      return cy.nodes().filter((node) => {
+        const data = node.data();
+        return (data.nodeId || data.id || "") === nodeId;
+      })[0] || null;
+    }
+
+    function findEdgeByTriple(source, target, relation) {
+      return cy.edges().filter((edge) => {
+        const data = edge.data();
+        return (
+          (data.source || "") === source &&
+          (data.target || "") === target &&
+          ((data.relation || data.label || "") === relation)
+        );
+      })[0] || null;
+    }
+
+    function applyNodeUpdate(card) {
+      const item = card.payload || {};
+      const node = findNodeByNodeId(item.target_id || "");
+      if (!node) throw new Error(`Node ${item.target_id || ""} not found.`);
+      const data = { ...node.data() };
+      const changeType = String(item.change_type || "").toLowerCase();
+      const suggestedState = String(item.suggested_state || "");
+      const captureField = (label) => {
+        const match = suggestedState.match(new RegExp(`${label}:\\s*([^\\n]+)`, "i"));
+        return match ? match[1].trim() : "";
+      };
+      if (changeType === "rename") {
+        data.name = suggestedState || data.name;
+      } else if (changeType === "relabel") {
+        data.label = suggestedState || data.label;
+      } else if (changeType === "retype") {
+        data.nodeType = suggestedState || data.nodeType;
+      } else if (changeType === "update_evidence") {
+        data.evidence = captureField("evidence") || suggestedState || data.evidence;
+      } else if (changeType === "update_explanation") {
+        data.explanation = captureField("explanation") || suggestedState || data.explanation;
+      } else if (changeType === "clarify_role") {
+        data.explanation = suggestedState || data.explanation;
+      }
+      data.labelWrapped = wrapText(data.label || "", 18);
+      data.nameWrapped = wrapText(data.name || "", 24);
+      const size = computeNodeSize(data.labelWrapped, data.nameWrapped);
+      data.nodeWidth = size.nodeWidth;
+      data.nodeHeight = size.nodeHeight;
+      data.fill = nodeFillFromType(data.nodeType);
+      data.title = buildNodeTitle(data);
+      node.data(data);
+      markAsAdded(node);
+      runLayout();
+      syncNodeOverlay();
+      updateSummary();
+      showNodeDetails(node, "Accepted revision applied.", "success");
+    }
+
+    function applyNodeAddition(card) {
+      const item = card.payload || {};
+      const label = String(item.suggested_label || "").trim();
+      const nodeType = String(item.suggested_node_type || "").trim();
+      const name = String(item.suggested_name || "").trim();
+      if (!label || !nodeType || !name) {
+        throw new Error("Node addition is missing label, type, or name.");
+      }
+      const nodeId = nextNodeIdForType(nodeType);
+      const labelWrapped = wrapText(label, 18);
+      const nameWrapped = wrapText(name, 24);
+      const size = computeNodeSize(labelWrapped, nameWrapped);
+      const nodeData = {
+        id: nodeId,
+        nodeId,
+        label,
+        name,
+        nodeType,
+        labelWrapped,
+        nameWrapped,
+        evidence: item.evidence || "",
+        explanation: item.reason || item.explanation || "",
+        fill: nodeFillFromType(nodeType),
+        nodeWidth: size.nodeWidth,
+        nodeHeight: size.nodeHeight,
+      };
+      nodeData.title = buildNodeTitle(nodeData);
+      const newNode = cy.add({ group: "nodes", data: nodeData });
+      const center = cy.extent();
+      newNode.position({
+        x: (center.x1 + center.x2) / 2,
+        y: (center.y1 + center.y2) / 2,
+      });
+      markAsAdded(newNode);
+
+      const maybeAddEdge = (sourceId, targetId, relation) => {
+        if (!sourceId || !targetId || !relation) return;
+        if (!findNodeByNodeId(sourceId) || !findNodeByNodeId(targetId)) return;
+        if (findEdgeByTriple(sourceId, targetId, relation)) return;
+        const edge = cy.add({
+          group: "edges",
+          data: {
+            id: `e${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+            source: sourceId,
+            target: targetId,
+            label: relation,
+            relation,
+            title: `${sourceId} -> ${targetId}\nRelation: ${relation}`,
+          },
+        });
+        markAsAdded(edge);
+      };
+
+      (item.suggested_upstream_links || []).forEach((link) => {
+        maybeAddEdge(link.source || "", nodeId, link.relation || "enables");
+      });
+      (item.suggested_downstream_links || []).forEach((link) => {
+        maybeAddEdge(nodeId, link.target || "", link.relation || "enables");
+      });
+      revisionGeneratedEdges[card.key] = [
+        ...(item.suggested_upstream_links || []).map((link) => `${link.source || ""}|${nodeId}|${link.relation || "enables"}`),
+        ...(item.suggested_downstream_links || []).map((link) => `${nodeId}|${link.target || ""}|${link.relation || "enables"}`),
+      ].filter(Boolean);
+
+      runLayout();
+      syncNodeOverlay();
+      updateSummary();
+      showNodeDetails(newNode[0], "Accepted revision applied.", "success");
+    }
+
+    function applyNodeDeletion(card) {
+      const item = card.payload || {};
+      const node = findNodeByNodeId(item.target_id || "");
+      if (!node) throw new Error(`Node ${item.target_id || ""} not found.`);
+      markAsDeleted(node);
+      const connectedEdges = node.connectedEdges();
+      if (connectedEdges.length) {
+        markAsDeleted(connectedEdges);
+      }
+      syncNodeOverlay();
+      showNodeDetails(node, "Accepted revision applied.", "success");
+    }
+
+    function applyEdgeAddition(card) {
+      const item = card.payload || {};
+      const source = item.source || "";
+      const target = item.target || "";
+      const relation = item.relation || "";
+      if (!findNodeByNodeId(source) || !findNodeByNodeId(target)) {
+        throw new Error("Source or target node for edge addition was not found.");
+      }
+      if (findEdgeByTriple(source, target, relation)) {
+        throw new Error("Suggested edge already exists.");
+      }
+      const edge = cy.add({
+        group: "edges",
+        data: {
+          id: `e${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+          source,
+          target,
+          label: relation,
+          relation,
+          title: `${source} -> ${target}\nRelation: ${relation}`,
+        },
+      });
+      markAsAdded(edge);
+      runLayout();
+      syncNodeOverlay();
+      updateSummary();
+      showEdgeDetails(edge[0]);
+    }
+
+    function applyEdgeDeletion(card) {
+      const item = card.payload || {};
+      const edge = findEdgeByTriple(item.source || "", item.target || "", item.relation || "");
+      if (!edge) throw new Error("Suggested edge for deletion was not found.");
+      markAsDeleted(edge);
+      syncNodeOverlay();
+      showEdgeDetails(edge);
+    }
+
+    function applyEdgeUpdate(card) {
+      const item = card.payload || {};
+      const edge = findEdgeByTriple(item.source || "", item.target || "", item.current_relation || "");
+      if (!edge) throw new Error("Edge to update was not found.");
+      edge.data({
+        ...edge.data(),
+        relation: item.suggested_relation || edge.data("relation") || edge.data("label") || "",
+        label: item.suggested_relation || edge.data("relation") || edge.data("label") || "",
+        title: `${item.source || edge.data("source")} -> ${item.target || edge.data("target")}\nRelation: ${item.suggested_relation || edge.data("relation") || edge.data("label") || ""}`,
+      });
+      markAsAdded(edge);
+      syncNodeOverlay();
+      showEdgeDetails(edge);
+    }
+
+    function applyRevisionCard(card) {
+      if (!card || !card.actionable) {
+        throw new Error("This suggestion is informational only.");
+      }
+      if (card.kind === "Node Update") return applyNodeUpdate(card);
+      if (card.kind === "Node Addition") return applyNodeAddition(card);
+      if (card.kind === "Node Deletion") return applyNodeDeletion(card);
+      if (card.kind === "Edge Addition") return applyEdgeAddition(card);
+      if (card.kind === "Edge Deletion") return applyEdgeDeletion(card);
+      if (card.kind === "Edge Update") return applyEdgeUpdate(card);
+      throw new Error(`Unsupported revision kind: ${card.kind}`);
+    }
+
+    function handleRevisionDecision(key, action) {
+      const card = collectReviewCards().find((item) => item.key === key);
+      if (!card) return;
+      const previousTab = activeRightPanelTab;
+      if (action === "reject") {
+        pushUndoState();
+        revisionDecisions[key] = "rejected";
+        renderRevisionSuggestions(revisionFocus);
+        setRightPanelVisibility(true, previousTab);
+        setFormStatus(saveFormStatus, `Rejected suggestion: ${card.kind}.`, false);
+        return;
+      }
+      if (action === "accept") {
+        try {
+          pushUndoState();
+          applyRevisionCard(card);
+          revisionDecisions[key] = "accepted";
+          renderRevisionSuggestions(revisionFocus);
+          setRightPanelVisibility(true, previousTab);
+          setFormStatus(saveFormStatus, `Accepted suggestion: ${card.kind}.`, false);
+        } catch (error) {
+          setFormStatus(saveFormStatus, `Could not apply suggestion: ${error}`, true);
+        }
+      }
+    }
+
+    function escapeHtml(value) {
+      return String(value || "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;");
+    }
+
+    function syncNodeOverlay() {
+      if (!overlay) return;
+      const showName = true;
+      const baseLabelFontSize = 18;
+      const baseNameFontSize = 14;
+      const basePaddingY = 10;
+      const basePaddingX = 12;
+      const baseLabelGap = showName ? 6 : 0;
+      const fragments = [];
+      cy.nodes().forEach((node) => {
+        const pos = node.renderedPosition();
+        const width = node.renderedWidth();
+        const height = node.renderedHeight();
+        const left = pos.x - width / 2;
+        const top = pos.y - height / 2;
+        const modelHeight = Number(node.data("nodeHeight")) || height || 1;
+        const scale = Math.max(0.1, height / modelHeight);
+        const labelFontSize = baseLabelFontSize * scale;
+        const nameFontSize = baseNameFontSize * scale;
+        const paddingY = basePaddingY * scale;
+        const paddingX = basePaddingX * scale;
+        const labelGap = baseLabelGap * scale;
+        const labelText = escapeHtml(node.data("labelWrapped") || "");
+        const nameHtml = showName
+          ? `<div class="node-overlay-name" style="font-size:${nameFontSize}px;">${escapeHtml(node.data("nameWrapped"))}</div>`
+          : "";
+        fragments.push(`
+          <div
+            class="node-overlay${node.hasClass("delete-mark") ? " deleted-overlay" : ""}"
+            style="left:${left}px; top:${top}px; width:${width}px; height:${height}px; padding:${paddingY}px ${paddingX}px;"
+            title="${escapeHtml(node.data("title"))}"
+          >
+            <div class="node-overlay-label" style="margin-bottom:${labelGap}px; font-size:${labelFontSize}px;">${labelText}</div>
+            ${nameHtml}
+          </div>
+        `);
+      });
+      overlay.innerHTML = fragments.join("");
+    }
+
+    function setFormStatus(target, message, isError = false) {
+      if (!target) return;
+      target.textContent = message || "";
+      target.style.color = isError ? "#b91c1c" : "#4b5563";
+    }
+
+    if (toggleLeftPanelButton) {
+      toggleLeftPanelButton.addEventListener("click", () => {
+        setLeftPanelVisibility(!leftPanelVisible);
+      });
+    }
+    if (showDetailsButton) {
+      showDetailsButton.addEventListener("click", () => {
+        setRightPanelVisibility(true, "details");
+      });
+    }
+    if (showRevisionsButton) {
+      showRevisionsButton.addEventListener("click", () => {
+        setRightPanelVisibility(true, "revisions");
+      });
+    }
+    if (hideRightPanelButton) {
+      hideRightPanelButton.addEventListener("click", () => {
+        setRightPanelVisibility(false);
+      });
+    }
+    if (detailTabButton) {
+      detailTabButton.addEventListener("click", () => {
+        setRightPanelVisibility(true, "details");
+      });
+    }
+    if (revisionTabButton) {
+      revisionTabButton.addEventListener("click", () => {
+        setRightPanelVisibility(true, "revisions");
+      });
+    }
+    enableHorizontalResize(leftResizer, "left");
+    enableHorizontalResize(rightResizer, "right");
+    setLeftPanelVisibility(true);
+    setDetailSummary("Review suggestions are open by default.");
+    setRightPanelVisibility(true, "revisions");
+
+    function updateSummary() {
+      const summary = document.getElementById("summary");
+      if (summary) {
+        summary.textContent = `${cy.nodes().length} nodes, ${cy.edges().length} edges`;
+      }
+    }
+
+    (function enableRightMousePan() {
+      const container = cy.container();
+      if (!container) return;
+
+      let rightPanning = false;
+      let moved = false;
+      let lastPoint = { x: 0, y: 0 };
+
+      container.addEventListener("contextmenu", (event) => {
+        event.preventDefault();
+      });
+
+      container.addEventListener("mousedown", (event) => {
+        if (event.button !== 2) return;
+        rightPanning = true;
+        moved = false;
+        lastPoint = { x: event.clientX, y: event.clientY };
+        event.preventDefault();
+      });
+
+      window.addEventListener("mousemove", (event) => {
+        if (!rightPanning) return;
+        const dx = event.clientX - lastPoint.x;
+        const dy = event.clientY - lastPoint.y;
+        if (dx !== 0 || dy !== 0) {
+          moved = true;
+          cy.panBy({ x: dx, y: dy });
+          syncNodeOverlay();
+        }
+        lastPoint = { x: event.clientX, y: event.clientY };
+        event.preventDefault();
+      });
+
+      window.addEventListener("mouseup", (event) => {
+        if (event.button !== 2 || !rightPanning) return;
+        rightPanning = false;
+        if (moved) {
+          event.preventDefault();
+        }
+      });
+    })();
+
+    (function enableWheelZoom() {
+      const container = cy.container();
+      if (!container) return;
+
+      cy.userZoomingEnabled(true);
+
+      container.addEventListener("wheel", (event) => {
+        event.preventDefault();
+
+        const current = cy.zoom();
+        const factor = Math.pow(1.001, -event.deltaY);
+        let next = current * factor;
+
+        const minZoom = 0.08;
+        const maxZoom = 5;
+        next = Math.max(minZoom, Math.min(maxZoom, next));
+
+        const rect = container.getBoundingClientRect();
+        const renderedPosition = {
+          x: event.clientX - rect.left,
+          y: event.clientY - rect.top,
+        };
+
+        cy.zoom({ level: next, renderedPosition });
+        syncNodeOverlay();
+      }, { passive: false });
+    })();
+
+    function openModal(title, description, bodyHtml, onConfirm) {
+      if (!modalBackdrop) return;
+      modalBackdrop.innerHTML = `
+        <div class="modal-card">
+          <h3>${escapeHtml(title)}</h3>
+          <p>${escapeHtml(description)}</p>
+          <div class="modal-grid">${bodyHtml}</div>
+          <div id="modal-error-box" class="modal-error"></div>
+          <div class="modal-actions">
+            <button type="button" id="modal-cancel-button">Cancel</button>
+            <button type="button" class="primary" id="modal-confirm-button">Confirm</button>
+          </div>
+        </div>
+      `;
+      modalBackdrop.classList.add("open");
+
+      const close = () => {
+        modalBackdrop.classList.remove("open");
+        modalBackdrop.innerHTML = "";
+      };
+
+      const cancelButton = document.getElementById("modal-cancel-button");
+      const confirmButton = document.getElementById("modal-confirm-button");
+      const errorBox = document.getElementById("modal-error-box");
+      const clearFieldErrors = () => {
+        modalBackdrop.querySelectorAll(".field-invalid").forEach((el) => {
+          el.classList.remove("field-invalid");
+        });
+      };
+      const clearModalError = () => {
+        clearFieldErrors();
+        if (errorBox) {
+          errorBox.textContent = "";
+          errorBox.classList.remove("open");
+        }
+      };
+      const showModalError = (message, fieldIds = []) => {
+        clearFieldErrors();
+        if (errorBox) {
+          errorBox.textContent = message || "";
+          errorBox.classList.add("open");
+        }
+        fieldIds.forEach((fieldId) => {
+          const field = document.getElementById(fieldId);
+          if (field) {
+            field.classList.add("field-invalid");
+          }
+        });
+      };
+      if (cancelButton) {
+        cancelButton.addEventListener("click", close, { once: true });
+      }
+      if (confirmButton) {
+        confirmButton.addEventListener("click", () => {
+          confirmButton.disabled = true;
+          clearModalError();
+          try {
+            const shouldClose = onConfirm
+              ? onConfirm({ showModalError, clearModalError }) !== false
+              : true;
+            if (shouldClose) {
+              close();
+              return;
+            }
+          } catch (error) {
+            showModalError(`Unexpected error: ${error}`);
+          }
+          confirmButton.disabled = false;
+        });
+      }
+    }
+
+    function markAsAdded(elements) {
+      if (!elements || !elements.length) return;
+      elements.removeClass("delete-mark");
+      elements.style("display", "element");
+      elements.addClass("added-highlight");
+    }
+
+    function markAsDeleted(elements) {
+      if (!elements || !elements.length) return;
+      elements.removeClass("added-highlight");
+      elements.addClass("delete-mark");
+    }
+
+    function setDeletedVisibility(visible) {
+      deletedVisible = !!visible;
+      const display = deletedVisible ? "element" : "none";
+      cy.$(".delete-mark").style("display", display);
+      if (toggleDeletedButton) {
+        toggleDeletedButton.textContent = deletedVisible ? "Hide Deleted" : "Show Deleted";
+      }
+      setFormStatus(
+        deleteFormStatus,
+        deletedVisible ? "Deleted traces are visible." : "Deleted traces are hidden.",
+        false,
+      );
+      syncNodeOverlay();
+    }
+
+    function serializeGraphElements() {
+      const nodes = cy.nodes().map((node) => {
+        const json = node.json();
+        return {
+          group: "nodes",
+          data: { ...json.data },
+          position: json.position ? { ...json.position } : undefined,
+          classes: json.classes || "",
+        };
+      });
+      const edges = cy.edges().map((edge) => {
+        const json = edge.json();
+        return {
+          group: "edges",
+          data: { ...json.data },
+          classes: json.classes || "",
+        };
+      });
+      return { nodes, edges };
+    }
+
+    function cloneGraphSnapshot() {
+      return {
+        elements: serializeGraphElements(),
+        deletedVisible,
+        pan: { ...cy.pan() },
+        zoom: cy.zoom(),
+        reviewState: {
+          decisions: { ...revisionDecisions },
+          generatedEdges: { ...revisionGeneratedEdges },
+        },
+      };
+    }
+
+    function pushUndoState(snapshotOverride = null, options = {}) {
+      const { clearRedo = true } = options;
+      const snapshot = snapshotOverride || cloneGraphSnapshot();
+      undoStack.push(snapshot);
+      if (undoStack.length > MAX_HISTORY) {
+        undoStack.shift();
+      }
+      if (clearRedo) {
+        redoStack.length = 0;
+      }
+    }
+
+    function restoreGraphSnapshot(snapshot) {
+      if (!snapshot) return;
+      edgeCreationSource = null;
+      edgeCreationMode = false;
+      cy.$(":selected").unselect();
+      cy.elements().remove();
+      const elements = snapshot.elements || { nodes: [], edges: [] };
+      if (elements.nodes?.length) {
+        cy.add(elements.nodes);
+      }
+      if (elements.edges?.length) {
+        cy.add(elements.edges);
+      }
+      if (snapshot.pan) {
+        cy.pan(snapshot.pan);
+      }
+      if (typeof snapshot.zoom === "number") {
+        cy.zoom(snapshot.zoom);
+      }
+      const reviewState = snapshot.reviewState || {};
+      Object.keys(revisionDecisions).forEach((key) => delete revisionDecisions[key]);
+      Object.assign(revisionDecisions, reviewState.decisions || {});
+      Object.keys(revisionGeneratedEdges).forEach((key) => delete revisionGeneratedEdges[key]);
+      Object.assign(revisionGeneratedEdges, reviewState.generatedEdges || {});
+      setDeletedVisibility(snapshot.deletedVisible !== false);
+      updateSummary();
+      syncNodeOverlay();
+      if (detailContent) {
+        detailContent.innerHTML = "Nothing selected.";
+      }
+      setDetailSummary("Nothing selected.");
+      renderRevisionSuggestions();
+    }
+
+    function undoLastAction() {
+      if (!undoStack.length) {
+        setFormStatus(saveFormStatus, "Nothing to undo.", false);
+        return;
+      }
+      const currentSnapshot = cloneGraphSnapshot();
+      const previousSnapshot = undoStack.pop();
+      redoStack.push(currentSnapshot);
+      if (redoStack.length > MAX_HISTORY) {
+        redoStack.shift();
+      }
+      restoreGraphSnapshot(previousSnapshot);
+      setFormStatus(saveFormStatus, "Undo applied.", false);
+    }
+
+    function redoLastAction() {
+      if (!redoStack.length) {
+        setFormStatus(saveFormStatus, "Nothing to redo.", false);
+        return;
+      }
+      const currentSnapshot = cloneGraphSnapshot();
+      const nextSnapshot = redoStack.pop();
+      undoStack.push(currentSnapshot);
+      if (undoStack.length > MAX_HISTORY) {
+        undoStack.shift();
+      }
+      restoreGraphSnapshot(nextSnapshot);
+      setFormStatus(saveFormStatus, "Redo applied.", false);
+    }
+
+    function serializeUpdatePayload() {
+      const activeNodes = cy.nodes().filter((node) => !node.hasClass("delete-mark"));
+      const activeNodeIds = new Set(activeNodes.map((node) => node.id()));
+      const activeEdges = cy.edges().filter((edge) =>
+        !edge.hasClass("delete-mark") &&
+        activeNodeIds.has(edge.data("source")) &&
+        activeNodeIds.has(edge.data("target"))
+      );
+
+      const payload = {
+        hazard_consequence_node: [],
+        entity_nodes: [],
+        condition_nodes: [],
+        event_nodes: [],
+        edges: [],
+      };
+
+      activeNodes.forEach((node) => {
+        const data = node.data();
+        const item = {
+          label: data.label || "",
+          name: data.name || "",
+          node_id: data.nodeId || data.id || "",
+          node_type: data.nodeType || "",
+          evidence: data.evidence || "",
+          explanation: data.explanation || "",
+          source: data.source || "updated_graph",
+        };
+        const normalizedType = String(data.nodeType || "").toLowerCase();
+        if (normalizedType === "hazardconsequence") {
+          payload.hazard_consequence_node.push(item);
+        } else if (normalizedType === "entity") {
+          payload.entity_nodes.push(item);
+        } else if (normalizedType === "condition") {
+          payload.condition_nodes.push(item);
+        } else if (normalizedType === "event") {
+          payload.event_nodes.push(item);
+        }
+      });
+
+      activeEdges.forEach((edge) => {
+        const data = edge.data();
+        payload.edges.push({
+          source: data.source || "",
+          target: data.target || "",
+          relation: data.relation || data.label || "",
+        });
+      });
+
+      return payload;
+    }
+
+    function serializeReviewDecisionPayload() {
+      return {
+        review_decisions: { ...revisionDecisions },
+      };
+    }
+
+    function downloadText(filename, content) {
+      const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = filename;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    function exportCurrentHtml() {
+      const graphStateJson = JSON.stringify(serializeGraphElements());
+      const deletedVisibleJson = JSON.stringify(deletedVisible);
+      const revisionDecisionsJson = JSON.stringify(revisionDecisions);
+      let html = "<!DOCTYPE html>\n" + originalDocumentHtml;
+      html = html.replace(
+        /const elements = .*?;\s*const schemaForm = .*?;\s*const reviewSuggestions =/s,
+        `const elements = ${graphStateJson};\n    const schemaForm = ${JSON.stringify(schemaForm)};\n    const reviewSuggestions =`,
+      );
+      html = html.replace(
+        /const initialRevisionDecisions = .*?;/,
+        `const initialRevisionDecisions = ${revisionDecisionsJson};`,
+      );
+      html = html.replace(
+        /let deletedVisible = (true|false);/,
+        `let deletedVisible = ${deletedVisibleJson};`,
+      );
+      return html;
+    }
+
+    function exportCurrentGraph() {
+      const payload = serializeUpdatePayload();
+      const reviewStatePayload = serializeReviewDecisionPayload();
+      downloadText("updated_causal_graph.json", JSON.stringify(payload, null, 2));
+      downloadText("updated_causal_graph_review_state.json", JSON.stringify(reviewStatePayload, null, 2));
+      downloadText("updated_causal_graph.html", exportCurrentHtml());
+      setFormStatus(saveFormStatus, "Saved updated_causal_graph.json, updated_causal_graph_review_state.json, and updated_causal_graph.html.", false);
+    }
+
+    function nextNodeIdForType(nodeType) {
+      const normalized = String(nodeType || "").toLowerCase();
+      const prefixMap = {
+        hazardconsequence: "H",
+        entity: "En",
+        condition: "C",
+        event: "Ev",
+      };
+      const prefix = prefixMap[normalized] || "N";
+      let maxIndex = 0;
+      cy.nodes().forEach((node) => {
+        const nodeId = String(node.data("nodeId") || node.data("id") || "");
+        if (!nodeId.startsWith(prefix)) return;
+        const suffix = Number.parseInt(nodeId.slice(prefix.length), 10);
+        if (Number.isFinite(suffix)) {
+          maxIndex = Math.max(maxIndex, suffix);
+        }
+      });
+      return `${prefix}${maxIndex + 1}`;
+    }
+
+    function nodeFillFromType(nodeType) {
+      const normalized = String(nodeType || "").toLowerCase();
+      if (normalized === "hazardconsequence") return "#ffd6d6";
+      if (normalized === "condition") return "#d8ebff";
+      if (normalized === "entity") return "#ddf5df";
+      if (normalized === "event") return "#f3e7ff";
+      return "#f4f4f4";
+    }
+
+    function wrapText(text, width) {
+      const words = String(text || "").split(/\s+/).filter(Boolean);
+      if (!words.length) return "";
+      const lines = [];
+      let current = words.shift();
+      words.forEach((word) => {
+        const candidate = `${current} ${word}`;
+        if (candidate.length > width) {
+          lines.push(current);
+          current = word;
+        } else {
+          current = candidate;
+        }
+      });
+      lines.push(current);
+      return lines.join("\n");
+    }
+
+    function computeNodeSize(labelWrapped, nameWrapped) {
+      const labelLines = Math.max(1, String(labelWrapped || "").split("\n").length);
+      const nameLines = Math.max(1, String(nameWrapped || "").split("\n").length);
+      const labelLineHeight = 22;
+      const nameLineHeight = 18;
+      const verticalPadding = 20;
+      const labelGap = 6;
+      return {
+        nodeWidth: 260,
+        nodeHeight: verticalPadding * 2 + labelLines * labelLineHeight + nameLines * nameLineHeight + labelGap,
+      };
+    }
+
+    function runLayout() {
+      cy.layout({
+        name: "dagre",
+        rankDir: "LR",
+        nodeSep: 40,
+        rankSep: 100,
+        edgeSep: 16,
+        padding: 30
+      }).run();
+    }
+
+    function renderDetailSections(title, fields) {
+      const sections = fields.map(([label, value]) => `
+        <div class="detail-section">
+          <div class="detail-label">${escapeHtml(label)}</div>
+          <div class="detail-value">${escapeHtml(value)}</div>
+        </div>
+      `).join("");
+      detailContent.innerHTML = `
+        <div class="detail-section">
+          <div class="detail-label">Selected</div>
+          <div class="detail-value">${escapeHtml(title)}</div>
+        </div>
+        ${sections}
+      `;
+      setDetailSummary(title);
+    }
+
+    function buildNodeTitle(nodeData) {
+      return [
+        `ID: ${nodeData.nodeId || nodeData.id || ""}`,
+        `Label: ${nodeData.label || ""}`,
+        `Name: ${nodeData.name || ""}`,
+        `Type: ${nodeData.nodeType || ""}`,
+        `Evidence: ${nodeData.evidence || ""}`,
+        `Explanation: ${nodeData.explanation || ""}`,
+      ].join("\n");
+    }
+
+    function showNodeDetails(node, detailStatusMessage = "", detailStatusKind = "") {
+      setRightPanelVisibility(true, "details");
+      const data = node.data();
+      const isDeleted = node.hasClass("delete-mark");
+      setDetailSummary(`${data.label || ""}: ${data.name || ""}`);
+      const labelOptions = (schemaForm.labels || []).map((label) => {
+        const selected = label === (data.label || "") ? " selected" : "";
+        return `<option value="${escapeHtml(label)}"${selected}>${escapeHtml(label)}</option>`;
+      }).join("");
+      const typeOptions = (schemaForm.types || []).map((type) => {
+        const selected = type === (data.nodeType || "") ? " selected" : "";
+        return `<option value="${escapeHtml(type)}"${selected}>${escapeHtml(type)}</option>`;
+      }).join("");
+      const statusClass = detailStatusKind ? `detail-status ${detailStatusKind}` : "detail-status";
+      detailContent.innerHTML = `
+        <div class="detail-section">
+          <div class="detail-label">Selected Node</div>
+          <div class="detail-value">${escapeHtml(`${data.label || ""}: ${data.name || ""}`)}</div>
+        </div>
+        <form id="detail-node-form" class="detail-form">
+          <label>Node ID
+            <input id="detail-node-id" type="text" value="${escapeHtml(data.nodeId || data.id || "")}" readonly />
+          </label>
+          <label>Label
+            <select id="detail-node-label">${labelOptions}</select>
+          </label>
+          <label>Type
+            <select id="detail-node-type">${typeOptions}</select>
+          </label>
+          <label>Name
+            <input id="detail-node-name" type="text" value="${escapeHtml(data.name || "")}" />
+          </label>
+          <label>Evidence
+            <textarea id="detail-node-evidence">${escapeHtml(data.evidence || extractFieldFromTitle(data.title, "Evidence"))}</textarea>
+          </label>
+          <label>Explanation
+            <textarea id="detail-node-explanation">${escapeHtml(data.explanation || extractFieldFromTitle(data.title, "Explanation"))}</textarea>
+          </label>
+          <div id="detail-node-status" class="${statusClass}">${escapeHtml(detailStatusMessage)}</div>
+          <div class="detail-actions">
+            <button id="detail-node-save" type="submit">Save Changes</button>
+            <button id="detail-node-toggle-delete" type="button">${isDeleted ? "Restore Node" : "Delete Node"}</button>
+          </div>
+        </form>
+      `;
+      renderRevisionSuggestions({ type: "node", id: data.nodeId || data.id || "" });
+
+      const detailNodeForm = document.getElementById("detail-node-form");
+      const detailNodeLabel = document.getElementById("detail-node-label");
+      const detailNodeType = document.getElementById("detail-node-type");
+      const detailNodeName = document.getElementById("detail-node-name");
+      const detailNodeEvidence = document.getElementById("detail-node-evidence");
+      const detailNodeExplanation = document.getElementById("detail-node-explanation");
+      const detailNodeStatus = document.getElementById("detail-node-status");
+      const detailNodeToggleDelete = document.getElementById("detail-node-toggle-delete");
+
+      const setDetailStatus = (message, kind = "") => {
+        if (!detailNodeStatus) return;
+        detailNodeStatus.textContent = message || "";
+        detailNodeStatus.className = kind ? `detail-status ${kind}` : "detail-status";
+      };
+
+      if (detailNodeLabel && detailNodeType) {
+        detailNodeLabel.addEventListener("change", () => {
+          const mapped = (schemaForm.label_to_type || {})[detailNodeLabel.value];
+          if (mapped) {
+            detailNodeType.value = mapped;
+          }
+        });
+      }
+
+      if (detailNodeForm) {
+        detailNodeForm.addEventListener("submit", (event) => {
+          event.preventDefault();
+          [detailNodeLabel, detailNodeType, detailNodeName].forEach((field) => {
+            if (field) field.classList.remove("field-invalid");
+          });
+
+          const label = String(detailNodeLabel?.value || "").trim();
+          const nodeType = String(detailNodeType?.value || "").trim();
+          const name = String(detailNodeName?.value || "").trim();
+          const evidence = String(detailNodeEvidence?.value || "").trim();
+          const explanation = String(detailNodeExplanation?.value || "").trim();
+
+          const invalidFields = [];
+          if (!label) invalidFields.push(detailNodeLabel);
+          if (!nodeType) invalidFields.push(detailNodeType);
+          if (!name) invalidFields.push(detailNodeName);
+          if (invalidFields.length) {
+            invalidFields.forEach((field) => field && field.classList.add("field-invalid"));
+            setDetailStatus("Label, type, and name are required.", "error");
+            return;
+          }
+
+          pushUndoState();
+          const labelWrapped = wrapText(label, 18);
+          const nameWrapped = wrapText(name, 24);
+          const size = computeNodeSize(labelWrapped, nameWrapped);
+          const updatedData = {
+            ...node.data(),
+            label,
+            nodeType,
+            name,
+            evidence,
+            explanation,
+            labelWrapped,
+            nameWrapped,
+            fill: nodeFillFromType(nodeType),
+            nodeWidth: size.nodeWidth,
+            nodeHeight: size.nodeHeight,
+          };
+          updatedData.title = buildNodeTitle(updatedData);
+          node.data(updatedData);
+          markAsAdded(node);
+          runLayout();
+          syncNodeOverlay();
+          updateSummary();
+          showNodeDetails(node, "Node updated.", "success");
+        });
+      }
+
+      if (detailNodeToggleDelete) {
+        detailNodeToggleDelete.addEventListener("click", () => {
+          if (node.hasClass("delete-mark")) {
+            pushUndoState();
+            node.removeClass("delete-mark");
+            setFormStatus(deleteFormStatus, `Restored node ${data.nodeId || data.id || ""}.`, false);
+            showNodeDetails(node, "Node restored.", "success");
+          } else {
+            pushUndoState();
+            markAsDeleted(node);
+            const connectedEdges = node.connectedEdges();
+            if (connectedEdges.length) {
+              markAsDeleted(connectedEdges);
+            }
+            setFormStatus(deleteFormStatus, `Marked node ${data.nodeId || data.id || ""} as deleted.`, false);
+            showNodeDetails(node, "Node marked as deleted.", "success");
+          }
+          syncNodeOverlay();
+        });
+      }
+    }
+
+    function showEdgeDetails(edge) {
+      setRightPanelVisibility(true, "details");
+      const data = edge.data();
+      const source = edge.source().data();
+      const target = edge.target().data();
+      setDetailSummary(`${source.label || data.source} -> ${target.label || data.target}`);
+      renderDetailSections(
+        `${source.label || data.source} -> ${target.label || data.target}`,
+        [
+          ["Edge ID", data.id || ""],
+          ["Source ID", data.source || ""],
+          ["Source", `${source.label || ""}: ${source.name || ""}`],
+          ["Target ID", data.target || ""],
+          ["Target", `${target.label || ""}: ${target.name || ""}`],
+          ["Relation", data.relation || data.label || ""],
+          ["Status", edge.hasClass("delete-mark") ? "Deleted" : "Active"],
+          ["Raw Title", data.title || ""],
+        ],
+      );
+      renderRevisionSuggestions({
+        type: "edge",
+        source: data.source || "",
+        target: data.target || "",
+        relation: data.relation || data.label || "",
+      });
+    }
+
+    function extractFieldFromTitle(title, fieldName) {
+      const lines = String(title || "").split("\n");
+      const prefix = `${fieldName}: `;
+      const line = lines.find((item) => item.startsWith(prefix));
+      return line ? line.slice(prefix.length) : "";
+    }
+
+    function showAddNodeDialog() {
+      const labelOptions = (schemaForm.labels || []).map((label) =>
+        `<option value="${escapeHtml(label)}">${escapeHtml(label)}</option>`
+      ).join("");
+      const typeOptions = (schemaForm.types || []).map((type) =>
+        `<option value="${escapeHtml(type)}">${escapeHtml(type)}</option>`
+      ).join("");
+      openModal(
+        "Add Node",
+        "Choose label and type from the schema, then fill the free-text fields.",
+        `
+          <label>Label<select id="modal-node-label">${labelOptions}</select></label>
+          <label>Type<select id="modal-node-type">${typeOptions}</select></label>
+          <label>Name<input id="modal-node-name" type="text" /></label>
+          <label>Evidence<textarea id="modal-node-evidence"></textarea></label>
+          <label>Explanation<textarea id="modal-node-explanation"></textarea></label>
+        `,
+        ({ showModalError }) => {
+          const labelEl = document.getElementById("modal-node-label");
+          const typeEl = document.getElementById("modal-node-type");
+          const nameEl = document.getElementById("modal-node-name");
+          const evidenceEl = document.getElementById("modal-node-evidence");
+          const explanationEl = document.getElementById("modal-node-explanation");
+          const label = String(labelEl?.value || "").trim();
+          const nodeType = String(typeEl?.value || "").trim();
+          const name = String(nameEl?.value || "").trim();
+          const evidence = String(evidenceEl?.value || "").trim();
+          const explanation = String(explanationEl?.value || "").trim();
+          if (!label || !nodeType || !name) {
+            setFormStatus(nodeFormStatus, "Label, type, and name are required.", true);
+            const invalidFields = [];
+            if (!label) invalidFields.push("modal-node-label");
+            if (!nodeType) invalidFields.push("modal-node-type");
+            if (!name) invalidFields.push("modal-node-name");
+            showModalError("Label, type, and name are required.", invalidFields);
+            return false;
+          }
+          pushUndoState();
+          const nodeId = nextNodeIdForType(nodeType);
+          const labelWrapped = wrapText(label, 18);
+          const nameWrapped = wrapText(name, 24);
+          const size = computeNodeSize(labelWrapped, nameWrapped);
+          const title = [
+            `ID: ${nodeId}`,
+            `Label: ${label}`,
+            `Name: ${name}`,
+            `Type: ${nodeType}`,
+            `Evidence: ${evidence}`,
+            `Explanation: ${explanation}`,
+          ].join("\n");
+          const newNode = cy.add({
+            group: "nodes",
+            data: {
+              id: nodeId,
+              nodeId,
+              label,
+              name,
+              nodeType,
+              labelWrapped,
+              nameWrapped,
+              evidence,
+              explanation,
+              fill: nodeFillFromType(nodeType),
+              nodeWidth: size.nodeWidth,
+              nodeHeight: size.nodeHeight,
+              title,
+            },
+          });
+          const center = cy.extent();
+          newNode.position({
+            x: (center.x1 + center.x2) / 2,
+            y: (center.y1 + center.y2) / 2,
+          });
+          markAsAdded(newNode);
+          runLayout();
+          updateSummary();
+          showNodeDetails(newNode[0]);
+          setFormStatus(nodeFormStatus, `Added node ${nodeId}.`);
+          return true;
+        },
+      );
+
+      const modalNodeLabel = document.getElementById("modal-node-label");
+      const modalNodeType = document.getElementById("modal-node-type");
+      if (modalNodeLabel && modalNodeType) {
+        const syncType = () => {
+          const mapped = (schemaForm.label_to_type || {})[modalNodeLabel.value];
+          if (mapped) modalNodeType.value = mapped;
+        };
+        modalNodeLabel.addEventListener("change", syncType);
+        syncType();
+      }
+    }
+
+    function beginEdgeCreation() {
+      edgeCreationSource = null;
+      edgeCreationMode = true;
+      setFormStatus(edgeFormStatus, "Left-click the source node, then left-click the target node.", false);
+    }
+
+    function showAddEdgeDialog(sourceNode, targetNode) {
+      const relationOptions = (schemaForm.relations || []).map((relation) =>
+        `<option value="${escapeHtml(relation)}">${escapeHtml(relation)}</option>`
+      ).join("");
+      openModal(
+        "Add Edge",
+        `Choose a relation for ${sourceNode.data("nodeId")} -> ${targetNode.data("nodeId")}.`,
+        `<label>Relation<select id="modal-edge-relation">${relationOptions}</select></label>`,
+        ({ showModalError }) => {
+          const relationEl = document.getElementById("modal-edge-relation");
+          const relation = String(relationEl?.value || "").trim();
+          if (!relation) {
+            setFormStatus(edgeFormStatus, "Relation is required.", true);
+            showModalError("Relation is required.", ["modal-edge-relation"]);
+            return false;
+          }
+          const sourceId = sourceNode.data("id");
+          const targetId = targetNode.data("id");
+          const duplicate = cy.edges().some((edge) =>
+            edge.data("source") === sourceId &&
+            edge.data("target") === targetId &&
+            (edge.data("relation") || edge.data("label")) === relation
+          );
+          if (duplicate) {
+            setFormStatus(edgeFormStatus, "That edge already exists.", true);
+            showModalError("That edge already exists.", ["modal-edge-relation"]);
+            return false;
+          }
+          pushUndoState();
+          const newEdge = cy.add({
+            group: "edges",
+            data: {
+              id: `e${Date.now()}`,
+              source: sourceId,
+              target: targetId,
+              label: relation,
+              relation,
+              title: `${sourceId} -> ${targetId}\nRelation: ${relation}`,
+            },
+          });
+          markAsAdded(newEdge);
+          runLayout();
+          updateSummary();
+          showEdgeDetails(newEdge[0]);
+          setFormStatus(edgeFormStatus, `Added edge ${sourceId} -> ${targetId} (${relation}).`);
+          return true;
+        },
+      );
+    }
+
+    cy.once("layoutstop", ensureNameVisibleInitialViewport);
+    cy.on("render layoutstop dragfree position pan zoom add remove", syncNodeOverlay);
+    syncNodeOverlay();
+    updateSummary();
+    renderRevisionSuggestions();
+
+    cy.on("grab", "node", (evt) => {
+      const node = evt.target;
+      node.scratch("_dragStartPos", { ...node.position() });
+      if (!dragUndoSnapshot) {
+        dragUndoSnapshot = cloneGraphSnapshot();
+        dragUndoCommitted = false;
+      }
+    });
+
+    cy.on("dragfree", "node", (evt) => {
+      const node = evt.target;
+      const startPos = node.scratch("_dragStartPos");
+      if (node.removeScratch) {
+        node.removeScratch("_dragStartPos");
+      } else {
+        node.scratch("_dragStartPos", null);
+      }
+      const pos = node.position();
+      const moved = startPos && (startPos.x !== pos.x || startPos.y !== pos.y);
+      if (dragUndoSnapshot && !dragUndoCommitted && moved) {
+        pushUndoState(dragUndoSnapshot);
+        dragUndoCommitted = true;
+        setFormStatus(saveFormStatus, "Node position updated. Press Ctrl+Z to undo.", false);
+      }
+      if (!cy.$(":grabbed").length) {
+        dragUndoSnapshot = null;
+        dragUndoCommitted = false;
+      }
+    });
+
+    if (addNodeButton) {
+      addNodeButton.addEventListener("click", showAddNodeDialog);
+    }
+    if (addEdgeButton) {
+      addEdgeButton.addEventListener("click", beginEdgeCreation);
+    }
+    if (deleteSelectedButton) {
+      deleteSelectedButton.addEventListener("click", () => {
+        const selected = cy.$(":selected");
+        if (!selected || !selected.length) {
+          setFormStatus(deleteFormStatus, "Select at least one node or edge first.", true);
+          return;
+        }
+        pushUndoState();
+        const nodes = selected.filter((element) => element.isNode());
+        const edges = selected.filter((element) => element.isEdge());
+        if (nodes.length) {
+          markAsDeleted(nodes);
+          markAsDeleted(nodes.connectedEdges());
+        }
+        if (edges.length) {
+          markAsDeleted(edges);
+        }
+        setFormStatus(deleteFormStatus, `Marked ${selected.length} selected element(s) as deleted.`, false);
+        syncNodeOverlay();
+      });
+    }
+    if (toggleDeletedButton) {
+      toggleDeletedButton.addEventListener("click", () => {
+        pushUndoState();
+        setDeletedVisibility(!deletedVisible);
+      });
+      setDeletedVisibility(true);
+    }
+    if (saveUpdatesButton) {
+      saveUpdatesButton.addEventListener("click", exportCurrentGraph);
+    }
+
+    cy.on("tap", "node", (evt) => {
+      const node = evt.target;
+      if (edgeCreationMode) {
+        if (node.hasClass("delete-mark")) {
+          edgeCreationSource = null;
+          edgeCreationMode = false;
+          setFormStatus(edgeFormStatus, "Deleted nodes cannot be used to create edges.", true);
+          return;
+        }
+        if (!edgeCreationSource) {
+          edgeCreationSource = node;
+          setFormStatus(edgeFormStatus, `Source selected: ${node.data("nodeId")}. Now left-click the target node.`, false);
+          return;
+        }
+        if (node.hasClass("delete-mark")) {
+          edgeCreationSource = null;
+          edgeCreationMode = false;
+          setFormStatus(edgeFormStatus, "Deleted nodes cannot be used to create edges.", true);
+          return;
+        }
+        if (edgeCreationSource.id() === node.id()) {
+          edgeCreationSource = null;
+          edgeCreationMode = false;
+          setFormStatus(edgeFormStatus, "Source and target must be different. Edge creation reset.", true);
+          return;
+        }
+        const sourceNode = edgeCreationSource;
+        edgeCreationSource = null;
+        edgeCreationMode = false;
+        showAddEdgeDialog(sourceNode, node);
+        return;
+      }
+
+      showNodeDetails(node);
+    });
+
+    cy.on("tap", "edge", (evt) => {
+      showEdgeDetails(evt.target);
+    });
+
+    cy.on("tap", (evt) => {
+      if (evt.target === cy) {
+        if (edgeCreationMode) {
+          edgeCreationMode = false;
+          edgeCreationSource = null;
+          setFormStatus(edgeFormStatus, "Edge creation cancelled.", false);
+        }
+        cy.$(":selected").unselect();
+      }
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (!event.key || !(event.ctrlKey || event.metaKey)) return;
+      const target = event.target;
+      const tag = target && target.tagName ? target.tagName.toUpperCase() : "";
+      const isEditable =
+        (target && target.isContentEditable) ||
+        tag === "INPUT" ||
+        tag === "TEXTAREA" ||
+        tag === "SELECT";
+      if (isEditable) return;
+
+      const key = event.key.toLowerCase();
+      if (!event.shiftKey && key === "z") {
+        event.preventDefault();
+        undoLastAction();
+        return;
+      }
+      if ((event.shiftKey && key === "z") || (!event.shiftKey && key === "y")) {
+        event.preventDefault();
+        redoLastAction();
+      }
+    });
+  </script>
+</body>
+</html>

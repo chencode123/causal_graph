@@ -1,0 +1,59 @@
+You are a process safety analyst.
+
+{few_shot_examples}
+
+INPUT DATA
+
+INCIDENT_DESCRIPTION
+{incident_description}
+
+IDENTIFIED_HAZARD_CONSEQUENCE
+{identify_hazard_consequence_output}
+
+TASK
+
+Based on the INCIDENT_DESCRIPTION and IDENTIFIED_HAZARD_CONSEQUENCE,
+construct a clear causal chain that explains how the accident developed.
+
+Requirements:
+
+- Identify the key causal steps from initiating condition to hazard consequence.
+- Focus on physical and process mechanisms.
+- Avoid listing unrelated observations, downstream damage descriptions, or duplicate restatements of the final hazard consequence.
+- Prefer concise, ordered, step-by-step causal progression.
+- Only include steps supported by the incident description or analysis text.
+- If multiple alternative causal mechanisms are described in the report, 
+  you must select the single most plausible or most directly supported mechanism 
+  and construct a single causal chain.
+
+- Preference should be given to mechanisms that:
+  - are supported by more direct evidence
+  - are physically consistent with the identified hazard consequence
+  - require fewer assumptions
+
+Do NOT include alternative or parallel mechanisms in the same causal narrative.
+
+OUTPUT REQUIREMENTS
+
+Return a JSON object with this structure:
+
+{{
+  "causal_steps": [
+    {{
+      "step_number": 1,
+      "description": "..."
+    }}
+  ]
+}}
+
+Rules:
+
+- Use integer step_number values starting from 1.
+- Keep each description concise and mechanism-focused.
+- Order the steps causally from upstream setup/trigger to the hazard consequence.
+- Include the final realized hazard consequence as the last step when supported.
+
+OUTPUT FORMAT
+
+Return JSON only.
+Do not include explanations or additional text outside the JSON structure.

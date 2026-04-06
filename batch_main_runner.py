@@ -6,7 +6,7 @@ This script supports two execution scopes:
 1. Single-batch mode:
    Run the pipeline only for `BASE_DIR`.
 2. Multi-batch mode:
-   Discover sibling `batch_*` directories and run them all.
+   Discover child `batch_*` directories under `BASE_DIR` and run them all.
 
 It also supports two upload strategies when multi-batch mode is enabled:
 1. Per-batch submission:
@@ -17,8 +17,8 @@ It also supports two upload strategies when multi-batch mode is enabled:
    folders.
 
 Recommended usage:
-- Use `PROCESS_ALL_BATCHES = False` for targeted reruns or debugging.
-- Use `PROCESS_ALL_BATCHES = True` for full production-style processing.
+- Point `BASE_DIR` at either one batch directory or a parent folder that
+  contains multiple `batch_*` directories.
 - Use `UPLOAD_ALL_FILES_IN_ONE_BATCH = True` only when you explicitly want
   to maximize request consolidation across multiple batch directories.
 """
@@ -29,7 +29,8 @@ import winsound
 
 from dotenv import load_dotenv
 
-from pipeline.batch_runner import run_batch_pipeline
+from pipeline.batch_runner import run_batch_pipeline as run_batch_api_pipeline
+from pipeline.runner import run_batch_pipeline as run_responses_pipeline
 
 
 load_dotenv(dotenv_path=Path(__file__).with_name(".env_openai"), override=True)
@@ -37,10 +38,13 @@ load_dotenv(dotenv_path=Path(__file__).with_name(".env_openai"), override=True)
 # ================================================================
 # CONFIG
 # ================================================================
+#############################################################################更新所有的update_html
+BASE_DIR = Path(r"runs\temproal_result_5_step_batch_4_stability_test\batch_4")  # Can point to a single batch dir or a folder containing batch_* subdirs.
+EXECUTION_MODE = "responses"  # "batch" uses OpenAI Batch API; "responses" uses direct Responses API for faster iteration/debugging.
+UPLOAD_ALL_FILES_IN_ONE_BATCH = True  # Merge all discovered case folders into one large job per step when multiple batch_* dirs are present.
+# TARGET_CASES: tuple[str, ...] | None = None  # Example: ("1",) to run only case folder 1 under BASE_DIR.
+TARGET_CASES = ("1",)
 
-BASE_DIR = Path(r"runs\batch_api_test_1\batch_13")  # Used when PROCESS_ALL_BATCHES = False.
-PROCESS_ALL_BATCHES = False  # True: discover all sibling batch_* directories under BASE_DIR.parent.
-UPLOAD_ALL_FILES_IN_ONE_BATCH = False  # Only meaningful when PROCESS_ALL_BATCHES = True; merge all discovered case folders into one large batch job per step.
 MODEL_NAME = "gpt-5.4-2026-03-05"
 REASONING_EFFORT = "high"
 VERBOSITY = "medium"
@@ -50,7 +54,24 @@ MAX_OUTPUT_TOKENS = 128000
 CALL_SLEEP_SECONDS = 0.0
 HAZARDS_JSON_PATH = Path("prompt/hazards_consequence.json")
 CONDITIONS_JSON_PATH = Path("prompt/conditions.json")
-
+USE_FEW_SHOT = False
+FEW_SHOT_CASES_BY_STEP = {
+    "identify_hazard_consequence": [
+        Path("prompt/few-shot/fire_explosion_toxicity/toxicity_dispersion"),
+        Path("prompt/few-shot/fire_explosion_toxicity/jet_fire"),
+        Path("prompt/few-shot/fire_explosion_toxicity/pressure_driven_without_ignition_confined_explosion"),
+    ],
+    "identify_accident_scenario": [
+        Path("prompt/few-shot/fire_explosion_toxicity/toxicity_dispersion"),
+        Path("prompt/few-shot/fire_explosion_toxicity/jet_fire"),
+        Path("prompt/few-shot/fire_explosion_toxicity/pressure_driven_without_ignition_confined_explosion"),
+    ],
+    "causal_edge_linking": [
+        Path("prompt/few-shot/fire_explosion_toxicity/toxicity_dispersion"),
+        Path("prompt/few-shot/fire_explosion_toxicity/jet_fire"),
+        Path("prompt/few-shot/fire_explosion_toxicity/pressure_driven_without_ignition_confined_explosion"),
+    ],
+}
 
 @dataclass(frozen=True)
 class PipelineConfig:
@@ -65,21 +86,44 @@ class PipelineConfig:
     call_sleep_seconds: float
     hazards_json_path: Path
     conditions_json_path: Path
+    use_few_shot: bool = False
+    few_shot_cases_by_step: dict[str, tuple[Path, ...]] | None = None
     target_folders: tuple[Path, ...] | None = None
+    target_cases: tuple[str, ...] | None = None
     batch_workdir: Path | None = None
 
 
-def iter_target_batch_dirs(base_dir: Path, process_all_batches: bool) -> list[Path]:
-    """Return the batch directories to execute based on the current mode."""
-    if not process_all_batches:
-        return [base_dir]
-
-    batch_dirs = sorted(
+def iter_target_batch_dirs(base_dir: Path) -> list[Path]:
+    """Return target batch dirs based on the current BASE_DIR contents."""
+    child_batch_dirs = sorted(
         path
-        for path in base_dir.parent.iterdir()
+        for path in base_dir.iterdir()
         if path.is_dir() and path.name.startswith("batch_")
     )
-    return batch_dirs or [base_dir]
+    return child_batch_dirs or [base_dir]
+
+
+def filter_case_folders(
+    folders: tuple[Path, ...],
+    target_cases: tuple[str, ...] | None,
+) -> tuple[Path, ...]:
+    if not target_cases:
+        return folders
+    allowed = {case_name.strip() for case_name in target_cases if case_name.strip()}
+    return tuple(folder for folder in folders if folder.name in allowed)
+
+
+def run_pipeline_for_mode(config: PipelineConfig) -> None:
+    mode = EXECUTION_MODE.strip().lower()
+    if mode == "batch":
+        run_batch_api_pipeline(config)
+        return
+    if mode == "responses":
+        run_responses_pipeline(config)
+        return
+    raise ValueError(
+        f"Unsupported EXECUTION_MODE={EXECUTION_MODE!r}. Use 'batch' or 'responses'."
+    )
 
 
 if __name__ == "__main__":
@@ -94,9 +138,14 @@ if __name__ == "__main__":
         call_sleep_seconds=CALL_SLEEP_SECONDS,
         hazards_json_path=HAZARDS_JSON_PATH,
         conditions_json_path=CONDITIONS_JSON_PATH,
+        use_few_shot=USE_FEW_SHOT,
+        few_shot_cases_by_step={
+            key: tuple(paths) for key, paths in FEW_SHOT_CASES_BY_STEP.items()
+        },
+        target_cases=TARGET_CASES,
     )
 
-    target_batch_dirs = iter_target_batch_dirs(BASE_DIR, PROCESS_ALL_BATCHES)
+    target_batch_dirs = iter_target_batch_dirs(BASE_DIR)
     if UPLOAD_ALL_FILES_IN_ONE_BATCH and len(target_batch_dirs) > 1:
         target_folders = tuple(
             folder
@@ -104,11 +153,12 @@ if __name__ == "__main__":
             for folder in sorted(batch_dir.iterdir())
             if folder.is_dir() and not folder.name.startswith("_")
         )
+        target_folders = filter_case_folders(target_folders, TARGET_CASES)
         combined_base_dir = BASE_DIR.parent
         combined_workdir = combined_base_dir / "_batch_pipeline_all"
         print(f"Running one combined batch pipeline for: {combined_base_dir}")
         print(f"Combined folders: {len(target_folders)}")
-        run_batch_pipeline(
+        run_pipeline_for_mode(
             replace(
                 config,
                 base_dir=combined_base_dir,
@@ -118,8 +168,22 @@ if __name__ == "__main__":
         )
     else:
         for batch_dir in target_batch_dirs:
-            print(f"Running batch pipeline for: {batch_dir}")
-            run_batch_pipeline(replace(config, base_dir=batch_dir))
+            target_folders = filter_case_folders(
+                tuple(
+                    folder
+                    for folder in sorted(batch_dir.iterdir())
+                    if folder.is_dir() and not folder.name.startswith("_")
+                ),
+                TARGET_CASES,
+            )
+            print(f"Running {EXECUTION_MODE} pipeline for: {batch_dir}")
+            run_pipeline_for_mode(
+                replace(
+                    config,
+                    base_dir=batch_dir,
+                    target_folders=target_folders,
+                )
+            )
 
     print("Done.")
     winsound.Beep(1000, 500)

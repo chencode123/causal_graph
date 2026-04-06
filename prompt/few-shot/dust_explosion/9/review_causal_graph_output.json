@@ -1,0 +1,184 @@
+{
+  "case_assessment": {
+    "overall_quality": "acceptable",
+    "summary": "The graph captures the core early sequence of malfunction, prolonged operation/heating, and spontaneous ignition leading to a dust explosion, but it stops short of the most important injury-causing consequence. The incident description clearly shows a secondary flash fire/fireball from residual flame and dispersed dust, and that step is missing. There is also a schema-compliance problem with H1 evidence/source, and C5 is a weak semantic fit for the schema's ReleaseType definition.",
+    "main_problems": [
+      "The graph ends at the dust explosion and does not represent the large flash fire/fireball that caused the worker burn injuries.",
+      "The ignition/propagation step involving residual flame igniting dispersed dust is missing.",
+      "H1 uses paraphrased composite evidence with source set to Not specified even though a direct incident_description quote exists.",
+      "C5 ReleaseType is being used for internal vapor draw into ductwork, which is a weak fit to the schema definition of release."
+    ]
+  },
+  "node_updates": [
+    {
+      "target_id": "H1",
+      "change_type": "update_evidence",
+      "current_state": "Evidence is a composite paraphrase and the source is effectively treated as Not specified.",
+      "suggested_state": "Use direct evidence such as: \"the ignition led to a dust explosion within the dust collector\" with source \"incident_description\".",
+      "reason": "The schema requires short verbatim supporting quotes when direct support exists.",
+      "evidence": "the ignition led to a dust explosion within the dust collector",
+      "severity": "medium",
+      "confidence": "high"
+    },
+    {
+      "target_id": "H1",
+      "change_type": "clarify_role",
+      "current_state": "H1 functions as the sole terminal hazard consequence in the graph.",
+      "suggested_state": "Retain H1 as the dust explosion consequence, but clarify that it is not the only consequential end-state; a separate flash fire/fireball consequence should be added for the worker injuries.",
+      "reason": "The incident narrative states that the injuries came from the later flash fire, not from the dust explosion alone.",
+      "evidence": "All employee burn injuries resulted from the large flash fire and heated dust mixture that originated from above T-306 and propagated into the corridor from the entrance of the pre-mix room.",
+      "severity": "high",
+      "confidence": "high"
+    },
+    {
+      "target_id": "C5",
+      "change_type": "clarify_role",
+      "current_state": "C5 is a ReleaseType node (\"Continuous release\") used to represent condensable vapors being drawn into the duct.",
+      "suggested_state": "If retained, clarify that C5 represents continuous internal introduction/transport of condensable vapors into the ductwork rather than an external loss of containment; otherwise this node is a weak schema fit.",
+      "reason": "The schema definition for ReleaseType is oriented toward release behavior, while the cited evidence describes internal process draw into ductwork.",
+      "evidence": "with the system continuing to draw condensable vapors into the duct",
+      "severity": "low",
+      "confidence": "medium"
+    }
+  ],
+  "node_additions": [
+    {
+      "suggested_label": "Dispersion",
+      "suggested_name": "Dispersed",
+      "suggested_node_type": "Condition",
+      "suggested_upstream_links": [
+        {
+          "source": "En1",
+          "relation": "has"
+        }
+      ],
+      "suggested_downstream_links": [
+        {
+          "target": "H2",
+          "relation": "enables"
+        }
+      ],
+      "reason": "The secondary injury-causing event explicitly involved dispersed dust, which is a distinct condition missing from the graph.",
+      "evidence": "The residual flame ignited the dispersed dust",
+      "severity": "medium",
+      "confidence": "high"
+    },
+    {
+      "suggested_label": "IgnitionSource",
+      "suggested_name": "Residual flame igniting dispersed dust above T-306",
+      "suggested_node_type": "Event",
+      "suggested_upstream_links": [
+        {
+          "source": "Ev3",
+          "relation": "enables"
+        }
+      ],
+      "suggested_downstream_links": [
+        {
+          "target": "H2",
+          "relation": "enables"
+        }
+      ],
+      "reason": "An explicit ignition step is needed between the original spontaneous ignition sequence and the later flash fire/fireball.",
+      "evidence": "The residual flame ignited the dispersed dust, and the subsequent fireball dislodged and lifted more dust so that an expanding fireball vented through the doorway into the corridor.",
+      "severity": "medium",
+      "confidence": "medium"
+    },
+    {
+      "suggested_label": "HazardConsequence",
+      "suggested_name": "Flash fire",
+      "suggested_node_type": "HazardConsequence",
+      "suggested_upstream_links": [
+        {
+          "source": "C4",
+          "relation": "enables"
+        },
+        {
+          "source": "C7",
+          "relation": "enables"
+        },
+        {
+          "source": "Ev4",
+          "relation": "enables"
+        }
+      ],
+      "suggested_downstream_links": [],
+      "reason": "The large flash fire/fireball was the direct injury-causing consequence and is a key missing downstream hazard node.",
+      "evidence": "All employee burn injuries resulted from the large flash fire and heated dust mixture that originated from above T-306 and propagated into the corridor from the entrance of the pre-mix room.",
+      "severity": "high",
+      "confidence": "high"
+    }
+  ],
+  "node_deletions": [],
+  "edge_additions": [
+    {
+      "source": "En1",
+      "target": "C7",
+      "relation": "has",
+      "reason": "The combustible dust mixture became dispersed during the secondary event.",
+      "evidence": "The residual flame ignited the dispersed dust",
+      "severity": "medium",
+      "confidence": "high"
+    },
+    {
+      "source": "Ev3",
+      "target": "Ev4",
+      "relation": "enables",
+      "reason": "The original spontaneous ignition initiated the burning sequence that later provided the residual flame for the secondary fireball.",
+      "evidence": "the incident probably started with the self-heating and spontaneous ignition of the accumulated sludge (mostly Gilsonite and carbon black mixed with hydrocarbon oils) in the ductwork of the dust collection system",
+      "severity": "medium",
+      "confidence": "medium"
+    },
+    {
+      "source": "C4",
+      "target": "H2",
+      "relation": "enables",
+      "reason": "The later flash fire required combustible dust/fuel.",
+      "evidence": "All employee burn injuries resulted from the large flash fire and heated dust mixture",
+      "severity": "medium",
+      "confidence": "high"
+    },
+    {
+      "source": "C7",
+      "target": "H2",
+      "relation": "enables",
+      "reason": "Dispersion of dust is explicitly part of the flash-fire/fireball mechanism.",
+      "evidence": "The residual flame ignited the dispersed dust, and the subsequent fireball dislodged and lifted more dust so that an expanding fireball vented through the doorway into the corridor.",
+      "severity": "high",
+      "confidence": "high"
+    },
+    {
+      "source": "Ev4",
+      "target": "H2",
+      "relation": "enables",
+      "reason": "Residual flame igniting dispersed dust is the immediate precursor to the injury-causing flash fire/fireball.",
+      "evidence": "The residual flame ignited the dispersed dust, and the subsequent fireball dislodged and lifted more dust so that an expanding fireball vented through the doorway into the corridor.",
+      "severity": "high",
+      "confidence": "high"
+    }
+  ],
+  "edge_deletions": [],
+  "edge_updates": [],
+  "issues_summary": [
+    {
+      "issue_type": "missing_step",
+      "description": "The graph omits the explicit secondary flash fire/fireball consequence that caused the seven burn injuries.",
+      "severity": "high"
+    },
+    {
+      "issue_type": "missing_step",
+      "description": "The graph lacks the intermediate ignition step in which residual flame ignited dispersed dust above T-306.",
+      "severity": "medium"
+    },
+    {
+      "issue_type": "schema_mismatch",
+      "description": "H1 evidence is paraphrased/composite and effectively unsupported by its current source field, even though a direct verbatim quote is available.",
+      "severity": "medium"
+    },
+    {
+      "issue_type": "schema_mismatch",
+      "description": "C5 uses ReleaseType for internal vapor draw into ductwork, which is only a weak semantic match to the schema definition.",
+      "severity": "low"
+    }
+  ]
+}

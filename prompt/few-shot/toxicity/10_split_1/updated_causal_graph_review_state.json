@@ -1,0 +1,8 @@
+{
+  "review_decisions": {
+    "edge_addition_0": "accepted",
+    "edge_deletion_0": "accepted",
+    "node_update_0": "accepted",
+    "node_update_1": "accepted"
+  }
+}

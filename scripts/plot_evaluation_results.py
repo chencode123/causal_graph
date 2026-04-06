@@ -245,6 +245,27 @@ def metric_arrays(case_rows: List[Dict[str, str]]) -> tuple[np.ndarray, np.ndarr
     return node_count, edge_count, construction_steps, normalized_ged, wl_similarity
 
 
+def ged_operation_totals(case_rows: List[Dict[str, str]]) -> tuple[List[str], np.ndarray]:
+    """Aggregate the six GED operation counts across all successful cases."""
+    operation_specs = [
+        ("Node insertion", "ged_node_insertion_count"),
+        ("Node deletion", "ged_node_deletion_count"),
+        ("Node substitution", "ged_node_substitution_count"),
+        ("Edge insertion", "ged_edge_insertion_count"),
+        ("Edge deletion", "ged_edge_deletion_count"),
+        ("Edge substitution", "ged_edge_substitution_count"),
+    ]
+    labels = [label for label, _ in operation_specs]
+    totals = np.asarray(
+        [
+            sum(to_float(row.get(column, "")) or 0.0 for row in case_rows)
+            for _, column in operation_specs
+        ],
+        dtype=float,
+    )
+    return labels, totals
+
+
 def plot_node_edge_relationship(case_rows: List[Dict[str, str]], output_dir: Path) -> None:
     """Create a scatter plot for node count versus edge count."""
     selected = select_complete_rows(case_rows, ["generated_node_count", "generated_edge_count"])
@@ -430,6 +451,46 @@ def plot_max_path_length_distribution(case_rows: List[Dict[str, str]], output_di
     save_figure(fig, output_dir, "figure_5_max_path_length_distribution")
 
 
+def plot_ged_operation_share(case_rows: List[Dict[str, str]], output_dir: Path) -> None:
+    """Plot the global proportion of the six GED operation categories."""
+    labels, totals = ged_operation_totals(case_rows)
+    fig, ax = plt.subplots(figsize=(7.0, 5.8))
+    color_map = ["#4C72B0", "#DD8452", "#55A868", "#C44E52", "#8172B3", "#937860"]
+
+    positive_mask = totals > 0
+    if np.any(positive_mask):
+        filtered_labels = [label for label, keep in zip(labels, positive_mask) if keep]
+        filtered_totals = totals[positive_mask]
+        total_sum = float(filtered_totals.sum())
+
+        def autopct(pct: float) -> str:
+            absolute = int(round(total_sum * pct / 100.0))
+            return f"{pct:.1f}%\n(n={absolute})"
+
+        wedges, _, autotexts = ax.pie(
+            filtered_totals,
+            labels=filtered_labels,
+            colors=[color for color, keep in zip(color_map, positive_mask) if keep],
+            startangle=90,
+            counterclock=False,
+            autopct=autopct,
+            pctdistance=0.72,
+            labeldistance=1.08,
+            wedgeprops={"linewidth": 0.8, "edgecolor": "white"},
+            textprops={"fontsize": 9},
+        )
+        for text in autotexts:
+            text.set_color("#222222")
+            text.set_fontsize(8.5)
+        ax.axis("equal")
+    else:
+        ax.text(0.5, 0.5, "No GED operations available", ha="center", va="center", fontsize=11)
+        ax.set_axis_off()
+
+    ax.set_title("Proportion of GED Edit Operations")
+    save_figure(fig, output_dir, "figure_6_ged_operation_share")
+
+
 def grouped_boxplot_data(
     case_rows: List[Dict[str, str]],
     x_key: str,
@@ -580,6 +641,7 @@ def generate_all_figures(results_dir: Path, output_dir: Path | None = None) -> P
     plot_similarity_density(case_rows, output_dir)
     plot_ged_vs_wl(case_rows, output_dir)
     plot_max_path_length_distribution(case_rows, output_dir)
+    plot_ged_operation_share(case_rows, output_dir)
     plot_max_path_vs_wl(case_rows, output_dir)
     plot_max_path_vs_exact_similarity(case_rows, output_dir)
     plot_similarity_by_hazard_consequence(case_rows, output_dir)

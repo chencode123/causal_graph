@@ -1,0 +1,77 @@
+{
+  "id": "resp_0e2158afac08c8d70069b8d8284a8081a2b3c34e95616bb4a8",
+  "object": "response",
+  "created_at": 1773721640,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1773721726,
+  "error": null,
+  "frequency_penalty": 0.0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": 128000,
+  "max_tool_calls": null,
+  "model": "gpt-5.4-2026-03-05",
+  "output": [
+    {
+      "id": "rs_0e2158afac08c8d70069b8d828b28481a2a15f44c3bcb6bd44",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_0e2158afac08c8d70069b8d87bc58481a2bb00c499e17a8fdc",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "{\n  \"edges\": [\n    {\n      \"source\": \"En1\",\n      \"target\": \"C1\",\n      \"relation\": \"has\"\n    },\n    {\n      \"source\": \"En1\",\n      \"target\": \"C2\",\n      \"relation\": \"has\"\n    },\n    {\n      \"source\": \"En1\",\n      \"target\": \"C3\",\n      \"relation\": \"has\"\n    },\n    {\n      \"source\": \"En1\",\n      \"target\": \"C4\",\n      \"relation\": \"has\"\n    },\n    {\n      \"source\": \"En2\",\n      \"target\": \"Ev1\",\n      \"relation\": \"enables\"\n    },\n    {\n      \"source\": \"En3\",\n      \"target\": \"C6\",\n      \"relation\": \"enables\"\n    },\n    {\n      \"source\": \"Ev1\",\n      \"target\": \"C2\",\n      \"relation\": \"enables\"\n    },\n    {\n      \"source\": \"C3\",\n      \"target\": \"C1\",\n      \"relation\": \"enables\"\n    },\n    {\n      \"source\": \"C2\",\n      \"target\": \"C1\",\n      \"relation\": \"enables\"\n    },\n    {\n      \"source\": \"C2\",\n      \"target\": \"C5\",\n      \"relation\": \"enables\"\n    },\n    {\n      \"source\": \"C1\",\n      \"target\": \"C7\",\n      \"relation\": \"enables\"\n    },\n    {\n      \"source\": \"C5\",\n      \"target\": \"C7\",\n      \"relation\": \"enables\"\n    },\n    {\n      \"source\": \"C6\",\n      \"target\": \"H1\",\n      \"relation\": \"enables\"\n    },\n    {\n      \"source\": \"C7\",\n      \"target\": \"H1\",\n      \"relation\": \"enables\"\n    },\n    {\n      \"source\": \"C4\",\n      \"target\": \"H1\",\n      \"relation\": \"enables\"\n    },\n    {\n      \"source\": \"Ev2\",\n      \"target\": \"H1\",\n      \"relation\": \"enables\"\n    }\n  ]\n}"
+        }
+      ],
+      "phase": "final_answer",
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0.0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": null,
+  "reasoning": {
+    "effort": "high",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1.0,
+  "text": {
+    "format": {
+      "type": "json_object"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 0.98,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 12248,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 9266,
+    "output_tokens_details": {
+      "reasoning_tokens": 8804
+    },
+    "total_tokens": 21514
+  },
+  "user": null,
+  "metadata": {}
+}

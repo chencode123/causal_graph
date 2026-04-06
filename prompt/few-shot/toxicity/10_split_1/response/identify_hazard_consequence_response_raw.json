@@ -1,0 +1,77 @@
+{
+  "id": "resp_015438cc6c3285a80069b73def299c81958c738eca07e470fa",
+  "object": "response",
+  "created_at": 1773616623,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1773616634,
+  "error": null,
+  "frequency_penalty": 0.0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": 128000,
+  "max_tool_calls": null,
+  "model": "gpt-5.4-2026-03-05",
+  "output": [
+    {
+      "id": "rs_015438cc6c3285a80069b73defa9508195967cd5170ec3c3e6",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_015438cc6c3285a80069b73df54d8c8195ad85a684d9bd5ee9",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "{\n  \"hazard_consequence_node\": {\n    \"label\": \"HazardConsequence\",\n    \"name\": \"Toxicity dispersion\",\n    \"node_id\": \"H1\",\n    \"node_type\": \"HazardConsequence\",\n    \"evidence\": \"“On February 12, 2014, two employees ... suffered first and second degree chemical burns ... concentrated sulfuric acid sprayed two workers following a mechanical integrity failure ... This resulted in the release of approximately 84,000 pounds of sulfuric acid.”\",\n    \"explanation\": \"The incident centers on a large loss of containment of sulfuric acid that sprayed workers and released hazardous acid to the environment for over two hours. No ignition, fire, explosion, or oxygen-deficient atmosphere occurred. Among the allowed categories, Toxicity dispersion is the best fit for this harmful chemical release mechanism.\",\n    \"source\": \"incident_description\"\n  },\n  \"explanation\": {\n    \"reasoning\": \"The main accident mechanism analyzed is a mechanical integrity failure that caused a sulfuric acid release and worker exposure injury. Since the report focuses on the release, spray, and hazardous chemical exposure effects rather than combustion or explosion, the primary hazard consequence is Toxicity dispersion.\",\n    \"excluded_alternatives\": [\n      {\n        \"label\": \"VCE\",\n        \"reason\": \"No vapor cloud explosion occurred; the released sulfuric acid was not reported to ignite or explode.\"\n      },\n      {\n        \"label\": \"BLEVE\",\n        \"reason\": \"There was no boiling liquid expanding vapor explosion involving a pressurized vessel exposed to fire.\"\n      },\n      {\n        \"label\": \"Dust explosion\",\n        \"reason\": \"The incident did not involve combustible dust.\"\n      },\n      {\n        \"label\": \"Confined explosion\",\n        \"reason\": \"No explosion in a confined space was described.\"\n      },\n      {\n        \"label\": \"Pool fire\",\n        \"reason\": \"Although acid was released, it did not ignite and no pool fire occurred.\"\n      },\n      {\n        \"label\": \"Jet fire\",\n        \"reason\": \"The release was an acid spray, not an ignited pressurized flammable release.\"\n      },\n      {\n        \"label\": \"Fire ball\",\n        \"reason\": \"No fireball event occurred.\"\n      },\n      {\n        \"label\": \"Flash fire\",\n        \"reason\": \"There was no ignited flammable vapor cloud or transient flame propagation.\"\n      },\n      {\n        \"label\": \"Asphyxiation\",\n        \"reason\": \"The injuries were chemical burns from sulfuric acid exposure, not oxygen displacement or suffocation.\"\n      }\n    ]\n  }\n}"
+        }
+      ],
+      "phase": "final_answer",
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0.0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": null,
+  "reasoning": {
+    "effort": "high",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1.0,
+  "text": {
+    "format": {
+      "type": "json_object"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 0.98,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 7145,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 1066,
+    "output_tokens_details": {
+      "reasoning_tokens": 516
+    },
+    "total_tokens": 8211
+  },
+  "user": null,
+  "metadata": {}
+}

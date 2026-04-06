@@ -1,8 +1,11 @@
 from __future__ import annotations
 
 import argparse
+import os
 import csv
 import json
+import time
+from concurrent.futures import FIRST_COMPLETED, ProcessPoolExecutor, wait
 from datetime import datetime
 from pathlib import Path
 from statistics import mean
@@ -10,6 +13,7 @@ from typing import Any, Dict, Iterable, List, Tuple
 
 import networkx as nx
 from grakel import Graph, GraphKernel
+from tqdm import tqdm
 
 
 NODE_GROUP_KEYS = (
@@ -27,6 +31,12 @@ CASE_SCORE_COLUMNS = [
     "graph_edit_distance",
     "normalized_graph_edit_distance",
     "graph_edit_similarity",
+    "ged_node_insertion_count",
+    "ged_node_deletion_count",
+    "ged_node_substitution_count",
+    "ged_edge_insertion_count",
+    "ged_edge_deletion_count",
+    "ged_edge_substitution_count",
     "generated_node_count",
     "updated_node_count",
     "generated_edge_count",
@@ -53,6 +63,18 @@ BATCH_SCORE_COLUMNS = [
     "mean_updated_edge_count",
     "mean_verified_construction_steps",
     "mean_max_path_length",
+    "total_ged_node_insertion_count",
+    "total_ged_node_deletion_count",
+    "total_ged_node_substitution_count",
+    "total_ged_edge_insertion_count",
+    "total_ged_edge_deletion_count",
+    "total_ged_edge_substitution_count",
+    "mean_ged_node_insertion_count",
+    "mean_ged_node_deletion_count",
+    "mean_ged_node_substitution_count",
+    "mean_ged_edge_insertion_count",
+    "mean_ged_edge_deletion_count",
+    "mean_ged_edge_substitution_count",
 ]
 
 OVERALL_SUMMARY_COLUMNS = [
@@ -70,6 +92,18 @@ OVERALL_SUMMARY_COLUMNS = [
     "overall_mean_updated_edge_count",
     "overall_mean_verified_construction_steps",
     "overall_mean_max_path_length",
+    "overall_total_ged_node_insertion_count",
+    "overall_total_ged_node_deletion_count",
+    "overall_total_ged_node_substitution_count",
+    "overall_total_ged_edge_insertion_count",
+    "overall_total_ged_edge_deletion_count",
+    "overall_total_ged_edge_substitution_count",
+    "overall_mean_ged_node_insertion_count",
+    "overall_mean_ged_node_deletion_count",
+    "overall_mean_ged_node_substitution_count",
+    "overall_mean_ged_edge_insertion_count",
+    "overall_mean_ged_edge_deletion_count",
+    "overall_mean_ged_edge_substitution_count",
 ]
 
 
@@ -92,6 +126,15 @@ def parse_args() -> argparse.Namespace:
         type=Path,
         default=Path("runs/batch_api_test_1/results"),
         help="Directory where CSV result files will be written.",
+    )
+    parser.add_argument(
+        "--workers",
+        type=int,
+        default=None,
+        help=(
+            "Number of worker processes for parallel case evaluation. "
+            "Defaults to min(CPU count, number of cases). Use 1 to disable parallelism."
+        ),
     )
     return parser.parse_args()
 
@@ -173,7 +216,8 @@ def build_directed_graph(
         if not graph.has_node(source) or not graph.has_node(target):
             warnings.append(f"Edge {source}->{target} references missing node and was skipped.")
             continue
-        graph.add_edge(source, target)
+        relation = str(edge.get("relation") or edge.get("label") or "").strip()
+        graph.add_edge(source, target, relation=relation, label=relation)
 
     return graph, warnings
 
@@ -202,6 +246,18 @@ def compute_structural_similarity(generated_graph: nx.DiGraph, updated_graph: nx
     return float(similarity_matrix[0, 1])
 
 
+def node_labels_match(left: Dict[str, Any], right: Dict[str, Any]) -> bool:
+    """Match nodes using the same label-only rule as the GED score."""
+    return left.get("label", "") == right.get("label", "")
+
+
+def edge_labels_match(left: Dict[str, Any], right: Dict[str, Any]) -> bool:
+    """Match edges by relation/label when extracting edit-operation counts."""
+    left_relation = str(left.get("relation") or left.get("label") or "").strip()
+    right_relation = str(right.get("relation") or right.get("label") or "").strip()
+    return left_relation == right_relation
+
+
 def compute_graph_edit_metrics(
     generated_graph: nx.DiGraph,
     updated_graph: nx.DiGraph,
@@ -210,7 +266,7 @@ def compute_graph_edit_metrics(
     ged_candidates = nx.optimize_graph_edit_distance(
         generated_graph,
         updated_graph,
-        node_match=lambda left, right: left.get("label", "") == right.get("label", ""),
+        node_match=node_labels_match,
     )
     graph_edit_distance = float(next(ged_candidates))
     size_denominator = (
@@ -226,6 +282,62 @@ def compute_graph_edit_metrics(
     return graph_edit_distance, normalized_graph_edit_distance, graph_edit_similarity
 
 
+def compute_graph_edit_operation_counts(
+    generated_graph: nx.DiGraph,
+    updated_graph: nx.DiGraph,
+) -> Dict[str, int]:
+    """Count the six GED edit-operation categories for one optimal edit path."""
+    optimal_paths, _ = nx.optimal_edit_paths(
+        generated_graph,
+        updated_graph,
+        node_match=node_labels_match,
+        edge_match=edge_labels_match,
+    )
+    if not optimal_paths:
+        return {
+            "ged_node_insertion_count": 0,
+            "ged_node_deletion_count": 0,
+            "ged_node_substitution_count": 0,
+            "ged_edge_insertion_count": 0,
+            "ged_edge_deletion_count": 0,
+            "ged_edge_substitution_count": 0,
+        }
+
+    node_path, edge_path = optimal_paths[0]
+    counts = {
+        "ged_node_insertion_count": 0,
+        "ged_node_deletion_count": 0,
+        "ged_node_substitution_count": 0,
+        "ged_edge_insertion_count": 0,
+        "ged_edge_deletion_count": 0,
+        "ged_edge_substitution_count": 0,
+    }
+
+    for left_node, right_node in node_path:
+        if left_node is None and right_node is not None:
+            counts["ged_node_insertion_count"] += 1
+        elif left_node is not None and right_node is None:
+            counts["ged_node_deletion_count"] += 1
+        elif left_node is not None and right_node is not None and not node_labels_match(
+            generated_graph.nodes[left_node],
+            updated_graph.nodes[right_node],
+        ):
+            counts["ged_node_substitution_count"] += 1
+
+    for left_edge, right_edge in edge_path:
+        if left_edge is None and right_edge is not None:
+            counts["ged_edge_insertion_count"] += 1
+        elif left_edge is not None and right_edge is None:
+            counts["ged_edge_deletion_count"] += 1
+        elif left_edge is not None and right_edge is not None and not edge_labels_match(
+            generated_graph.edges[left_edge],
+            updated_graph.edges[right_edge],
+        ):
+            counts["ged_edge_substitution_count"] += 1
+
+    return counts
+
+
 def infer_batch_id(case_folder: Path, parent_dir: Path) -> str:
     """Infer batch id from the first relative path component under the parent directory."""
     relative_parts = case_folder.relative_to(parent_dir).parts
@@ -239,6 +351,11 @@ def mean_or_blank(values: List[float]) -> str:
     if not values:
         return ""
     return f"{mean(values):.6f}"
+
+
+def sum_or_zero(values: List[float]) -> int:
+    """Return an integer sum for numeric values, defaulting to zero."""
+    return int(round(sum(values))) if values else 0
 
 
 def compute_verified_construction_steps(updated_graph: nx.DiGraph) -> int:
@@ -299,6 +416,12 @@ def evaluate_case(case_folder: Path, parent_dir: Path) -> Dict[str, Any]:
         "graph_edit_distance": "",
         "normalized_graph_edit_distance": "",
         "graph_edit_similarity": "",
+        "ged_node_insertion_count": "",
+        "ged_node_deletion_count": "",
+        "ged_node_substitution_count": "",
+        "ged_edge_insertion_count": "",
+        "ged_edge_deletion_count": "",
+        "ged_edge_substitution_count": "",
         "generated_node_count": "",
         "updated_node_count": "",
         "generated_edge_count": "",
@@ -331,6 +454,7 @@ def evaluate_case(case_folder: Path, parent_dir: Path) -> Dict[str, Any]:
             normalized_graph_edit_distance,
             graph_edit_similarity,
         ) = compute_graph_edit_metrics(generated_graph, updated_graph)
+        operation_counts = compute_graph_edit_operation_counts(generated_graph, updated_graph)
         verified_construction_steps = compute_verified_construction_steps(updated_graph)
         topology_metrics = compute_topology_metrics(updated_graph)
         hazard_consequence_type = load_hazard_consequence_type(case_folder)
@@ -341,6 +465,7 @@ def evaluate_case(case_folder: Path, parent_dir: Path) -> Dict[str, Any]:
                 "graph_edit_distance": f"{graph_edit_distance:.6f}",
                 "normalized_graph_edit_distance": f"{normalized_graph_edit_distance:.6f}",
                 "graph_edit_similarity": f"{graph_edit_similarity:.6f}",
+                **operation_counts,
                 "generated_node_count": generated_graph.number_of_nodes(),
                 "updated_node_count": updated_graph.number_of_nodes(),
                 "generated_edge_count": generated_graph.number_of_edges(),
@@ -363,6 +488,14 @@ def evaluate_case(case_folder: Path, parent_dir: Path) -> Dict[str, Any]:
         row["warnings"] = f"{type(exc).__name__}: {exc}"
 
     return row
+
+
+def evaluate_case_with_timing(case_folder: Path, parent_dir: Path) -> Tuple[Dict[str, Any], float]:
+    """Evaluate one case and return both the row and elapsed seconds."""
+    started_at = time.perf_counter()
+    row = evaluate_case(case_folder, parent_dir)
+    elapsed_seconds = time.perf_counter() - started_at
+    return row, elapsed_seconds
 
 
 def write_csv(path: Path, fieldnames: List[str], rows: List[Dict[str, Any]]) -> None:
@@ -392,6 +525,12 @@ def build_batch_rows(case_rows: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     for batch_id in sorted(grouped):
         rows = grouped[batch_id]
         success_rows = [row for row in rows if row["status"] == "ok"]
+        ged_node_insertion_values = [float(row["ged_node_insertion_count"]) for row in success_rows]
+        ged_node_deletion_values = [float(row["ged_node_deletion_count"]) for row in success_rows]
+        ged_node_substitution_values = [float(row["ged_node_substitution_count"]) for row in success_rows]
+        ged_edge_insertion_values = [float(row["ged_edge_insertion_count"]) for row in success_rows]
+        ged_edge_deletion_values = [float(row["ged_edge_deletion_count"]) for row in success_rows]
+        ged_edge_substitution_values = [float(row["ged_edge_substitution_count"]) for row in success_rows]
 
         batch_rows.append(
             {
@@ -429,6 +568,18 @@ def build_batch_rows(case_rows: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
                 "mean_max_path_length": mean_or_blank(
                     [float(row["max_path_length"]) for row in success_rows]
                 ),
+                "total_ged_node_insertion_count": sum_or_zero(ged_node_insertion_values),
+                "total_ged_node_deletion_count": sum_or_zero(ged_node_deletion_values),
+                "total_ged_node_substitution_count": sum_or_zero(ged_node_substitution_values),
+                "total_ged_edge_insertion_count": sum_or_zero(ged_edge_insertion_values),
+                "total_ged_edge_deletion_count": sum_or_zero(ged_edge_deletion_values),
+                "total_ged_edge_substitution_count": sum_or_zero(ged_edge_substitution_values),
+                "mean_ged_node_insertion_count": mean_or_blank(ged_node_insertion_values),
+                "mean_ged_node_deletion_count": mean_or_blank(ged_node_deletion_values),
+                "mean_ged_node_substitution_count": mean_or_blank(ged_node_substitution_values),
+                "mean_ged_edge_insertion_count": mean_or_blank(ged_edge_insertion_values),
+                "mean_ged_edge_deletion_count": mean_or_blank(ged_edge_deletion_values),
+                "mean_ged_edge_substitution_count": mean_or_blank(ged_edge_substitution_values),
             }
         )
 
@@ -438,6 +589,12 @@ def build_batch_rows(case_rows: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
 def build_overall_summary(case_rows: List[Dict[str, Any]], batch_rows: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     """Build a single-row overall summary table."""
     success_rows = [row for row in case_rows if row["status"] == "ok"]
+    ged_node_insertion_values = [float(row["ged_node_insertion_count"]) for row in success_rows]
+    ged_node_deletion_values = [float(row["ged_node_deletion_count"]) for row in success_rows]
+    ged_node_substitution_values = [float(row["ged_node_substitution_count"]) for row in success_rows]
+    ged_edge_insertion_values = [float(row["ged_edge_insertion_count"]) for row in success_rows]
+    ged_edge_deletion_values = [float(row["ged_edge_deletion_count"]) for row in success_rows]
+    ged_edge_substitution_values = [float(row["ged_edge_substitution_count"]) for row in success_rows]
     return [
         {
             "total_batch_count": len(batch_rows),
@@ -474,8 +631,179 @@ def build_overall_summary(case_rows: List[Dict[str, Any]], batch_rows: List[Dict
             "overall_mean_max_path_length": mean_or_blank(
                 [float(row["max_path_length"]) for row in success_rows]
             ),
+            "overall_total_ged_node_insertion_count": sum_or_zero(ged_node_insertion_values),
+            "overall_total_ged_node_deletion_count": sum_or_zero(ged_node_deletion_values),
+            "overall_total_ged_node_substitution_count": sum_or_zero(ged_node_substitution_values),
+            "overall_total_ged_edge_insertion_count": sum_or_zero(ged_edge_insertion_values),
+            "overall_total_ged_edge_deletion_count": sum_or_zero(ged_edge_deletion_values),
+            "overall_total_ged_edge_substitution_count": sum_or_zero(ged_edge_substitution_values),
+            "overall_mean_ged_node_insertion_count": mean_or_blank(ged_node_insertion_values),
+            "overall_mean_ged_node_deletion_count": mean_or_blank(ged_node_deletion_values),
+            "overall_mean_ged_node_substitution_count": mean_or_blank(ged_node_substitution_values),
+            "overall_mean_ged_edge_insertion_count": mean_or_blank(ged_edge_insertion_values),
+            "overall_mean_ged_edge_deletion_count": mean_or_blank(ged_edge_deletion_values),
+            "overall_mean_ged_edge_substitution_count": mean_or_blank(ged_edge_substitution_values),
         }
     ]
+
+
+def resolve_worker_count(requested_workers: int | None, total_cases: int) -> int:
+    """Choose a safe worker count for the current run."""
+    if total_cases <= 0:
+        return 1
+    if requested_workers is not None:
+        return max(1, min(requested_workers, total_cases))
+    cpu_count = os.cpu_count() or 1
+    return max(1, min(cpu_count, total_cases))
+
+
+def report_case_runtime_summary(
+    case_rows: List[Dict[str, Any]],
+    case_timings: List[Tuple[float, str, str, str]],
+    total_elapsed_seconds: float,
+) -> None:
+    """Print overall runtime stats plus the slowest cases."""
+    total_cases = len(case_rows)
+    success_rows = [row for row in case_rows if row["status"] == "ok"]
+    failed_rows = [row for row in case_rows if row["status"] != "ok"]
+    overall_cases_per_second = total_cases / total_elapsed_seconds if total_elapsed_seconds > 0 else 0.0
+    average_case_seconds = total_elapsed_seconds / total_cases if total_cases > 0 else 0.0
+    print(
+        "Evaluation runtime: "
+        f"total={total_elapsed_seconds:.2f}s, "
+        f"avg_case={average_case_seconds:.2f}s, "
+        f"throughput={overall_cases_per_second:.2f} case/s, "
+        f"ok={len(success_rows)}, fail={len(failed_rows)}"
+    )
+
+    for rank, (elapsed_seconds, batch_id, case_id, status) in enumerate(
+        sorted(case_timings, reverse=True)[: min(5, len(case_timings))],
+        start=1,
+    ):
+        print(
+            f"Slow case #{rank}: batch={batch_id}, case={case_id}, "
+            f"status={status}, elapsed={elapsed_seconds:.2f}s"
+        )
+
+
+def evaluate_cases_with_progress(
+    case_folders: List[Path],
+    parent_dir: Path,
+    workers: int | None = None,
+) -> List[Dict[str, Any]]:
+    """Evaluate all cases with a progress bar and runtime summary."""
+    case_rows: List[Dict[str, Any]] = []
+    case_timings: List[Tuple[float, str, str, str]] = []
+    total_cases = len(case_folders)
+    run_started_at = time.perf_counter()
+    worker_count = resolve_worker_count(workers, total_cases)
+    print(f"Evaluating {total_cases} case(s) with {worker_count} worker(s).")
+
+    progress_bar = tqdm(total=total_cases, desc="Evaluating cases", unit="case", dynamic_ncols=True)
+    if worker_count == 1:
+        for index, folder in enumerate(case_folders, start=1):
+            row, elapsed_seconds = evaluate_case_with_timing(folder, parent_dir)
+            case_rows.append(row)
+            case_timings.append(
+                (
+                    elapsed_seconds,
+                    str(row.get("batch_id", "")),
+                    str(row.get("case_id", "")),
+                    str(row.get("status", "")),
+                )
+            )
+            total_elapsed_seconds = time.perf_counter() - run_started_at
+            average_case_seconds = total_elapsed_seconds / index if index else 0.0
+            cases_per_second = index / total_elapsed_seconds if total_elapsed_seconds > 0 else 0.0
+            remaining_cases = total_cases - index
+            eta_seconds = remaining_cases * average_case_seconds
+            progress_bar.update(1)
+            progress_bar.set_postfix(
+                avg_s=f"{average_case_seconds:.2f}",
+                last_s=f"{elapsed_seconds:.2f}",
+                case_s=f"{cases_per_second:.2f}",
+                eta_s=f"{eta_seconds:.0f}",
+                refresh=False,
+            )
+    else:
+        ordered_rows: List[Dict[str, Any] | None] = [None] * total_cases
+        with ProcessPoolExecutor(max_workers=worker_count) as executor:
+            futures = {}
+            future_meta: Dict[Any, Tuple[int, Path, float]] = {}
+            for index, folder in enumerate(case_folders):
+                future = executor.submit(evaluate_case_with_timing, folder, parent_dir)
+                futures[future] = index
+                future_meta[future] = (index, folder, time.perf_counter())
+            completed_count = 0
+            pending_futures = set(futures)
+            last_heartbeat_at = 0.0
+            while pending_futures:
+                done_futures, pending_futures = wait(
+                    pending_futures,
+                    timeout=1.0,
+                    return_when=FIRST_COMPLETED,
+                )
+
+                if done_futures:
+                    for future in done_futures:
+                        index = futures[future]
+                        row, elapsed_seconds = future.result()
+                        ordered_rows[index] = row
+                        case_timings.append(
+                            (
+                                elapsed_seconds,
+                                str(row.get("batch_id", "")),
+                                str(row.get("case_id", "")),
+                                str(row.get("status", "")),
+                            )
+                        )
+                        completed_count += 1
+                        total_elapsed_seconds = time.perf_counter() - run_started_at
+                        average_case_seconds = total_elapsed_seconds / completed_count if completed_count else 0.0
+                        cases_per_second = completed_count / total_elapsed_seconds if total_elapsed_seconds > 0 else 0.0
+                        remaining_cases = total_cases - completed_count
+                        eta_seconds = remaining_cases / cases_per_second if cases_per_second > 0 else 0.0
+                        progress_bar.update(1)
+                        progress_bar.set_postfix(
+                            avg_s=f"{average_case_seconds:.2f}",
+                            last_s=f"{elapsed_seconds:.2f}",
+                            case_s=f"{cases_per_second:.2f}",
+                            eta_s=f"{eta_seconds:.0f}",
+                            running=len(pending_futures),
+                            refresh=False,
+                        )
+                else:
+                    now = time.perf_counter()
+                    if now - last_heartbeat_at >= 1.0:
+                        total_elapsed_seconds = now - run_started_at
+                        cases_per_second = completed_count / total_elapsed_seconds if total_elapsed_seconds > 0 else 0.0
+                        remaining_cases = total_cases - completed_count
+                        eta_seconds = remaining_cases / cases_per_second if cases_per_second > 0 else 0.0
+                        slowest_future = max(
+                            pending_futures,
+                            key=lambda item: now - future_meta[item][2],
+                        )
+                        _, slowest_folder, started_at = future_meta[slowest_future]
+                        running_for_seconds = now - started_at
+                        try:
+                            relative_case = str(slowest_folder.relative_to(parent_dir))
+                        except ValueError:
+                            relative_case = slowest_folder.name
+                        progress_bar.set_postfix(
+                            case_s=f"{cases_per_second:.2f}",
+                            eta_s=f"{eta_seconds:.0f}" if cases_per_second > 0 else "?",
+                            running=len(pending_futures),
+                            longest_s=f"{running_for_seconds:.1f}",
+                            longest_case=relative_case,
+                            refresh=True,
+                        )
+                        last_heartbeat_at = now
+        case_rows = [row for row in ordered_rows if row is not None]
+
+    progress_bar.close()
+    total_elapsed_seconds = time.perf_counter() - run_started_at
+    report_case_runtime_summary(case_rows, case_timings, total_elapsed_seconds)
+    return case_rows
 
 
 def main() -> Path:
@@ -485,7 +813,7 @@ def main() -> Path:
     output_dir = make_run_output_dir(args.output_dir)
 
     case_folders = find_case_folders(parent_dir)
-    case_rows = [evaluate_case(folder, parent_dir) for folder in case_folders]
+    case_rows = evaluate_cases_with_progress(case_folders, parent_dir, args.workers)
     batch_rows = build_batch_rows(case_rows)
     overall_rows = build_overall_summary(case_rows, batch_rows)
 

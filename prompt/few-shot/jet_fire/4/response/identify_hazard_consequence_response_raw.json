@@ -1,0 +1,77 @@
+{
+  "id": "resp_064a9636468c33930069b8c69428c08193887ff30a36637cd8",
+  "object": "response",
+  "created_at": 1773717140,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1773717153,
+  "error": null,
+  "frequency_penalty": 0.0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": 128000,
+  "max_tool_calls": null,
+  "model": "gpt-5.4-2026-03-05",
+  "output": [
+    {
+      "id": "rs_064a9636468c33930069b8c6950c4c8193ad396bab189854fb",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_064a9636468c33930069b8c69a83088193848d8ecb6782433e",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "{\n  \"hazard_consequence_node\": {\n    \"label\": \"Jet fire\",\n    \"name\": \"Jet fire\",\n    \"node_id\": \"H1\",\n    \"node_type\": \"HazardConsequence\",\n    \"evidence\": \"The summary states: \\\"When exposed to high temperatures and direct sunlight, propylene cylinders can spontaneously vent through their relief devices, in turn releasing propylene, which when ignited, can heat surrounding cylinders and cause them to vent, creating a domino effect that spreads the fire.\\\" The incident description says a technician saw \\\"a ten-foot high flame coming from a cylinder,\\\" and the incident scenario states that the relief device opened, vented propylene, and \\\"the venting propylene ignited.\\\"\",\n    \"explanation\": \"The report mainly analyzes ignition of pressurized propylene venting from cylinder relief devices and the resulting torch-like flame that heated nearby cylinders and propagated the event. That mechanism is best classified as a jet fire. Later cylinder ruptures/explosions were important escalation effects, but they were secondary to the central analyzed phenomenon of ignited gaseous release from cylinders.\",\n    \"source\": \"incident_description\"\n  },\n  \"explanation\": {\n    \"reasoning\": \"The central accident mechanism discussed is thermal heating of returned propylene cylinders, opening of relief devices, release of pressurized propylene, and ignition of that release into a sustained flame that spread by heating adjacent cylinders. This aligns most directly with a jet fire rather than an explosion-centered consequence.\",\n    \"excluded_alternatives\": [\n      {\n        \"label\": \"VCE\",\n        \"reason\": \"No unconfined vapor cloud explosion is described as the primary analyzed event; the main mechanism is localized ignition of venting gas at cylinders.\"\n      },\n      {\n        \"label\": \"BLEVE\",\n        \"reason\": \"Some cylinders later ruptured from fire exposure, but the report's main analysis focuses on venting-and-ignition through relief devices, not a single boiling liquid expanding vapor explosion as the core event.\"\n      },\n      {\n        \"label\": \"Dust explosion\",\n        \"reason\": \"No combustible dust involvement is described anywhere in the incident.\"\n      },\n      {\n        \"label\": \"Confined explosion\",\n        \"reason\": \"The event occurred in an outdoor storage area, and the main phenomenon was external cylinder fire escalation, not an explosion in confinement.\"\n      },\n      {\n        \"label\": \"Pool fire\",\n        \"reason\": \"There is no flammable liquid pool burning; the fuel was primarily pressurized gas venting from cylinders.\"\n      },\n      {\n        \"label\": \"Fire ball\",\n        \"reason\": \"Although cylinders exploded and ruptured, the report does not center on a transient fireball as the main hazardous consequence.\"\n      },\n      {\n        \"label\": \"Flash fire\",\n        \"reason\": \"The event was not primarily a short-duration flash through a vapor cloud; it was a sustained flame from ignited pressurized releases.\"\n      },\n      {\n        \"label\": \"Toxicity dispersion\",\n        \"reason\": \"Smoke and asbestos plume impacts are mentioned, but toxic dispersion is not the primary hazard mechanism analyzed in the incident narrative.\"\n      },\n      {\n        \"label\": \"Asphyxiation\",\n        \"reason\": \"No oxygen-deficient atmosphere or asphyxiation mechanism is identified as the main consequence.\"\n      }\n    ]\n  }\n}"
+        }
+      ],
+      "phase": "final_answer",
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0.0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": null,
+  "reasoning": {
+    "effort": "high",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1.0,
+  "text": {
+    "format": {
+      "type": "json_object"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 0.98,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 2131,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 1220,
+    "output_tokens_details": {
+      "reasoning_tokens": 516
+    },
+    "total_tokens": 3351
+  },
+  "user": null,
+  "metadata": {}
+}

@@ -1,0 +1,1085 @@
+You are a process safety analyst specializing in accident investigation, hazard scenario reconstruction, and causal graph review.
+
+INPUT DATA
+
+INCIDENT_DESCRIPTION
+{
+  "document_classification": {
+    "is_summary_style": false,
+    "is_full_incident_report": true,
+    "contains_multiple_independent_incidents": false,
+    "requires_incident_split": false,
+    "recommended_output_mode": "single_incident",
+    "classification_reason": "The document is a CSB case study centered on one incident at the Barton Solvents Wichita facility on July 17, 2007. It contains a structured narrative with Introduction, Incident Description, findings, hazard analysis, precautions, and recommendations. Although another Barton incident in Des Moines is briefly mentioned, the text explicitly states that the case study focuses solely on the Wichita incident."
+  },
+  "incidents": [
+    {
+      "incident_id": "incident_1",
+      "is_independent_incident": true,
+      "time_reference": "On July 17, 2007, at about 9 a.m.",
+      "incident_summary_section": {
+        "section_title": "1. Introduction",
+        "text": "1. Introduction\nOn July 17, 2007, at about 9 a.m., an explosion and fire occurred at the Barton Solvents \nWichita facility in Valley Center, Kansas. Eleven residents and one firefighter received \nmedical treatment. The incident triggered an evacuation of Valley Center (approximately \n6,000 residents); destroyed the tank farm; and significantly interrupted Barton’s business. \nAn investigation by the U.S. Chemical Safety and Hazard Investigation Board (CSB) \nhas concluded that the initial explosion occurred inside a vertical above-ground storage \ntank that was being filled with Varnish Makers’ and Painters’ (VM&P) naphtha. VM&P \nnaphtha is a National Fire Protection Association (NFPA) Class IB flammable liquid1\n that \ncan produce ignitable vapor-air mixtures inside tanks and, because of its low electrical \nconductivity, can accumulate dangerous levels of static electricity.2\nThe CSB is publishing this Case Study to help companies understand the hazards \nassociated with static-accumulating flammable liquids that can form ignitable vapor-air \nmixtures inside storage tanks. In addition, the CSB wants to urge companies to take extra \nprecautions to prevent explosions and fires like the one at Barton. This Case Study also \nexamines industry Material Safety Data Sheet (MSDS) hazard communication practices \nand makes recommendations to ensure that MSDSs identify these hazards and outline \nappropriate precautions.\n 1 Liquids most likely to form ignitable vapor-air mixtures during tank filling at ambient operating temperatures are normally those designated as Class \nIB or Class IC in NFPA 30 (flammability hazard rating of “3” in NFPA 704). In the American Petroleum Institute (API) classification system these liquids \nusually fall into the “Intermediate Vapor Pressure Products” category. A notable exception is motor gasoline, an NFPA Class IB liquid that is designated \nas a “High Vapor Pressure Product” in the API system, implying that (except at very low operating temperatures) the vapor-air mixture formed during tank \nfilling rapidly becomes too rich to be ignitable. (See NFPA 30, Section 4.3 “Classification of Liquids” and NFPA 704 Chapter 6 for a detailed discussion \nof NFPA’s classification and flammability hazard rating systems. See API 2003 (2008 edition), Section 3 “Definitions” for an explanation of “High,” \n“Intermediate,” and “Low” vapor pressure product classes.\n2 On October 29, 2007, fire destroyed a large portion of a Barton facility in Des Moines, Iowa. Flammable liquids and static electricity were also involved in that \nincident. Because of the incident-specific findings associated with the Wichita incident investigation, this Case Study focuses solely on the Wichita incident."
+      },
+      "incident_description_section": {
+        "section_title": "2. Incident Description",
+        "text": "2. Incident Description\nThe initial explosion occurred soon after the tank farm supervisor started the transfer of \nthe final compartment of a tanker-trailer containing VM&P naphtha into a 15,000 gallon \nabove-ground storage tank (Figure 1).\nThe explosion sent the VM&P tank rocketing into the air, trailing a cloud of smoke and \nfire from the burning liquid; it landed approximately 130 feet away. Witnesses heard the \nexplosion and saw the fireball from several miles away. Within moments, two more tanks \nruptured and released their contents into the rapidly escalating fire that was concentrated \ninside the earthen spill containment area surrounding the tank farm.3\n As the fire burned, \nthe contents of other tanks over-pressurized or ignited, launching steel tank tops (10-12 feet \nin diameter); vent valves; pipes; and steel parts off-site and into the adjoining community. \nA tank top struck a mobile home in the community (approximately 300 feet away) and a \npressure/vacuum valve hit a neighboring business nearly 400 feet away (Figures 2 and 3).\n3 Approximately 20,000 gallons of flammable liquid were released into the spill containment. The tank farm included 43 above-ground storage tanks with \ncapacities ranging from 3,000 to 20,000 gallons. Tank heights ranged from approximately 15 to 40 feet."
+      },
+      "other_related_sections": [
+        {
+          "section_title": "4. Key Findings",
+          "text": "4. Key Findings\nThe CSB determined that several factors likely combined to produce the initial explosion: \n• The tank contained an ignitable vapor-air mixture in its head space. \n• Stop-start filling, air in the transfer piping, and sediment and water (likely present in the \ntank) caused a rapid static charge accumulation inside the VM&P naphtha tank. \n• The tank had a liquid level gauging system float with a loose linkage that likely separated \nand created a spark during filling.\n• The MSDS for the VM&P naphtha involved in this incident did not adequately \ncommunicate the explosive hazard."
+        },
+        {
+          "section_title": "4.1. Flammability of VM&P naphtha",
+          "text": "4.1. Flammability of VM&P naphtha\nThe CSB tested the VM&P naphtha involved in the Barton explosion to determine if an \nignitable vapor-air mixture could have been present inside the tank at the time of the \nexplosion.6\n The results revealed that, at approximately 77˚F (25˚C) (the handling temperature \nof the VM&P naphtha at the time of the incident), the tank head space likely contained a \nreadily ignitable vapor-air mixture. The energy from a static spark would have been adequate \nto ignite this vapor-air mixture.7"
+        },
+        {
+          "section_title": "4.2. Tank Level Float Design",
+          "text": "4.2. Tank Level Float Design\nThe design of the tank liquid level gauging system float used by Barton incorporates a loose \nlinkage at the float/tape junction that can separate slightly, interrupting grounding (see Section \n4.3) and creating the potential for a spark (Figure 4).8\n The CSB concluded that turbulence and \nbubbling during the stop-start transfer pumping, in addition to creating rapid static charge \naccumulation, also likely created slack in the gauge tape connected to the float, causing the \nlinkage to separate and spark.9"
+        },
+        {
+          "section_title": "4.3. Bonding and Grounding",
+          "text": "4.3. Bonding and Grounding\nBonding is the process of electrically connecting conductive objects, like tanker-trailers, to \ntransfer pumps to equalize their individual electrical potentials and prevent sparking.\nGrounding (earthing) means connecting a conductive object to the earth to dissipate electricity, \nlike accumulated static, lightning strikes, and equipment faults, into the ground, away from \nemployees/equipment and ignitable mixtures.\nAccording to witnesses at Barton, the tanker-trailer, pump, piping, and storage tank were \nbonded and grounded at the time of the incident.10 However, published safety guidance indicates \nthat bonding and grounding measures applied to typical transfer and storage operations may \nnot be enough if nonconductive flammable liquids are involved. Nonconductive liquids \naccumulate static electricity and dissipate (relax) it more slowly than conductive liquids, \nand therefore require additional precautions (see Section 5)."
+        },
+        {
+          "section_title": "4.4. Static Accumulation in the Pumped Liquid",
+          "text": "4.4. Static Accumulation in the Pumped Liquid\nBarton pumped the VM&P naphtha from three separate compartments in the tanker-trailer \nto the VM&P tank. Air pockets were introduced into the fill piping, and then transferred into \nthe tank when the transfer hose was reconnected to the tanker-trailer after compartments \nwere changed. Studies have found that static electricity accumulates rapidly during pump \nstartup when nonconductive liquids are transferred to storage tanks (Walmsley, 1996). In \nthis case, the static electricity accumulation was likely exacerbated by the air pockets (bubbling) and the likely presence of suspended sediment and water in the tank.11 In addition, \nthe VM&P tank was approximately 30 percent filled at the time of the explosion, which \nwould have produced a liquid surface potential (voltage) close to the maximum expected \nduring filling."
+        }
+      ],
+      "extraction_notes": "Single incident only. Extracted the Introduction as the best available incident summary section, the Incident Description as the main chronological event narrative, and included findings/mechanism sections most directly related to hazard evolution and consequence development. Figure captions and page headers/footers were omitted."
+    }
+  ]
+}
+
+ACCIDENT_SCENARIO_SCHEMA
+{
+  "hazard_consequence_node":[
+    {
+      "label": "HazardConsequence",
+      "name": "VCE | BLEVE | Dust explosion | Confined explosion | Pool fire | Jet fire | Fire ball | Flash fire | Toxicity dispersion | Asphyxiation",
+      "node_id": "H#",
+      "node_type": "HazardConsequence",
+      "evidence": "string",
+      "explanation": "string",
+      "source": "incident_description | Not specified"
+    }
+  ],
+
+  "entity_nodes": [
+
+    {
+      "label": "Material",
+      "name": "string | Not specified",
+      "node_id": "En#",
+      "node_type": "Entity",
+      "evidence": "string",
+      "explanation": "string",
+      "source": "incident_description | Not specified"
+    },
+
+    {
+      "label": "Location",
+      "name": "string | Not specified",
+      "node_id": "En#",
+      "node_type": "Entity",
+      "evidence": "string | N/A",
+      "explanation": "string",
+      "source": "incident_description | Not specified"
+    }
+  ],
+
+  "condition_nodes": [
+
+    {
+      "label": "Phase",
+      "name": "Liquid | Vapor | Solid | TwoPhase | Not specified",
+      "node_id": "C#",
+      "node_type": "Condition",
+      "evidence": "string | N/A",
+      "explanation": "string",
+      "source": "incident_description | Not specified"
+    },
+
+    {
+      "label": "Pressure",
+      "name": "High pressure | Low pressure | Not specified",
+      "node_id": "C#",
+      "node_type": "Condition",
+      "evidence": "string | N/A",
+      "explanation": "string",
+      "source": "incident_description | Not specified"
+    },
+
+    {
+      "label": "Temperature",
+      "name": "Low temperature| Atmospheric temperature| High temperature| Not specified",
+      "node_id": "C#",
+      "node_type": "Condition",
+      "evidence": "string | N/A",
+      "explanation": "string",
+      "source": "incident_description | Not specified"
+    },
+    
+    {
+      "label": "Volatility",
+      "name": "Low volatility| High volatility| Not specified",
+      "node_id": "C#",
+      "node_type": "Condition",
+      "evidence": "string | N/A",
+      "explanation": "string",
+      "source": "incident_description | Not specified"
+    },
+
+    {
+      "label": "Combustibility",
+      "name": "Combustible | Non-combustible | Not specified",
+      "node_id": "C#",
+      "node_type": "Condition",
+      "evidence": "string | N/A",
+      "explanation": "string",
+      "source": "incident_description | Not specified"
+    },
+
+    {
+      "label": "ToxicSubstance",
+      "name": "Toxic | Non-toxic | Not specified",
+      "node_id": "C#",
+      "node_type": "Condition",
+      "evidence": "string | N/A",
+      "explanation": "string",
+      "source": "incident_description | Not specified"
+    },
+
+    {
+      "label": "Asphyxiant",
+      "name": "Asphyxiant | Non-asphyxiant | Not specified",
+      "node_id": "C#",
+      "node_type": "Condition",
+      "evidence": "string | N/A",
+      "explanation": "string",
+      "source": "incident_description | Not specified"
+    },
+
+    {
+      "label": "Conductivity",
+      "name": "Low conductivity| High conductivity| Not specified",
+      "node_id": "C#",
+      "node_type": "Condition",
+      "evidence": "string | N/A",
+      "explanation": "string",
+      "source": "incident_description | Not specified"
+    },
+
+    {
+      "label": "ReleaseType",
+      "name": "Continuous release | Instant release | Not specified",
+      "node_id": "C#",
+      "node_type": "Condition",
+      "evidence": "string | N/A",
+      "explanation": "string",
+      "source": "incident_description | Not specified"
+    },
+
+    {
+      "label": "Confinement",
+      "name": "High confinement | Low confinement | Not specified",
+      "node_id": "C#",
+      "node_type": "Condition",
+      "evidence": "string | N/A",
+      "explanation": "string",
+      "source": "incident_description | Not specified"
+    },
+
+    {
+      "label": "Dispersion",
+      "name": "Dispersed | Not dispersed | Not specified",
+      "node_id": "C#",
+      "node_type": "Condition",
+      "evidence": "string | N/A",
+      "explanation": "string",
+      "source": "incident_description | Not specified"
+    }
+
+  ],
+
+  "event_nodes": [
+    {
+      "label": "InitiatingEvent",
+      "name": "string | Not specified",
+      "node_id": "Ev#",
+      "node_type": "Event",
+      "evidence": "string",
+      "explanation": "string",
+      "source": "incident_description | Not specified"
+    },
+
+    {
+      "label": "MechanicalFailure",
+      "name": "string | Unknown mechanical failure | Not specified",
+      "node_id": "Ev#",
+      "node_type": "Event",
+      "evidence": "string",
+      "explanation": "string",
+      "source": "incident_description | Not specified"
+    },
+
+    {
+      "label": "IgnitionSource",
+      "name": "string | Unknown ignition source | Not specified",
+      "node_id": "Ev#",
+      "node_type": "Event",
+      "evidence": "string | N/A",
+      "explanation": "string",
+      "source": "incident_description | Not specified"
+    }
+  ]
+}
+
+
+ACCIDENT_SCENARIO_SCHEMA_DEFINITION
+SCHEMA DEFINITION
+
+The output must strictly follow the provided JSON schema. Each field has a specific meaning and must be filled according to the rules below.
+
+General Rules
+
+Evidence
+
+The "evidence" field must contain a short quote copied directly from the source that supports the extracted value.
+
+If source = "incident_description":
+The evidence must be copied verbatim from the incident report text.
+
+Do not invent, paraphrase, or infer evidence.
+
+If no supporting evidence can be found, set:
+evidence = "N/A"
+source = "Not specified".
+
+Source
+
+The "source" field indicates where the information was obtained, the allowed source are listed in each nodes.
+
+Allowed values:
+
+incident_description  
+Information directly extracted from the incident report.
+
+
+Not specified  
+Used when the information cannot be determined from the incident report or reliable external knowledge sources.
+
+Node ID
+
+Each node must include a `node_id`, which serves as a unique identifier in the graph.
+
+The `node_id` must follow the prefix corresponding to the node type:
+
+- H#  → HazardConsequence nodes
+- En# → Entity nodes
+- C#  → Condition nodes
+- Ev# → Event nodes
+
+Where # is a sequential integer starting from 1 within each node category.
+
+Examples:
+H1, En1, C1, Ev1
+
+Rules:
+- Each node must have exactly one `node_id`.
+- All `node_id` values must be unique within the output.
+- The prefix must match the node's `node_type`.
+- Do not invent other ID formats.
+- The `node_id` is only an identifier and must not contain semantic meaning.
+
+--------------------------------------------------
+Material
+--------------------------------------------------
+
+Definition
+The hazardous substance involved in the accident scenario.
+
+This refers to the chemical or material present in the process that participates in the release, dispersion, ignition, or hazard consequence.
+
+
+--------------------------------------------------
+Location
+--------------------------------------------------
+
+Definition
+The physical place or equipment where the accident-related event occurs.
+
+This may include process units, storage tanks, pipelines, packaging areas, or other facility locations relevant to the accident.
+
+
+--------------------------------------------------
+Phase
+--------------------------------------------------
+
+Definition
+The physical phase of the material at the time of the accident.
+
+This condition describes whether the material exists as liquid, vapor, solid, or a two-phase mixture, which can influence release behavior and hazard consequences.
+
+
+--------------------------------------------------
+Temperature
+--------------------------------------------------
+
+Definition
+The temperature condition of the material or environment during the accident scenario.
+
+Temperature can affect vapor generation, chemical stability, and the likelihood of ignition or hazardous reactions.
+
+--------------------------------------------------
+Pressure
+--------------------------------------------------
+
+Definition
+The pressure condition of the material or process system during the accident scenario.
+
+Pressure influences the containment, release rate, and phase behavior of the material.
+Elevated pressure can increase the driving force for a release and accelerate discharge from equipment, while low or atmospheric pressure conditions may affect vapor formation and dispersion behavior.
+
+--------------------------------------------------
+Volatility
+--------------------------------------------------
+
+Definition
+The tendency of a substance to vaporize.
+
+High volatility substances can easily form flammable or toxic vapor clouds that may contribute to explosion or dispersion hazards.
+
+
+--------------------------------------------------
+Combustibility
+--------------------------------------------------
+
+Definition
+Whether the material is capable of burning in the presence of an ignition source.
+
+Combustible materials can participate in fires or explosions when mixed with air and exposed to ignition.
+
+
+--------------------------------------------------
+ToxicSubstance
+--------------------------------------------------
+
+Definition
+Whether the material has toxic properties that can cause harm to humans or the environment.
+
+Toxic substances may produce hazardous exposure through vapor dispersion or direct contact.
+
+
+--------------------------------------------------
+Asphyxiant
+--------------------------------------------------
+
+Definition
+Whether the substance can cause oxygen displacement or interfere with oxygen transport in the body.
+
+Asphyxiants may lead to suffocation or oxygen deficiency hazards in confined or poorly ventilated spaces.
+
+
+--------------------------------------------------
+Conductivity
+--------------------------------------------------
+
+Definition
+The electrical conductivity property of the material.
+
+Low conductivity liquids may accumulate static electricity during transfer operations, increasing the risk of static discharge ignition.
+
+
+--------------------------------------------------
+ReleaseType
+--------------------------------------------------
+
+Definition
+The manner in which hazardous material is released into the environment.
+
+This condition distinguishes between instantaneous releases and continuous releases, which influence dispersion behavior and accident escalation.
+
+
+--------------------------------------------------
+IgnitionSource
+--------------------------------------------------
+
+Definition
+The source of energy that can ignite a flammable mixture.
+
+Examples include static electricity sparks, open flames, hot surfaces, electrical equipment, or mechanical sparks.
+
+
+--------------------------------------------------
+Confinement
+--------------------------------------------------
+
+Definition
+The degree to which flammable or hazardous material is enclosed within a confined space.
+
+High confinement can increase explosion overpressure and significantly influence explosion severity.
+
+
+--------------------------------------------------
+Dispersion
+--------------------------------------------------
+
+Definition
+The spreading of released material into the surrounding environment.
+
+Dispersion determines how vapors, gases, or toxic substances distribute in air and whether hazardous concentrations can form.
+
+
+--------------------------------------------------
+MechanicalFailure
+--------------------------------------------------
+
+Definition
+A physical failure of equipment that contributes to the accident.
+
+This may include rupture, leakage, seal failure, structural failure, or malfunction of process equipment that leads to loss of containment.
+
+If a mechanical failure clearly occurred and contributed to the accident,
+but the exact failed component or exact failure mode cannot be determined
+from the incident description, use "Unknown mechanical failure" as the name.
+
+Use "Not specified" only when the incident description does not provide enough
+support to identify whether a mechanical failure should be represented at all.
+
+--------------------------------------------------
+InitiatingEvent
+--------------------------------------------------
+
+Definition
+The first abnormal operational or physical event
+that directly initiates the accident sequence
+within the process system.
+
+The initiating event may summarize closely related
+operational actions and conditions that immediately
+lead to the hazardous sequence.
+
+--------------------------------------------------
+IgnitionSource Special Rule
+--------------------------------------------------
+
+If ignition clearly occurred in the incident, but the exact ignition source
+cannot be determined from the incident description, use
+"Unknown ignition source" as the name.
+
+Use "Not specified" only when the incident description does not provide enough
+support to identify whether an ignition source should be represented at all.
+
+
+IDENTIFY_ACCIDENT_SCENARIO_OUTPUT
+{
+  "hazard_consequence_node": [
+    {
+      "label": "HazardConsequence",
+      "name": "Confined explosion",
+      "node_id": "H1",
+      "node_type": "HazardConsequence",
+      "evidence": "The report states that \"the initial explosion occurred inside a vertical above-ground storage tank that was being filled with VM&P naphtha\" and that the tank head space likely contained an ignitable vapor-air mixture that was ignited by a likely static spark during filling.",
+      "explanation": "The incident analysis is centered on an internal tank explosion during filling. The report mainly examines how an ignitable vapor-air mixture formed in the tank headspace and how static accumulation and a likely spark from the gauging float linkage ignited it. The later fireball, tank ruptures, and tank farm fire were escalation effects following the primary internal explosion.",
+      "source": "incident_description"
+    }
+  ],
+  "entity_nodes": [
+    {
+      "label": "Material",
+      "name": "VM&P naphtha",
+      "node_id": "En1",
+      "node_type": "Entity",
+      "evidence": "being filled with VM&P naphtha",
+      "explanation": "VM&P naphtha was the flammable liquid being transferred into the tank and generated the ignitable headspace vapor-air mixture involved in the explosion.",
+      "source": "incident_description"
+    },
+    {
+      "label": "Location",
+      "name": "15,000 gallon above-ground storage tank",
+      "node_id": "En2",
+      "node_type": "Entity",
+      "evidence": "into a 15,000 gallon above-ground storage tank",
+      "explanation": "The initial explosion occurred in the storage tank that was receiving the final compartment of the tanker-trailer.",
+      "source": "incident_description"
+    }
+  ],
+  "condition_nodes": [
+    {
+      "label": "Phase",
+      "name": "Vapor",
+      "node_id": "C1",
+      "node_type": "Condition",
+      "evidence": "The tank contained an ignitable vapor-air mixture in its head space.",
+      "explanation": "The confined explosion involved the vapor phase in the tank headspace.",
+      "source": "incident_description"
+    },
+    {
+      "label": "Pressure",
+      "name": "Not specified",
+      "node_id": "C2",
+      "node_type": "Condition",
+      "evidence": "N/A",
+      "explanation": "The report does not explicitly state the operating pressure of the storage tank.",
+      "source": "Not specified"
+    },
+    {
+      "label": "Temperature",
+      "name": "Atmospheric temperature",
+      "node_id": "C3",
+      "node_type": "Condition",
+      "evidence": "at approximately 77˚F (25˚C) (the handling temperature of the VM&P naphtha at the time of the incident)",
+      "explanation": "The material was handled at ambient conditions when the ignitable vapor-air mixture was present.",
+      "source": "incident_description"
+    },
+    {
+      "label": "Volatility",
+      "name": "High volatility",
+      "node_id": "C4",
+      "node_type": "Condition",
+      "evidence": "can produce ignitable vapor-air mixtures inside tanks",
+      "explanation": "The material readily generated ignitable vapors in the tank at the incident temperature.",
+      "source": "incident_description"
+    },
+    {
+      "label": "Combustibility",
+      "name": "Combustible",
+      "node_id": "C5",
+      "node_type": "Condition",
+      "evidence": "VM&P naphtha is a National Fire Protection Association (NFPA) Class IB flammable liquid",
+      "explanation": "The substance was a flammable liquid capable of burning and exploding when mixed with air and ignited.",
+      "source": "incident_description"
+    },
+    {
+      "label": "ToxicSubstance",
+      "name": "Not specified",
+      "node_id": "C6",
+      "node_type": "Condition",
+      "evidence": "N/A",
+      "explanation": "The report focuses on flammability and static ignition hazards, not toxic effects.",
+      "source": "Not specified"
+    },
+    {
+      "label": "Asphyxiant",
+      "name": "Not specified",
+      "node_id": "C7",
+      "node_type": "Condition",
+      "evidence": "N/A",
+      "explanation": "The report does not identify an asphyxiation hazard for the material.",
+      "source": "Not specified"
+    },
+    {
+      "label": "Conductivity",
+      "name": "Low conductivity",
+      "node_id": "C8",
+      "node_type": "Condition",
+      "evidence": "because of its low electrical conductivity, can accumulate dangerous levels of static electricity.",
+      "explanation": "Low conductivity allowed static charge to accumulate during transfer operations.",
+      "source": "incident_description"
+    },
+    {
+      "label": "ReleaseType",
+      "name": "Not specified",
+      "node_id": "C9",
+      "node_type": "Condition",
+      "evidence": "N/A",
+      "explanation": "The selected scenario is an internal tank explosion; the report does not define a distinct pre-ignition external release type for the primary event.",
+      "source": "Not specified"
+    },
+    {
+      "label": "Confinement",
+      "name": "High confinement",
+      "node_id": "C10",
+      "node_type": "Condition",
+      "evidence": "the initial explosion occurred inside a vertical above-ground storage tank",
+      "explanation": "The flammable vapor-air mixture was enclosed within the storage tank, creating a highly confined explosion environment.",
+      "source": "incident_description"
+    },
+    {
+      "label": "Dispersion",
+      "name": "Not dispersed",
+      "node_id": "C11",
+      "node_type": "Condition",
+      "evidence": "inside the tank at the time of the explosion",
+      "explanation": "The ignitable mixture remained within the tank headspace rather than dispersing externally before ignition.",
+      "source": "incident_description"
+    }
+  ],
+  "event_nodes": [
+    {
+      "label": "InitiatingEvent",
+      "name": "Rapid static charge accumulation during stop-start filling",
+      "node_id": "Ev1",
+      "node_type": "Event",
+      "evidence": "Stop-start filling, air in the transfer piping, and sediment and water (likely present in the tank) caused a rapid static charge accumulation inside the VM&P naphtha tank.",
+      "explanation": "This was the earliest abnormal process condition identified as initiating the sequence that led to ignition of the headspace vapor-air mixture.",
+      "source": "incident_description"
+    },
+    {
+      "label": "MechanicalFailure",
+      "name": "Loose linkage in tank liquid level gauging float separated",
+      "node_id": "Ev2",
+      "node_type": "Event",
+      "evidence": "The design of the tank liquid level gauging system float used by Barton incorporates a loose linkage at the float/tape junction that can separate slightly",
+      "explanation": "The gauging float linkage design created a mechanical malfunction potential that likely separated during filling and enabled spark generation.",
+      "source": "incident_description"
+    },
+    {
+      "label": "IgnitionSource",
+      "name": "Spark from separated gauging float linkage",
+      "node_id": "Ev3",
+      "node_type": "Event",
+      "evidence": "The tank had a liquid level gauging system float with a loose linkage that likely separated and created a spark during filling.",
+      "explanation": "The likely ignition source was a spark generated by the gauging float linkage during filling, which ignited the headspace vapor-air mixture.",
+      "source": "incident_description"
+    }
+  ]
+}
+
+CAUSAL_EDGE_LINKING_OUTPUT
+{
+  "edges": [
+    {
+      "source": "En1",
+      "target": "C3",
+      "relation": "has"
+    },
+    {
+      "source": "En1",
+      "target": "C4",
+      "relation": "has"
+    },
+    {
+      "source": "En1",
+      "target": "C5",
+      "relation": "has"
+    },
+    {
+      "source": "En1",
+      "target": "C8",
+      "relation": "has"
+    },
+    {
+      "source": "En2",
+      "target": "C10",
+      "relation": "enables"
+    },
+    {
+      "source": "C3",
+      "target": "C1",
+      "relation": "enables"
+    },
+    {
+      "source": "C4",
+      "target": "C1",
+      "relation": "enables"
+    },
+    {
+      "source": "C8",
+      "target": "Ev1",
+      "relation": "enables"
+    },
+    {
+      "source": "Ev1",
+      "target": "Ev3",
+      "relation": "enables"
+    },
+    {
+      "source": "Ev2",
+      "target": "Ev3",
+      "relation": "enables"
+    },
+    {
+      "source": "C1",
+      "target": "H1",
+      "relation": "enables"
+    },
+    {
+      "source": "C5",
+      "target": "H1",
+      "relation": "enables"
+    },
+    {
+      "source": "C10",
+      "target": "H1",
+      "relation": "enables"
+    },
+    {
+      "source": "Ev3",
+      "target": "H1",
+      "relation": "enables"
+    }
+  ]
+}
+
+CAUSAL_GRAPH_JSON
+{
+  "hazard_consequence_node": [
+    {
+      "label": "HazardConsequence",
+      "name": "Confined explosion",
+      "node_id": "H1",
+      "node_type": "HazardConsequence",
+      "evidence": "The report states that \"the initial explosion occurred inside a vertical above-ground storage tank that was being filled with VM&P naphtha\" and that the tank head space likely contained an ignitable vapor-air mixture that was ignited by a likely static spark during filling.",
+      "explanation": "The incident analysis is centered on an internal tank explosion during filling. The report mainly examines how an ignitable vapor-air mixture formed in the tank headspace and how static accumulation and a likely spark from the gauging float linkage ignited it. The later fireball, tank ruptures, and tank farm fire were escalation effects following the primary internal explosion.",
+      "source": "incident_description"
+    }
+  ],
+  "entity_nodes": [
+    {
+      "label": "Material",
+      "name": "VM&P naphtha",
+      "node_id": "En1",
+      "node_type": "Entity",
+      "evidence": "being filled with VM&P naphtha",
+      "explanation": "VM&P naphtha was the flammable liquid being transferred into the tank and generated the ignitable headspace vapor-air mixture involved in the explosion.",
+      "source": "incident_description"
+    },
+    {
+      "label": "Location",
+      "name": "15,000 gallon above-ground storage tank",
+      "node_id": "En2",
+      "node_type": "Entity",
+      "evidence": "into a 15,000 gallon above-ground storage tank",
+      "explanation": "The initial explosion occurred in the storage tank that was receiving the final compartment of the tanker-trailer.",
+      "source": "incident_description"
+    }
+  ],
+  "condition_nodes": [
+    {
+      "label": "Phase",
+      "name": "Vapor",
+      "node_id": "C1",
+      "node_type": "Condition",
+      "evidence": "The tank contained an ignitable vapor-air mixture in its head space.",
+      "explanation": "The confined explosion involved the vapor phase in the tank headspace.",
+      "source": "incident_description"
+    },
+    {
+      "label": "Temperature",
+      "name": "Atmospheric temperature",
+      "node_id": "C3",
+      "node_type": "Condition",
+      "evidence": "at approximately 77˚F (25˚C) (the handling temperature of the VM&P naphtha at the time of the incident)",
+      "explanation": "The material was handled at ambient conditions when the ignitable vapor-air mixture was present.",
+      "source": "incident_description"
+    },
+    {
+      "label": "Volatility",
+      "name": "High volatility",
+      "node_id": "C4",
+      "node_type": "Condition",
+      "evidence": "can produce ignitable vapor-air mixtures inside tanks",
+      "explanation": "The material readily generated ignitable vapors in the tank at the incident temperature.",
+      "source": "incident_description"
+    },
+    {
+      "label": "Combustibility",
+      "name": "Combustible",
+      "node_id": "C5",
+      "node_type": "Condition",
+      "evidence": "VM&P naphtha is a National Fire Protection Association (NFPA) Class IB flammable liquid",
+      "explanation": "The substance was a flammable liquid capable of burning and exploding when mixed with air and ignited.",
+      "source": "incident_description"
+    },
+    {
+      "label": "Conductivity",
+      "name": "Low conductivity",
+      "node_id": "C8",
+      "node_type": "Condition",
+      "evidence": "because of its low electrical conductivity, can accumulate dangerous levels of static electricity.",
+      "explanation": "Low conductivity allowed static charge to accumulate during transfer operations.",
+      "source": "incident_description"
+    },
+    {
+      "label": "Confinement",
+      "name": "High confinement",
+      "node_id": "C10",
+      "node_type": "Condition",
+      "evidence": "the initial explosion occurred inside a vertical above-ground storage tank",
+      "explanation": "The flammable vapor-air mixture was enclosed within the storage tank, creating a highly confined explosion environment.",
+      "source": "incident_description"
+    }
+  ],
+  "event_nodes": [
+    {
+      "label": "InitiatingEvent",
+      "name": "Rapid static charge accumulation during stop-start filling",
+      "node_id": "Ev1",
+      "node_type": "Event",
+      "evidence": "Stop-start filling, air in the transfer piping, and sediment and water (likely present in the tank) caused a rapid static charge accumulation inside the VM&P naphtha tank.",
+      "explanation": "This was the earliest abnormal process condition identified as initiating the sequence that led to ignition of the headspace vapor-air mixture.",
+      "source": "incident_description"
+    },
+    {
+      "label": "MechanicalFailure",
+      "name": "Loose linkage in tank liquid level gauging float separated",
+      "node_id": "Ev2",
+      "node_type": "Event",
+      "evidence": "The design of the tank liquid level gauging system float used by Barton incorporates a loose linkage at the float/tape junction that can separate slightly",
+      "explanation": "The gauging float linkage design created a mechanical malfunction potential that likely separated during filling and enabled spark generation.",
+      "source": "incident_description"
+    },
+    {
+      "label": "IgnitionSource",
+      "name": "Spark from separated gauging float linkage",
+      "node_id": "Ev3",
+      "node_type": "Event",
+      "evidence": "The tank had a liquid level gauging system float with a loose linkage that likely separated and created a spark during filling.",
+      "explanation": "The likely ignition source was a spark generated by the gauging float linkage during filling, which ignited the headspace vapor-air mixture.",
+      "source": "incident_description"
+    }
+  ],
+  "edges": [
+    {
+      "source": "En1",
+      "target": "C3",
+      "relation": "has"
+    },
+    {
+      "source": "En1",
+      "target": "C4",
+      "relation": "has"
+    },
+    {
+      "source": "En1",
+      "target": "C5",
+      "relation": "has"
+    },
+    {
+      "source": "En1",
+      "target": "C8",
+      "relation": "has"
+    },
+    {
+      "source": "En2",
+      "target": "C10",
+      "relation": "enables"
+    },
+    {
+      "source": "C3",
+      "target": "C1",
+      "relation": "enables"
+    },
+    {
+      "source": "C4",
+      "target": "C1",
+      "relation": "enables"
+    },
+    {
+      "source": "C8",
+      "target": "Ev1",
+      "relation": "enables"
+    },
+    {
+      "source": "Ev1",
+      "target": "Ev3",
+      "relation": "enables"
+    },
+    {
+      "source": "Ev2",
+      "target": "Ev3",
+      "relation": "enables"
+    },
+    {
+      "source": "C1",
+      "target": "H1",
+      "relation": "enables"
+    },
+    {
+      "source": "C5",
+      "target": "H1",
+      "relation": "enables"
+    },
+    {
+      "source": "C10",
+      "target": "H1",
+      "relation": "enables"
+    },
+    {
+      "source": "Ev3",
+      "target": "H1",
+      "relation": "enables"
+    }
+  ]
+}
+
+TASK
+
+Your task is to review the existing CAUSAL_GRAPH_JSON against the INCIDENT_DESCRIPTION, ACCIDENT_SCENARIO_SCHEMA, ACCIDENT_SCENARIO_SCHEMA_DEFINITION, IDENTIFY_ACCIDENT_SCENARIO_OUTPUT, and CAUSAL_EDGE_LINKING_OUTPUT.
+
+You must identify structural problems, semantic problems, missing key causal steps, duplicated nodes or events, and incorrect or weak edges.
+
+You must return structured revision suggestions in JSON only.
+
+REVIEW OBJECTIVES
+
+1. Check whether the nodes in CAUSAL_GRAPH_JSON are consistent with the incident description and accident scenario extraction.
+
+2. Check whether the graph follows a reasonable process safety accident logic.
+
+3. Check whether the edge directions and relations are appropriate.
+
+4. Check whether there are duplicated nodes that represent the same accident step or meaning.
+
+5. Check whether important causal steps are missing.
+
+6. Check whether some nodes or edges should be removed because they are unsupported, redundant, overly transitive, or semantically weak.
+
+7. Prefer the smallest necessary set of changes that materially improves the causal graph.
+
+REVIEW RULES
+
+1. Use the INCIDENT_DESCRIPTION as the primary factual basis.
+
+2. Use IDENTIFY_ACCIDENT_SCENARIO_OUTPUT as the primary reference for what nodes were extracted and how they were described.
+
+3. Use CAUSAL_EDGE_LINKING_OUTPUT as the primary reference for how the current edge suggestions were produced.
+
+4. Use ACCIDENT_SCENARIO_SCHEMA and ACCIDENT_SCENARIO_SCHEMA_DEFINITION to judge whether labels, node types, and meanings are appropriate.
+
+5. Do not invent unsupported accident mechanisms, conditions, or events.
+
+6. Do not recommend changes only for stylistic preference.
+
+7. If the graph is already acceptable, say so and keep the suggested changes minimal.
+
+8. Prefer renaming or updating an existing node over deleting and re-adding it, unless the current node is fundamentally incorrect.
+
+9. Prefer deleting redundant duplicate nodes when two nodes represent the same accident step.
+
+10. Avoid recommending transitive edges.
+If there is already a more direct causal chain A -> B -> C, do not recommend an additional edge A -> C unless the incident description explicitly supports a separate direct causal relationship.
+
+11. A location node should usually not directly cause a hazard consequence unless the incident description explicitly supports that role.
+
+12. Hazard consequence nodes should normally be the downstream end of the causal chain.
+
+13. Material nodes should usually connect to material properties using relation "has".
+
+14. Conditions and events should generally connect with relation "enables" when they make a downstream step possible or more likely.
+
+15. If an important event clearly occurred but is missing from the graph, recommend adding it only when there is direct support in the incident description.
+
+16. If a node in the graph is unsupported by the incident description or is too weak to justify graph inclusion, recommend removing it.
+
+17. If the graph contains a duplicated event pattern such as an InitiatingEvent and a MechanicalFailure that describe essentially the same physical occurrence, recommend a merge, deletion, or role clarification.
+
+18. If a node or edge is weak but still acceptable, classify the issue severity as low instead of recommending unnecessary deletion.
+
+SEVERITY GUIDANCE
+
+- high:
+  The issue materially breaks or distorts the main accident causal chain.
+
+- medium:
+  The issue weakens the graph logic or misses an important step, but the overall chain is still understandable.
+
+- low:
+  The issue is minor, stylistic, weakly redundant, or only slightly misleading.
+
+OUTPUT REQUIREMENTS
+
+Return one JSON object with the following structure:
+
+{
+  "case_assessment": {
+    "overall_quality": "good | acceptable | weak",
+    "summary": "string",
+    "main_problems": [
+      "string"
+    ]
+  },
+  "node_updates": [
+    {
+      "target_id": "node_id",
+      "change_type": "rename | relabel | retype | clarify_role | update_evidence | update_explanation",
+      "current_state": "string",
+      "suggested_state": "string",
+      "reason": "string",
+      "evidence": "string",
+      "severity": "high | medium | low",
+      "confidence": "high | medium | low"
+    }
+  ],
+  "node_additions": [
+    {
+      "suggested_label": "string",
+      "suggested_name": "string",
+      "suggested_node_type": "Entity | Condition | Event | HazardConsequence",
+      "suggested_upstream_links": [
+        {
+          "source": "node_id",
+          "relation": "has | enables"
+        }
+      ],
+      "suggested_downstream_links": [
+        {
+          "target": "node_id",
+          "relation": "has | enables"
+        }
+      ],
+      "reason": "string",
+      "evidence": "string",
+      "severity": "high | medium | low",
+      "confidence": "high | medium | low"
+    }
+  ],
+  "node_deletions": [
+    {
+      "target_id": "node_id",
+      "reason": "string",
+      "evidence": "string",
+      "severity": "high | medium | low",
+      "confidence": "high | medium | low"
+    }
+  ],
+  "edge_additions": [
+    {
+      "source": "node_id",
+      "target": "node_id",
+      "relation": "has | enables",
+      "reason": "string",
+      "evidence": "string",
+      "severity": "high | medium | low",
+      "confidence": "high | medium | low"
+    }
+  ],
+  "edge_deletions": [
+    {
+      "source": "node_id",
+      "target": "node_id",
+      "relation": "has | enables",
+      "reason": "string",
+      "evidence": "string",
+      "severity": "high | medium | low",
+      "confidence": "high | medium | low"
+    }
+  ],
+  "edge_updates": [
+    {
+      "source": "node_id",
+      "target": "node_id",
+      "current_relation": "has | enables",
+      "suggested_relation": "has | enables",
+      "reason": "string",
+      "evidence": "string",
+      "severity": "high | medium | low",
+      "confidence": "high | medium | low"
+    }
+  ],
+  "issues_summary": [
+    {
+      "issue_type": "missing_step | duplicate_node | weak_edge | wrong_direction | wrong_relation | unsupported_node | unsupported_edge | schema_mismatch | other",
+      "description": "string",
+      "severity": "high | medium | low"
+    }
+  ]
+}
+
+OUTPUT FORMAT
+
+Return JSON only.
+Do not include explanations or additional text outside the JSON object.

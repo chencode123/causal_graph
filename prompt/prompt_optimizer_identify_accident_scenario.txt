@@ -1,0 +1,28 @@
+You are optimizing a prompt for the `identify_accident_scenario` step in an accident-causal-graph extraction workflow.
+
+Your goal is to improve the current step prompt so that future outputs are closer to the verified gold nodes from `updated_causal_graph.json`.
+
+You will be given:
+- the current step prompt
+- the exact current step input
+- the current step output
+- the gold node target derived from the verified graph
+- a diff summary describing the mismatch
+
+Instructions:
+1. Diagnose the main failure modes briefly and concretely.
+2. Propose the smallest useful set of new rules or clarifications to add to the current prompt.
+3. Do not rewrite the full prompt.
+4. Do not change the required output schema.
+5. Focus on causal-layering mistakes, node granularity, event selection, and misuse of consequence-level manifestations as causes.
+6. The `revised_prompt_suffix` must be directly appendable to the current prompt as additional instructions.
+7. Keep the patch compact and high-signal.
+8. Do not write case-specific rules tied to this incident's exact material names, location names, or unique wording.
+9. Prefer reusable, general causal-logic rules that could improve multiple similar cases.
+10. If a possible patch is only valid for this one case, do not include it in `revised_prompt_suffix`.
+11. Avoid overfitting to the current case. Favor generalization over narrow correction.
+
+Return:
+- `failure_modes`
+- `patch_rules`
+- `revised_prompt_suffix`

@@ -1,0 +1,952 @@
+You are a process safety analyst specializing in accident investigation, hazard scenario reconstruction, and causal graph review.
+
+INPUT DATA
+
+INCIDENT_DESCRIPTION
+{
+  "document_classification": {
+    "is_summary_style": false,
+    "is_full_incident_report": true,
+    "contains_multiple_independent_incidents": false,
+    "requires_incident_split": false,
+    "recommended_output_mode": "single_incident",
+    "classification_reason": "The document is a CSB case study centered on one primary incident at the EQ hazardous waste facility in Apex, North Carolina on October 5, 2006. It contains a dedicated incident description, chronology of response and evacuation, background, analysis, regulatory analysis, conclusions, and recommendations. Although other incidents are mentioned in analysis for comparison, they are not independently developed as separate incident narratives within this document."
+  },
+  "incidents": [
+    {
+      "incident_id": "incident_1",
+      "is_independent_incident": true,
+      "time_reference": "October 5, 2006",
+      "incident_summary_section": {
+        "section_title": "Introduction",
+        "text": "Introduction \nThis case study examines a fire \nat a hazardous waste facility \nlocated in Apex, North Carolina. \nCity officials ordered thousands \nof local residents to evacuate for \ntwo days. About 30 people \nsought medical attention. The \nCSB makes recommendations to \nthe US Environmental Protection \nAgency and Environmental \nTechnology Council to address \nemergency planning and fire \nprotection requirements for \nhazardous waste facilities."
+      },
+      "incident_description_section": {
+        "section_title": "1.0 Incident Description",
+        "text": "1.0 Incident Description \nThis case study examines a fire at the \nEnvironmental Quality Company (EQ) \nhazardous waste facility in Apex, North \nCarolina, and the subsequent community \nevacuation. \nAt 9:38 pm on October 5, 2006, a citizen \ndriving past the EQ facility called 911 to \nreport a haze with a “strong chlorine smell.” \nThe Apex 911 center dispatched emergency \npersonnel to investigate. \nResponding Apex Fire Department \npersonnel discovered a chemical cloud \ncoming from one of several businesses on \nInvestment Boulevard. The Apex Fire \nChief, acting as the Incident Commander \n(IC), sent two firefighter reconnaissance \nteams in personal protective equipment to \ninvestigate the source of the cloud. \nFirefighters located a small “sofa-size” fire \nin one of the hazardous waste bays at the EQ \nfacility. Within minutes, the fire spread to \nthe flammable liquid storage area, causing \n55-gallon drums of flammable hazardous \nwaste to explode and sending fireballs \nhundreds of feet into the air. The hazardous \nwaste building ultimately collapsed (cover \nphotograph). \nDuring the incident, about 30 people \n(including 13 first responders) sought \nmedical attention at local hospitals for \nrespiratory distress and nausea. Some were \ntreated; none was admitted. \n1.1 Emergency Response \nBecause of the unknown nature of the \nburning chemicals and the exploding drums, \nthe IC chose to take only defensive actions \nto \n• minimize the risk to emergency \npersonnel and community residents, and \n• allow the fire to burn and consume the \nchemicals within the facility. \nThe defensive actions included \n• ordering a precautionary evacuation of \nthousands of residents in the surrounding \ncommunity,1\n \n• controlling access on roads leading into \nthe evacuation area, \n• stopping rail traffic through the \ncommunity, and \n• closing the air space over the facility. \nEQ contracted an industrial firefighting and \nenvironmental cleanup company with \nspecialized equipment to extinguish the fire \nand clean up the site. The contractor \n• built sand berms to minimize water \nrunoff that could possibly contaminate \nan adjacent stream, \n• removed the roof and structural steel to \naccess the burning waste, \n• extinguished the fire with foam, and \n• removed all debris and hazardous waste \nfrom the site. \n1.2 Community Evacuation \nThe evacuation area included about 3,300 \nresidences, the town hall, a fire station, and \nthe town 911 center.2\n Officials established \nan Emergency Operations Center (EOC) \noutside of the evacuation area to provide a \nsafe gathering place for emergency \nresponders, state and federal officials, and \nmedia representatives. \nEvacuees from the community sheltered at \ndesignated elementary schools, in hotels, or \nwith relatives outside the evacuation area. \nThe Red Cross, other community \norganizations, and businesses assisted \nresidents by providing bedding, food, and \ncommunication services. \nThe IC continued the evacuation order for \ntwo days because of potential re-ignition and \npersistent smoke from the smoldering \nrubble. \n1.3 Environmental Impact \nThe North Carolina Department of \nEnvironmental and Natural Resources \n(NCDENR) Divisions of Air Quality, Water \nQuality, Environmental Heath, and Waste \nManagement and the US Environmental \nProtection Agency (EPA) responded to the \nincident. In the early morning of October 6, \n2006, (about five hours after the fire was \nfirst reported) the NCDENR and the EPA \nbegan air monitoring within the evacuation \narea. In addition to ground level \nmonitoring, the EPA conducted 10 fly-overs \nwith its Airborne Spectral Photographic \nEnvironmental Collection Technology \n(ASPECT) aircraft. \nEQ also contracted with a company \nspecializing in environmental monitoring, \ntesting and assessment to conduct ground \nlevel atmospheric monitoring beginning \nOctober 6, 2006. \nIn the weeks following the incident, the \nNCDENR looked for residual contamination \nby conducting soil, indoor environmental, \nand exterior swipe sampling for a range \norganic and inorganic materials.3\n On \nNovember 17, 2006, the NCDENR reported \nthat “environmental tests show no offsite \ncontamination from EQ fire.”"
+      },
+      "other_related_sections": [
+        {
+          "section_title": "3.2 Fire Detection",
+          "text": "3.2 Fire Detection \nEven though the facility stored hundreds of \n55-gallon drums of flammable and \ncombustible materials, the EQNC hazardous \nwaste building was not required to be \nequipped with fire or smoke detection \nsensors nor monitored after hours (nights or \nweekends). \nContinuous monitoring by personnel or with \nremotely monitored sensors can alert \ncompany personnel and first responders at \nthe inception of a fire. This may provide \nfirst responders additional time to initiate \nemergency actions before the situation \ngrows out of control."
+        },
+        {
+          "section_title": "3.3 Fire Control Equipment",
+          "text": "3.3 Fire Control Equipment \nPortable fire extinguishers were the only fire \ncontrol equipment in the EQNC hazardous \nwaste building. The facility included \nsegregated areas (storage bays) for different \nwaste types separated by six-inch-high \ncurbs. The curbs could contain spills within \nthe bays, but would not prevent a fire from \nspreading from one bay to another. \nThe initial “sofa-size” fire observed by \nfirefighters was in the oxidizer bay where a \nfiberboard container of unspent aircraft \noxygen generators10 and containers of solid \nchlorine-based pool chemicals were \nawaiting final shipment.11 Figure 2 shows \nan oxygen generator found in the debris with \nits activation pin in place, indicating that it \nwas unspent when the fire started. Because \noxygen generators were located at or near \nthe origin of the fire and, when exposed to \nfire, produce oxygen that significantly \nincreases the intensity of a fire, the CSB \nconcluded that the unspent oxygen \ngenerators most likely contributed to the \nrapid spread of the fire to the adjacent bay \nwhere flammable hazardous wastes were \nstored. \nWhile not required, had EQNC used fire \nbarriers (walls) to separate the segregated \nwaste bays, the fire would likely have been \ncontained within the oxidizer bay, \nsignificantly mitigating the incident’s \nconsequences. \nThe National Fire Protection Association \n(NFPA) publishes fire protection standards \nfor many industrial facility types12 (e.g. \nNFPA 820, “Standard for Fire Protection in \nWastewater Treatment and Collection \nFacilities”). These standards address fire \nprotection requirements specific to the \nfacility type. However, no standard \nspecifically addresses fire protection for \nhazardous waste treatment, storage, and \ndisposal facilities. \nA review by CSB of fire protection practices \nin use at 12 other hazardous waste \nfacilities13 showed wide variation. Some \nfacilities use active fire suppression systems \nto control or extinguish fires, some use fire \nbarriers, and others, like EQNC, rely only on \nportable fire extinguishers."
+        },
+        {
+          "section_title": "3.4 Emergency Planning",
+          "text": "3.4 Emergency Planning \nApex fire personnel identified the EQNC \nfacility as the source of the chemical cloud \nand fire; however, EQNC had not provided \nany detailed written information on the \ntypes, quantities, and location of hazardous \nmaterials in the facility to fire personnel or \nthe Local Emergency Planning Committee \n(LEPC). Additionally, since the EQNC \nfacility was unoccupied at the time of the \nincident, no emergency coordinator was on-\nsite to initiate the facility contingency plan14 \nor assess the extent of the release or \nemergency. \nOther companies in the Town of Apex \nprovided information to the fire department \non the types, quantities, and location of \nhazardous materials the companies handled. \nThe fire department used this information \nfor emergency planning and conducted joint \nemergency drills with several of these \ncompanies. \nWhen companies provide written \ninformation on the approximate quantity, \nhazards, and location of materials within \ntheir facilities to fire departments, police \ndepartments, hospitals, and LEPCs, \nresponders can preplan for emergencies."
+        }
+      ],
+      "extraction_notes": "Single primary incident extracted. The Introduction was used as the incident summary section. The full 1.0 Incident Description section was extracted through the next top-level header (2.0 Background), including subsections 1.1 through 1.3 because they describe consequence development, emergency response, evacuation, and environmental impact. Additional hazard-evolution and consequence-related analysis sections 3.2, 3.3, and 3.4 were included. Comparative incident references in section 3.1 were not treated as separate incidents because they are brief contextual examples rather than full incident narratives in this document."
+    }
+  ]
+}
+
+ACCIDENT_SCENARIO_SCHEMA
+{
+  "hazard_consequence_node":[
+    {
+      "label": "HazardConsequence",
+      "name": "VCE | BLEVE | Dust explosion | Confined explosion | Pool fire | Jet fire | Fire ball | Flash fire | Toxicity dispersion | Asphyxiation",
+      "node_id": "H#",
+      "node_type": "HazardConsequence",
+      "evidence": "string",
+      "explanation": "string",
+      "source": "incident_description | Not specified"
+    }
+  ],
+
+  "entity_nodes": [
+
+    {
+      "label": "Material",
+      "name": "string | Not specified",
+      "node_id": "En#",
+      "node_type": "Entity",
+      "evidence": "string",
+      "explanation": "string",
+      "source": "incident_description | Not specified"
+    },
+
+    {
+      "label": "Location",
+      "name": "string | Not specified",
+      "node_id": "En#",
+      "node_type": "Entity",
+      "evidence": "string | N/A",
+      "explanation": "string",
+      "source": "incident_description | Not specified"
+    }
+  ],
+
+  "condition_nodes": [
+
+    {
+      "label": "Phase",
+      "name": "Liquid | Vapor | Solid | TwoPhase | Not specified",
+      "node_id": "C#",
+      "node_type": "Condition",
+      "evidence": "string | N/A",
+      "explanation": "string",
+      "source": "incident_description | Not specified"
+    },
+
+    {
+      "label": "Pressure",
+      "name": "High pressure | Low pressure | Not specified",
+      "node_id": "C#",
+      "node_type": "Condition",
+      "evidence": "string | N/A",
+      "explanation": "string",
+      "source": "incident_description | Not specified"
+    },
+
+    {
+      "label": "Temperature",
+      "name": "Low temperature| Atmospheric temperature| High temperature| Not specified",
+      "node_id": "C#",
+      "node_type": "Condition",
+      "evidence": "string | N/A",
+      "explanation": "string",
+      "source": "incident_description | Not specified"
+    },
+    
+    {
+      "label": "Volatility",
+      "name": "Low volatility| High volatility| Not specified",
+      "node_id": "C#",
+      "node_type": "Condition",
+      "evidence": "string | N/A",
+      "explanation": "string",
+      "source": "incident_description | Not specified"
+    },
+
+    {
+      "label": "Combustibility",
+      "name": "Combustible | Non-combustible | Not specified",
+      "node_id": "C#",
+      "node_type": "Condition",
+      "evidence": "string | N/A",
+      "explanation": "string",
+      "source": "incident_description | Not specified"
+    },
+
+    {
+      "label": "ToxicSubstance",
+      "name": "Toxic | Non-toxic | Not specified",
+      "node_id": "C#",
+      "node_type": "Condition",
+      "evidence": "string | N/A",
+      "explanation": "string",
+      "source": "incident_description | Not specified"
+    },
+
+    {
+      "label": "Asphyxiant",
+      "name": "Asphyxiant | Non-asphyxiant | Not specified",
+      "node_id": "C#",
+      "node_type": "Condition",
+      "evidence": "string | N/A",
+      "explanation": "string",
+      "source": "incident_description | Not specified"
+    },
+
+    {
+      "label": "Conductivity",
+      "name": "Low conductivity| High conductivity| Not specified",
+      "node_id": "C#",
+      "node_type": "Condition",
+      "evidence": "string | N/A",
+      "explanation": "string",
+      "source": "incident_description | Not specified"
+    },
+
+    {
+      "label": "ReleaseType",
+      "name": "Continuous release | Instant release | Not specified",
+      "node_id": "C#",
+      "node_type": "Condition",
+      "evidence": "string | N/A",
+      "explanation": "string",
+      "source": "incident_description | Not specified"
+    },
+
+    {
+      "label": "Confinement",
+      "name": "High confinement | Low confinement | Not specified",
+      "node_id": "C#",
+      "node_type": "Condition",
+      "evidence": "string | N/A",
+      "explanation": "string",
+      "source": "incident_description | Not specified"
+    },
+
+    {
+      "label": "Dispersion",
+      "name": "Dispersed | Not dispersed | Not specified",
+      "node_id": "C#",
+      "node_type": "Condition",
+      "evidence": "string | N/A",
+      "explanation": "string",
+      "source": "incident_description | Not specified"
+    }
+
+  ],
+
+  "event_nodes": [
+    {
+      "label": "InitiatingEvent",
+      "name": "string | Not specified",
+      "node_id": "Ev#",
+      "node_type": "Event",
+      "evidence": "string",
+      "explanation": "string",
+      "source": "incident_description | Not specified"
+    },
+
+    {
+      "label": "MechanicalFailure",
+      "name": "string | Unknown mechanical failure | Not specified",
+      "node_id": "Ev#",
+      "node_type": "Event",
+      "evidence": "string",
+      "explanation": "string",
+      "source": "incident_description | Not specified"
+    },
+
+    {
+      "label": "IgnitionSource",
+      "name": "string | Unknown ignition source | Not specified",
+      "node_id": "Ev#",
+      "node_type": "Event",
+      "evidence": "string | N/A",
+      "explanation": "string",
+      "source": "incident_description | Not specified"
+    }
+  ]
+}
+
+
+ACCIDENT_SCENARIO_SCHEMA_DEFINITION
+SCHEMA DEFINITION
+
+The output must strictly follow the provided JSON schema. Each field has a specific meaning and must be filled according to the rules below.
+
+General Rules
+
+Evidence
+
+The "evidence" field must contain a short quote copied directly from the source that supports the extracted value.
+
+If source = "incident_description":
+The evidence must be copied verbatim from the incident report text.
+
+Do not invent, paraphrase, or infer evidence.
+
+If no supporting evidence can be found, set:
+evidence = "N/A"
+source = "Not specified".
+
+Source
+
+The "source" field indicates where the information was obtained, the allowed source are listed in each nodes.
+
+Allowed values:
+
+incident_description  
+Information directly extracted from the incident report.
+
+
+Not specified  
+Used when the information cannot be determined from the incident report or reliable external knowledge sources.
+
+Node ID
+
+Each node must include a `node_id`, which serves as a unique identifier in the graph.
+
+The `node_id` must follow the prefix corresponding to the node type:
+
+- H#  → HazardConsequence nodes
+- En# → Entity nodes
+- C#  → Condition nodes
+- Ev# → Event nodes
+
+Where # is a sequential integer starting from 1 within each node category.
+
+Examples:
+H1, En1, C1, Ev1
+
+Rules:
+- Each node must have exactly one `node_id`.
+- All `node_id` values must be unique within the output.
+- The prefix must match the node's `node_type`.
+- Do not invent other ID formats.
+- The `node_id` is only an identifier and must not contain semantic meaning.
+
+--------------------------------------------------
+Material
+--------------------------------------------------
+
+Definition
+The hazardous substance involved in the accident scenario.
+
+This refers to the chemical or material present in the process that participates in the release, dispersion, ignition, or hazard consequence.
+
+
+--------------------------------------------------
+Location
+--------------------------------------------------
+
+Definition
+The physical place or equipment where the accident-related event occurs.
+
+This may include process units, storage tanks, pipelines, packaging areas, or other facility locations relevant to the accident.
+
+
+--------------------------------------------------
+Phase
+--------------------------------------------------
+
+Definition
+The physical phase of the material at the time of the accident.
+
+This condition describes whether the material exists as liquid, vapor, solid, or a two-phase mixture, which can influence release behavior and hazard consequences.
+
+
+--------------------------------------------------
+Temperature
+--------------------------------------------------
+
+Definition
+The temperature condition of the material or environment during the accident scenario.
+
+Temperature can affect vapor generation, chemical stability, and the likelihood of ignition or hazardous reactions.
+
+--------------------------------------------------
+Pressure
+--------------------------------------------------
+
+Definition
+The pressure condition of the material or process system during the accident scenario.
+
+Pressure influences the containment, release rate, and phase behavior of the material.
+Elevated pressure can increase the driving force for a release and accelerate discharge from equipment, while low or atmospheric pressure conditions may affect vapor formation and dispersion behavior.
+
+--------------------------------------------------
+Volatility
+--------------------------------------------------
+
+Definition
+The tendency of a substance to vaporize.
+
+High volatility substances can easily form flammable or toxic vapor clouds that may contribute to explosion or dispersion hazards.
+
+
+--------------------------------------------------
+Combustibility
+--------------------------------------------------
+
+Definition
+Whether the material is capable of burning in the presence of an ignition source.
+
+Combustible materials can participate in fires or explosions when mixed with air and exposed to ignition.
+
+
+--------------------------------------------------
+ToxicSubstance
+--------------------------------------------------
+
+Definition
+Whether the material has toxic properties that can cause harm to humans or the environment.
+
+Toxic substances may produce hazardous exposure through vapor dispersion or direct contact.
+
+
+--------------------------------------------------
+Asphyxiant
+--------------------------------------------------
+
+Definition
+Whether the substance can cause oxygen displacement or interfere with oxygen transport in the body.
+
+Asphyxiants may lead to suffocation or oxygen deficiency hazards in confined or poorly ventilated spaces.
+
+
+--------------------------------------------------
+Conductivity
+--------------------------------------------------
+
+Definition
+The electrical conductivity property of the material.
+
+Low conductivity liquids may accumulate static electricity during transfer operations, increasing the risk of static discharge ignition.
+
+
+--------------------------------------------------
+ReleaseType
+--------------------------------------------------
+
+Definition
+The manner in which hazardous material is released into the environment.
+
+This condition distinguishes between instantaneous releases and continuous releases, which influence dispersion behavior and accident escalation.
+
+
+--------------------------------------------------
+IgnitionSource
+--------------------------------------------------
+
+Definition
+The source of energy that can ignite a flammable mixture.
+
+Examples include static electricity sparks, open flames, hot surfaces, electrical equipment, or mechanical sparks.
+
+
+--------------------------------------------------
+Confinement
+--------------------------------------------------
+
+Definition
+The degree to which flammable or hazardous material is enclosed within a confined space.
+
+High confinement can increase explosion overpressure and significantly influence explosion severity.
+
+
+--------------------------------------------------
+Dispersion
+--------------------------------------------------
+
+Definition
+The spreading of released material into the surrounding environment.
+
+Dispersion determines how vapors, gases, or toxic substances distribute in air and whether hazardous concentrations can form.
+
+
+--------------------------------------------------
+MechanicalFailure
+--------------------------------------------------
+
+Definition
+A physical failure of equipment that contributes to the accident.
+
+This may include rupture, leakage, seal failure, structural failure, or malfunction of process equipment that leads to loss of containment.
+
+If a mechanical failure clearly occurred and contributed to the accident,
+but the exact failed component or exact failure mode cannot be determined
+from the incident description, use "Unknown mechanical failure" as the name.
+
+Use "Not specified" only when the incident description does not provide enough
+support to identify whether a mechanical failure should be represented at all.
+
+--------------------------------------------------
+InitiatingEvent
+--------------------------------------------------
+
+Definition
+The first abnormal operational or physical event
+that directly initiates the accident sequence
+within the process system.
+
+The initiating event may summarize closely related
+operational actions and conditions that immediately
+lead to the hazardous sequence.
+
+--------------------------------------------------
+IgnitionSource Special Rule
+--------------------------------------------------
+
+If ignition clearly occurred in the incident, but the exact ignition source
+cannot be determined from the incident description, use
+"Unknown ignition source" as the name.
+
+Use "Not specified" only when the incident description does not provide enough
+support to identify whether an ignition source should be represented at all.
+
+
+IDENTIFY_ACCIDENT_SCENARIO_OUTPUT
+{
+  "hazard_consequence_node": [
+    {
+      "label": "HazardConsequence",
+      "name": "Pool fire",
+      "node_id": "H1",
+      "node_type": "HazardConsequence",
+      "evidence": "The report states, \"This case study examines a fire at the Environmental Quality Company (EQ) hazardous waste facility in Apex, North Carolina.\" It further says, \"Within minutes, the fire spread to the flammable liquid storage area, causing 55-gallon drums of flammable hazardous waste to explode and sending fireballs hundreds of feet into the air.\"",
+      "explanation": "The incident is analyzed primarily as a large uncontrolled fire involving stored flammable liquid hazardous wastes. The report's main discussion centers on fire detection, fire control equipment, and lack of fire barriers that allowed the fire to spread. Drum explosions/fireballs and the toxic smoke cloud are treated as escalation effects and consequences of the main fire. Among the available labels, \"Pool fire\" is the closest match to the sustained flammable-liquid fire that drove the incident.",
+      "source": "incident_description"
+    }
+  ],
+  "entity_nodes": [
+    {
+      "label": "Material",
+      "name": "flammable hazardous waste",
+      "node_id": "En1",
+      "node_type": "Entity",
+      "evidence": "55-gallon drums of flammable hazardous waste",
+      "explanation": "Flammable hazardous waste was the principal fuel involved in the major fire after the incident spread into the flammable liquid storage area.",
+      "source": "incident_description"
+    },
+    {
+      "label": "Location",
+      "name": "oxidizer bay",
+      "node_id": "En2",
+      "node_type": "Entity",
+      "evidence": "The initial “sofa-size” fire observed by firefighters was in the oxidizer bay",
+      "explanation": "The earliest identified fire was located in the oxidizer bay, where the accident sequence began.",
+      "source": "incident_description"
+    },
+    {
+      "label": "Location",
+      "name": "flammable liquid storage area",
+      "node_id": "En3",
+      "node_type": "Entity",
+      "evidence": "the fire spread to the flammable liquid storage area",
+      "explanation": "The main pool-fire consequence developed after the fire spread into this storage area.",
+      "source": "incident_description"
+    }
+  ],
+  "condition_nodes": [
+    {
+      "label": "Phase",
+      "name": "Liquid",
+      "node_id": "C1",
+      "node_type": "Condition",
+      "evidence": "flammable liquid storage area",
+      "explanation": "The principal burning material was stored in an area designated for flammable liquids, indicating a liquid-phase fuel for the main fire.",
+      "source": "incident_description"
+    },
+    {
+      "label": "Pressure",
+      "name": "Not specified",
+      "node_id": "C2",
+      "node_type": "Condition",
+      "evidence": "N/A",
+      "explanation": "The incident description does not specify the storage or release pressure of the hazardous waste.",
+      "source": "Not specified"
+    },
+    {
+      "label": "Temperature",
+      "name": "High temperature",
+      "node_id": "C3",
+      "node_type": "Condition",
+      "evidence": "burning chemicals",
+      "explanation": "The materials were involved in an active fire, indicating high-temperature conditions during the accident.",
+      "source": "incident_description"
+    },
+    {
+      "label": "Volatility",
+      "name": "Not specified",
+      "node_id": "C4",
+      "node_type": "Condition",
+      "evidence": "N/A",
+      "explanation": "The report does not characterize the volatility of the hazardous waste involved in the fire.",
+      "source": "Not specified"
+    },
+    {
+      "label": "Combustibility",
+      "name": "Combustible",
+      "node_id": "C5",
+      "node_type": "Condition",
+      "evidence": "flammable hazardous waste",
+      "explanation": "The material is explicitly described as flammable, so it was capable of burning and sustaining the fire.",
+      "source": "incident_description"
+    },
+    {
+      "label": "ToxicSubstance",
+      "name": "Toxic",
+      "node_id": "C6",
+      "node_type": "Condition",
+      "evidence": "strong chlorine smell",
+      "explanation": "A chemical cloud with chlorine odor and associated respiratory effects indicates toxic or irritating airborne substances were present during the incident.",
+      "source": "incident_description"
+    },
+    {
+      "label": "Asphyxiant",
+      "name": "Not specified",
+      "node_id": "C7",
+      "node_type": "Condition",
+      "evidence": "N/A",
+      "explanation": "The report does not identify the released materials as asphyxiants or describe oxygen-deficiency conditions.",
+      "source": "Not specified"
+    },
+    {
+      "label": "Conductivity",
+      "name": "Not specified",
+      "node_id": "C8",
+      "node_type": "Condition",
+      "evidence": "N/A",
+      "explanation": "The electrical conductivity of the hazardous waste is not provided in the incident description.",
+      "source": "Not specified"
+    },
+    {
+      "label": "ReleaseType",
+      "name": "Not specified",
+      "node_id": "C9",
+      "node_type": "Condition",
+      "evidence": "N/A",
+      "explanation": "The report does not clearly define the loss of containment as either an instantaneous release or a continuous release.",
+      "source": "Not specified"
+    },
+    {
+      "label": "Confinement",
+      "name": "Not specified",
+      "node_id": "C10",
+      "node_type": "Condition",
+      "evidence": "N/A",
+      "explanation": "The incident description does not explicitly characterize the degree of confinement of the burning or released materials.",
+      "source": "Not specified"
+    },
+    {
+      "label": "Dispersion",
+      "name": "Dispersed",
+      "node_id": "C11",
+      "node_type": "Condition",
+      "evidence": "chemical cloud",
+      "explanation": "Airborne hazardous material or combustion products dispersed from the facility, forming a chemical cloud that affected the surrounding community.",
+      "source": "incident_description"
+    }
+  ],
+  "event_nodes": [
+    {
+      "label": "InitiatingEvent",
+      "name": "small fire in the oxidizer bay",
+      "node_id": "Ev1",
+      "node_type": "Event",
+      "evidence": "The initial “sofa-size” fire observed by firefighters was in the oxidizer bay",
+      "explanation": "The earliest identified abnormal event was a small fire in the oxidizer bay, which then spread to the adjacent flammable-liquid storage area.",
+      "source": "incident_description"
+    },
+    {
+      "label": "MechanicalFailure",
+      "name": "55-gallon drums of flammable hazardous waste explode",
+      "node_id": "Ev2",
+      "node_type": "Event",
+      "evidence": "causing 55-gallon drums of flammable hazardous waste to explode",
+      "explanation": "The heated waste drums failed explosively, releasing burning contents and escalating the fire severity.",
+      "source": "incident_description"
+    },
+    {
+      "label": "IgnitionSource",
+      "name": "Unknown ignition source",
+      "node_id": "Ev3",
+      "node_type": "Event",
+      "evidence": "Firefighters located a small “sofa-size” fire",
+      "explanation": "The report clearly indicates ignition had occurred, but it does not identify the specific source that ignited the initial materials.",
+      "source": "incident_description"
+    }
+  ]
+}
+
+CAUSAL_EDGE_LINKING_OUTPUT
+{
+  "edges": [
+    {
+      "source": "En1",
+      "target": "C1",
+      "relation": "has"
+    },
+    {
+      "source": "En1",
+      "target": "C5",
+      "relation": "has"
+    },
+    {
+      "source": "Ev3",
+      "target": "Ev1",
+      "relation": "enables"
+    },
+    {
+      "source": "C1",
+      "target": "H1",
+      "relation": "enables"
+    },
+    {
+      "source": "C5",
+      "target": "H1",
+      "relation": "enables"
+    },
+    {
+      "source": "Ev1",
+      "target": "H1",
+      "relation": "enables"
+    }
+  ]
+}
+
+CAUSAL_GRAPH_JSON
+{
+  "hazard_consequence_node": [
+    {
+      "label": "HazardConsequence",
+      "name": "Pool fire",
+      "node_id": "H1",
+      "node_type": "HazardConsequence",
+      "evidence": "The report states, \"This case study examines a fire at the Environmental Quality Company (EQ) hazardous waste facility in Apex, North Carolina.\" It further says, \"Within minutes, the fire spread to the flammable liquid storage area, causing 55-gallon drums of flammable hazardous waste to explode and sending fireballs hundreds of feet into the air.\"",
+      "explanation": "The incident is analyzed primarily as a large uncontrolled fire involving stored flammable liquid hazardous wastes. The report's main discussion centers on fire detection, fire control equipment, and lack of fire barriers that allowed the fire to spread. Drum explosions/fireballs and the toxic smoke cloud are treated as escalation effects and consequences of the main fire. Among the available labels, \"Pool fire\" is the closest match to the sustained flammable-liquid fire that drove the incident.",
+      "source": "incident_description"
+    }
+  ],
+  "entity_nodes": [
+    {
+      "label": "Material",
+      "name": "flammable hazardous waste",
+      "node_id": "En1",
+      "node_type": "Entity",
+      "evidence": "55-gallon drums of flammable hazardous waste",
+      "explanation": "Flammable hazardous waste was the principal fuel involved in the major fire after the incident spread into the flammable liquid storage area.",
+      "source": "incident_description"
+    }
+  ],
+  "condition_nodes": [
+    {
+      "label": "Phase",
+      "name": "Liquid",
+      "node_id": "C1",
+      "node_type": "Condition",
+      "evidence": "flammable liquid storage area",
+      "explanation": "The principal burning material was stored in an area designated for flammable liquids, indicating a liquid-phase fuel for the main fire.",
+      "source": "incident_description"
+    },
+    {
+      "label": "Combustibility",
+      "name": "Combustible",
+      "node_id": "C5",
+      "node_type": "Condition",
+      "evidence": "flammable hazardous waste",
+      "explanation": "The material is explicitly described as flammable, so it was capable of burning and sustaining the fire.",
+      "source": "incident_description"
+    }
+  ],
+  "event_nodes": [
+    {
+      "label": "InitiatingEvent",
+      "name": "small fire in the oxidizer bay",
+      "node_id": "Ev1",
+      "node_type": "Event",
+      "evidence": "The initial “sofa-size” fire observed by firefighters was in the oxidizer bay",
+      "explanation": "The earliest identified abnormal event was a small fire in the oxidizer bay, which then spread to the adjacent flammable-liquid storage area.",
+      "source": "incident_description"
+    },
+    {
+      "label": "IgnitionSource",
+      "name": "Unknown ignition source",
+      "node_id": "Ev3",
+      "node_type": "Event",
+      "evidence": "Firefighters located a small “sofa-size” fire",
+      "explanation": "The report clearly indicates ignition had occurred, but it does not identify the specific source that ignited the initial materials.",
+      "source": "incident_description"
+    }
+  ],
+  "edges": [
+    {
+      "source": "En1",
+      "target": "C1",
+      "relation": "has"
+    },
+    {
+      "source": "En1",
+      "target": "C5",
+      "relation": "has"
+    },
+    {
+      "source": "Ev3",
+      "target": "Ev1",
+      "relation": "enables"
+    },
+    {
+      "source": "C1",
+      "target": "H1",
+      "relation": "enables"
+    },
+    {
+      "source": "C5",
+      "target": "H1",
+      "relation": "enables"
+    },
+    {
+      "source": "Ev1",
+      "target": "H1",
+      "relation": "enables"
+    }
+  ]
+}
+
+TASK
+
+Your task is to review the existing CAUSAL_GRAPH_JSON against the INCIDENT_DESCRIPTION, ACCIDENT_SCENARIO_SCHEMA, ACCIDENT_SCENARIO_SCHEMA_DEFINITION, IDENTIFY_ACCIDENT_SCENARIO_OUTPUT, and CAUSAL_EDGE_LINKING_OUTPUT.
+
+You must identify structural problems, semantic problems, missing key causal steps, duplicated nodes or events, and incorrect or weak edges.
+
+You must return structured revision suggestions in JSON only.
+
+REVIEW OBJECTIVES
+
+1. Check whether the nodes in CAUSAL_GRAPH_JSON are consistent with the incident description and accident scenario extraction.
+
+2. Check whether the graph follows a reasonable process safety accident logic.
+
+3. Check whether the edge directions and relations are appropriate.
+
+4. Check whether there are duplicated nodes that represent the same accident step or meaning.
+
+5. Check whether important causal steps are missing.
+
+6. Check whether some nodes or edges should be removed because they are unsupported, redundant, overly transitive, or semantically weak.
+
+7. Prefer the smallest necessary set of changes that materially improves the causal graph.
+
+REVIEW RULES
+
+1. Use the INCIDENT_DESCRIPTION as the primary factual basis.
+
+2. Use IDENTIFY_ACCIDENT_SCENARIO_OUTPUT as the primary reference for what nodes were extracted and how they were described.
+
+3. Use CAUSAL_EDGE_LINKING_OUTPUT as the primary reference for how the current edge suggestions were produced.
+
+4. Use ACCIDENT_SCENARIO_SCHEMA and ACCIDENT_SCENARIO_SCHEMA_DEFINITION to judge whether labels, node types, and meanings are appropriate.
+
+5. Do not invent unsupported accident mechanisms, conditions, or events.
+
+6. Do not recommend changes only for stylistic preference.
+
+7. If the graph is already acceptable, say so and keep the suggested changes minimal.
+
+8. Prefer renaming or updating an existing node over deleting and re-adding it, unless the current node is fundamentally incorrect.
+
+9. Prefer deleting redundant duplicate nodes when two nodes represent the same accident step.
+
+10. Avoid recommending transitive edges.
+If there is already a more direct causal chain A -> B -> C, do not recommend an additional edge A -> C unless the incident description explicitly supports a separate direct causal relationship.
+
+11. A location node should usually not directly cause a hazard consequence unless the incident description explicitly supports that role.
+
+12. Hazard consequence nodes should normally be the downstream end of the causal chain.
+
+13. Material nodes should usually connect to material properties using relation "has".
+
+14. Conditions and events should generally connect with relation "enables" when they make a downstream step possible or more likely.
+
+15. If an important event clearly occurred but is missing from the graph, recommend adding it only when there is direct support in the incident description.
+
+16. If a node in the graph is unsupported by the incident description or is too weak to justify graph inclusion, recommend removing it.
+
+17. If the graph contains a duplicated event pattern such as an InitiatingEvent and a MechanicalFailure that describe essentially the same physical occurrence, recommend a merge, deletion, or role clarification.
+
+18. If a node or edge is weak but still acceptable, classify the issue severity as low instead of recommending unnecessary deletion.
+
+SEVERITY GUIDANCE
+
+- high:
+  The issue materially breaks or distorts the main accident causal chain.
+
+- medium:
+  The issue weakens the graph logic or misses an important step, but the overall chain is still understandable.
+
+- low:
+  The issue is minor, stylistic, weakly redundant, or only slightly misleading.
+
+OUTPUT REQUIREMENTS
+
+Return one JSON object with the following structure:
+
+{
+  "case_assessment": {
+    "overall_quality": "good | acceptable | weak",
+    "summary": "string",
+    "main_problems": [
+      "string"
+    ]
+  },
+  "node_updates": [
+    {
+      "target_id": "node_id",
+      "change_type": "rename | relabel | retype | clarify_role | update_evidence | update_explanation",
+      "current_state": "string",
+      "suggested_state": "string",
+      "reason": "string",
+      "evidence": "string",
+      "severity": "high | medium | low",
+      "confidence": "high | medium | low"
+    }
+  ],
+  "node_additions": [
+    {
+      "suggested_label": "string",
+      "suggested_name": "string",
+      "suggested_node_type": "Entity | Condition | Event | HazardConsequence",
+      "suggested_upstream_links": [
+        {
+          "source": "node_id",
+          "relation": "has | enables"
+        }
+      ],
+      "suggested_downstream_links": [
+        {
+          "target": "node_id",
+          "relation": "has | enables"
+        }
+      ],
+      "reason": "string",
+      "evidence": "string",
+      "severity": "high | medium | low",
+      "confidence": "high | medium | low"
+    }
+  ],
+  "node_deletions": [
+    {
+      "target_id": "node_id",
+      "reason": "string",
+      "evidence": "string",
+      "severity": "high | medium | low",
+      "confidence": "high | medium | low"
+    }
+  ],
+  "edge_additions": [
+    {
+      "source": "node_id",
+      "target": "node_id",
+      "relation": "has | enables",
+      "reason": "string",
+      "evidence": "string",
+      "severity": "high | medium | low",
+      "confidence": "high | medium | low"
+    }
+  ],
+  "edge_deletions": [
+    {
+      "source": "node_id",
+      "target": "node_id",
+      "relation": "has | enables",
+      "reason": "string",
+      "evidence": "string",
+      "severity": "high | medium | low",
+      "confidence": "high | medium | low"
+    }
+  ],
+  "edge_updates": [
+    {
+      "source": "node_id",
+      "target": "node_id",
+      "current_relation": "has | enables",
+      "suggested_relation": "has | enables",
+      "reason": "string",
+      "evidence": "string",
+      "severity": "high | medium | low",
+      "confidence": "high | medium | low"
+    }
+  ],
+  "issues_summary": [
+    {
+      "issue_type": "missing_step | duplicate_node | weak_edge | wrong_direction | wrong_relation | unsupported_node | unsupported_edge | schema_mismatch | other",
+      "description": "string",
+      "severity": "high | medium | low"
+    }
+  ]
+}
+
+OUTPUT FORMAT
+
+Return JSON only.
+Do not include explanations or additional text outside the JSON object.

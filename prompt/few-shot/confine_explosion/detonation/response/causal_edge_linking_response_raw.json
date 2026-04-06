@@ -1,0 +1,77 @@
+{
+  "id": "resp_06ba9d45b30577e80069b8d5fd444881a1b259e32fa919cc08",
+  "object": "response",
+  "created_at": 1773721085,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1773721141,
+  "error": null,
+  "frequency_penalty": 0.0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": 128000,
+  "max_tool_calls": null,
+  "model": "gpt-5.4-2026-03-05",
+  "output": [
+    {
+      "id": "rs_06ba9d45b30577e80069b8d5fd93a481a1819f233fe0d9a294",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_06ba9d45b30577e80069b8d634308881a1a42aa1cc776d0932",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "{\n  \"edges\": [\n    {\n      \"source\": \"En1\",\n      \"target\": \"C1\",\n      \"relation\": \"has\"\n    },\n    {\n      \"source\": \"En1\",\n      \"target\": \"C5\",\n      \"relation\": \"has\"\n    },\n    {\n      \"source\": \"En2\",\n      \"target\": \"C10\",\n      \"relation\": \"has\"\n    },\n    {\n      \"source\": \"C1\",\n      \"target\": \"H1\",\n      \"relation\": \"enables\"\n    },\n    {\n      \"source\": \"C5\",\n      \"target\": \"H1\",\n      \"relation\": \"enables\"\n    },\n    {\n      \"source\": \"C10\",\n      \"target\": \"H1\",\n      \"relation\": \"enables\"\n    },\n    {\n      \"source\": \"Ev1\",\n      \"target\": \"H1\",\n      \"relation\": \"enables\"\n    },\n    {\n      \"source\": \"Ev2\",\n      \"target\": \"H1\",\n      \"relation\": \"enables\"\n    }\n  ]\n}"
+        }
+      ],
+      "phase": "final_answer",
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0.0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": null,
+  "reasoning": {
+    "effort": "high",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1.0,
+  "text": {
+    "format": {
+      "type": "json_object"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 0.98,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 5897,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 5935,
+    "output_tokens_details": {
+      "reasoning_tokens": 5696
+    },
+    "total_tokens": 11832
+  },
+  "user": null,
+  "metadata": {}
+}

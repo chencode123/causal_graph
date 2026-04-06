@@ -1,0 +1,120 @@
+{
+  "step_key": "identify_accident_scenario",
+  "failure_modes": "Model defaulted to a generic explosion/release template: it overfilled optional nodes with unsupported or \"Not specified\" entries, treated observed manifestations (overpressure/explosion/release) as causal events, and ignored upstream mechanistic cause information available in same-incident analysis sections. It also chose released byproducts instead of the direct triggering material, and copied hazard-consequence evidence that was not a clean direct quote.",
+  "patch_rules": "1. Only emit nodes that are required by the SCHEMA or clearly supported and causally essential; do not add optional nodes just to say \"Not specified\". 2. Do not use consequence/manifestation wording (overpressure, explosion, blast, ejection) as the InitiatingEvent when the report provides an upstream mechanism; prefer the earliest causal abnormal mechanism. 3. If same-incident analysis/cause sections describe a direct precursor chain, use them to define InitiatingEvent and MechanicalFailure, and you may summarize tightly linked precursor steps into one initiating event. 4. For confined internal explosion/overpressure scenarios, do not assume a separate release/dispersion/ignition sequence; omit IgnitionSource, ReleaseType, Dispersion, IntermediateEvent, etc. unless explicitly evidenced and required. 5. Select the single material that directly triggers the hazard consequence; derive Phase/Volatility from that selected material, not from all emitted materials. 6. If IDENTIFIED_HAZARD_CONSEQUENCE evidence is paraphrased or non-verbatim, keep the node identity but replace evidence with a short direct quote from the incident text.",
+  "revised_prompt_suffix": "ADDITIONAL DISAMBIGUATION RULES\n\n- If the incident_description JSON includes same-incident physical-cause or analysis sections, use them when needed to identify the upstream mechanism; do not stop at the first observed manifestation in the narrative.\n- Prefer a sparse scenario. Include only nodes that are schema-required or strongly supported as part of the realized causal chain. Do not populate optional fields/events/entities with placeholder \"Not specified\" unless the schema requires that field.\n- For InitiatingEvent, choose the earliest upstream abnormal mechanism, not a manifestation such as \"overpressure,\" \"explosion,\" \"blast,\" or \"release,\" if a more causal precursor is described.\n- For confined internal overpressure/explosion events, do not create a generic external release/dispersion/ignition template unless the report explicitly supports those elements.\n- Choose one hazardous material that most directly causes the hazard consequence; if an ingress material (for example, leaking water entering hot equipment) directly drives the overpressure, select that material rather than later ejected contents. Then make Phase/Volatility consistent with that chosen material.\n- For hazard_consequence evidence as well, prefer a short exact quote from the report; if the provided node's evidence is not verbatim, replace only the evidence text with a direct quote while preserving the hazard_consequence identity.",
+  "diff_summary": {
+    "extra_nodes": [
+      [
+        "asphyxiant",
+        "not specified",
+        "condition"
+      ],
+      [
+        "combustibility",
+        "combustible",
+        "condition"
+      ],
+      [
+        "conductivity",
+        "not specified",
+        "condition"
+      ],
+      [
+        "dispersion",
+        "dispersed",
+        "condition"
+      ],
+      [
+        "ignitionsource",
+        "not specified",
+        "event"
+      ],
+      [
+        "initiatingevent",
+        "initial overpressure event from the furnace",
+        "event"
+      ],
+      [
+        "intermediateevent",
+        "large explosion",
+        "event"
+      ],
+      [
+        "location",
+        "control room",
+        "entity"
+      ],
+      [
+        "material",
+        "flammable gases",
+        "entity"
+      ],
+      [
+        "material",
+        "molten calcium carbide",
+        "entity"
+      ],
+      [
+        "mechanicalfailure",
+        "furnace cover cooling water leak",
+        "event"
+      ],
+      [
+        "phase",
+        "twophase",
+        "condition"
+      ],
+      [
+        "releasetype",
+        "instant release",
+        "condition"
+      ],
+      [
+        "toxicsubstance",
+        "not specified",
+        "condition"
+      ],
+      [
+        "volatility",
+        "not specified",
+        "condition"
+      ]
+    ],
+    "missing_nodes": [
+      [
+        "initiatingevent",
+        "bridge collapse & instantaneous vaporization",
+        "event"
+      ],
+      [
+        "material",
+        "water",
+        "entity"
+      ],
+      [
+        "mechanicalfailure",
+        "bridging induced by water leaks",
+        "event"
+      ],
+      [
+        "phase",
+        "liquid",
+        "condition"
+      ],
+      [
+        "volatility",
+        "high volatility",
+        "condition"
+      ]
+    ],
+    "extra_event_count": 2,
+    "manifestation_as_cause_count": 3,
+    "notes": [
+      "Event nodes include consequence-level manifestation wording.",
+      "Current output has more event nodes than the gold nodes.",
+      "Current output contains extra nodes not present in the gold nodes.",
+      "Current output misses nodes that exist in the gold nodes."
+    ]
+  }
+}

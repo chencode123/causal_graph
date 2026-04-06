@@ -1,0 +1,52 @@
+{
+  "hazard_consequence_node": {
+    "label": "Confined explosion",
+    "name": "Confined explosion",
+    "node_id": "H1",
+    "node_type": "HazardConsequence",
+    "evidence": "The report states that on January 7, 2010, the student was injured \"after the chemical he was working with detonated.\" In the incident description, \"he transferred about half of the synthesized NHP into a mortar, added hexane... [and] the compound detonated.\" The analysis repeatedly focuses on the explosive hazards of the energetic material, the scale-up to about 10 grams, and the lack of formal hazard evaluation for that explosive risk.",
+    "explanation": "The central accident mechanism analyzed is the detonation/explosion of an energetic solid during handling in a mortar. Among the available labels, this is best represented as a confined explosion because the incident is fundamentally an explosive event localized in handling equipment, not a vapor cloud, BLEVE, dust cloud, fire, or toxic/asphyxiation event.",
+    "source": "incident_description"
+  },
+  "explanation": {
+    "reasoning": "The report's primary focus is the explosive detonation of nickel hydrazine perchlorate during scale-up and manual manipulation. The causes analyzed are scale-up of an energetic material, inadequate hazard assessment, lack of controls, and unsafe handling of explosive material. Therefore the main hazard consequence is an explosion, and among the provided choices, Confined explosion is the closest fit.",
+    "excluded_alternatives": [
+      {
+        "label": "VCE",
+        "reason": "No flammable vapor cloud release and ignition is described; the event involved detonation of an energetic solid, not a vapor cloud explosion."
+      },
+      {
+        "label": "BLEVE",
+        "reason": "There was no pressurized vessel containing a liquefied gas and no boiling-liquid expanding-vapor mechanism."
+      },
+      {
+        "label": "Dust explosion",
+        "reason": "The report does not describe a dispersed combustible dust cloud ignition; the material detonated while being handled as a wetted energetic compound in a mortar."
+      },
+      {
+        "label": "Pool fire",
+        "reason": "No pooled liquid fuel fire is described as the main event."
+      },
+      {
+        "label": "Jet fire",
+        "reason": "There was no pressurized flammable release producing a jet flame."
+      },
+      {
+        "label": "Fire ball",
+        "reason": "Although burns occurred, the report does not describe a fireball as the primary phenomenon; the main mechanism was detonation."
+      },
+      {
+        "label": "Flash fire",
+        "reason": "The report centers on explosion/detonation, not flame propagation through a flammable vapor cloud."
+      },
+      {
+        "label": "Toxicity dispersion",
+        "reason": "No harmful airborne toxic release or dispersion is identified as the principal consequence."
+      },
+      {
+        "label": "Asphyxiation",
+        "reason": "No oxygen-deficiency or inert-gas displacement hazard is involved."
+      }
+    ]
+  }
+}

@@ -1,0 +1,77 @@
+{
+  "id": "resp_05c361d9620e6ed20069b8c66b48cc8197a3584463cb9bf4e2",
+  "object": "response",
+  "created_at": 1773717099,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1773717116,
+  "error": null,
+  "frequency_penalty": 0.0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": 128000,
+  "max_tool_calls": null,
+  "model": "gpt-5.4-2026-03-05",
+  "output": [
+    {
+      "id": "rs_05c361d9620e6ed20069b8c66c3a9c8197bf158bbd16726a4b",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_05c361d9620e6ed20069b8c676c4188197992f4b0cabd24d62",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "{\n  \"hazard_consequence_node\": {\n    \"label\": \"HazardConsequence\",\n    \"name\": \"VCE\",\n    \"node_id\": \"H1\",\n    \"node_type\": \"HazardConsequence\",\n    \"evidence\": \"The report states that \\\"the explosion was fueled by vapor released from a 2000-gallon tank of highly flammable liquid\\\" and that an open steam valve most likely caused the liquid to overheat and accumulate in the building to a near-ideal vapor-air concentration. It further concludes that \\\"an unknown ignition source ignited the flammable atmosphere, causing the explosion.\\\" The technical analysis identifies heptane and propyl alcohol vapors released from mix tank 3, accumulating in the closed, unventilated building and then igniting as the main event.\",\n    \"explanation\": \"The primary hazardous consequence is a vapor cloud explosion: flammable solvent vapors were generated from an overheated unsealed process tank, accumulated in the building, and ignited, producing the destructive overpressure that is the main focus of the investigation. The subsequent long-duration fire was a secondary consequence.\",\n    \"source\": \"incident_description\"\n  },\n  \"explanation\": {\n    \"reasoning\": \"The report is centered on understanding why a large flammable vapor cloud formed inside the CAI/Arnel building and how its ignition produced severe blast damage across the surrounding community. Although confinement and congestion intensified the event, the analyzed accident mechanism is specifically a flammable vapor cloud explosion rather than a generic fire or other release type.\",\n    \"excluded_alternatives\": [\n      {\n        \"label\": \"BLEVE\",\n        \"reason\": \"No pressurized vessel containing a liquefied gas catastrophically ruptured; the incident involved solvent vapor accumulation in an unsealed tank and building explosion.\"\n      },\n      {\n        \"label\": \"Dust explosion\",\n        \"reason\": \"The report does not identify combustible dust as the fuel; the explosion was attributed to heptane and alcohol vapors.\"\n      },\n      {\n        \"label\": \"Confined explosion\",\n        \"reason\": \"The explosion did occur in a confined building, but the more specific and primary mechanism analyzed is ignition of a flammable vapor cloud, i.e., a VCE.\"\n      },\n      {\n        \"label\": \"Pool fire\",\n        \"reason\": \"Post-explosion burning of solvents occurred, but it was a secondary fire consequence, not the central event analyzed.\"\n      },\n      {\n        \"label\": \"Jet fire\",\n        \"reason\": \"There was no sustained ignited high-pressure release forming a jet flame.\"\n      },\n      {\n        \"label\": \"Fire ball\",\n        \"reason\": \"A bright fireball was observed after the explosion, but it was a manifestation of the blast/fire sequence, not the primary hazard mechanism under investigation.\"\n      },\n      {\n        \"label\": \"Flash fire\",\n        \"reason\": \"The main consequence was destructive blast overpressure from vapor cloud ignition, not a primarily non-overpressure flash fire.\"\n      },\n      {\n        \"label\": \"Toxicity dispersion\",\n        \"reason\": \"No toxic release dispersion was the focus of the incident or cause analysis.\"\n      },\n      {\n        \"label\": \"Asphyxiation\",\n        \"reason\": \"The incident did not involve oxygen displacement or suffocation as the primary consequence.\"\n      }\n    ]\n  }\n}"
+        }
+      ],
+      "phase": "final_answer",
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0.0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": null,
+  "reasoning": {
+    "effort": "high",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1.0,
+  "text": {
+    "format": {
+      "type": "json_object"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 0.98,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 10709,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 1872,
+    "output_tokens_details": {
+      "reasoning_tokens": 1170
+    },
+    "total_tokens": 12581
+  },
+  "user": null,
+  "metadata": {}
+}

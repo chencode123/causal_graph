@@ -1,0 +1,52 @@
+{
+  "hazard_consequence_node": {
+    "label": "HazardConsequence",
+    "name": "Pool fire",
+    "node_id": "H1",
+    "node_type": "HazardConsequence",
+    "evidence": "The incident description repeatedly identifies the event as a pool fire: the Pearland Fire Chief 'observed a ground level pool fire, 65 to 80 feet in width' east of warehouse 1. CSB states that 'the initial small fire involving the smaller containers resulted in a pool fire,' and that ruptured drums, failed blend tanks, and the failed tank wagon added fuel so that burning liquid 'flowed toward the storage tanks and the warehouses.' Section 2.3.4 further describes a 'Liquid Pool Fire at Tank Farm and Warehouses' and explains that inadequate drainage/containment allowed released burning liquids to spread through the facility.",
+    "explanation": "The central accident mechanism analyzed in the report is the formation and spread of burning liquid pools from released combustible/flammable liquids. The report focuses on how a small initial fire escalated because drums ruptured, tanks failed, and inadequate containment and drainage allowed the burning liquid pool to spread into the tank farm and warehouses. This makes pool fire the primary hazard consequence.",
+    "source": "incident_description"
+  },
+  "explanation": {
+    "reasoning": "The report is principally a fire-spread analysis, not an explosion investigation. Its main technical discussion concerns how an initial outdoor fire escalated into a large spreading pool fire through release of liquid fuels, inadequate drainage, failed diking, nearby tank wagon exposure, and lack of suppression/detection systems.",
+    "excluded_alternatives": [
+      {
+        "label": "VCE",
+        "reason": "No vapor cloud explosion is described or analyzed; the incident centers on burning liquid pools rather than delayed ignition of a dispersed vapor cloud."
+      },
+      {
+        "label": "BLEVE",
+        "reason": "Although tanks and a tank wagon were exposed to fire and venting/rupture noises were reported, the report does not identify a boiling liquid expanding vapor explosion as the main event; the tank wagon failure mainly added fuel to the ground fire."
+      },
+      {
+        "label": "Dust explosion",
+        "reason": "No combustible dust release or dust deflagration is involved anywhere in the incident description."
+      },
+      {
+        "label": "Confined explosion",
+        "reason": "Some explosions/noises were heard, but the report does not analyze a confined explosion as the central phenomenon; the main mechanism is open-air fire spread."
+      },
+      {
+        "label": "Jet fire",
+        "reason": "There is no sustained pressurized release producing a focused flame jet that is treated as the primary hazard; venting and burning from the tank wagon were secondary to the spreading pool fire."
+      },
+      {
+        "label": "Fire ball",
+        "reason": "No fireball event is identified as the main consequence; the report emphasizes prolonged burning over 24 hours from spreading liquid fuel."
+      },
+      {
+        "label": "Flash fire",
+        "reason": "The event was not a brief flash fire from ignition of a vapor cloud; it was a persistent, spreading liquid-fuel fire."
+      },
+      {
+        "label": "Toxicity dispersion",
+        "reason": "Fumes, smoke, evacuation, and environmental cleanup occurred, but toxic dispersion was a secondary community impact rather than the primary accident mechanism analyzed."
+      },
+      {
+        "label": "Asphyxiation",
+        "reason": "No oxygen-deficient atmosphere or asphyxiation hazard is described, and there were no related injuries."
+      }
+    ]
+  }
+}

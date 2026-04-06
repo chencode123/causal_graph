@@ -1,0 +1,190 @@
+{
+  "hazard_consequence_node": [
+    {
+      "label": "HazardConsequence",
+      "name": "Confined explosion",
+      "node_id": "H1",
+      "node_type": "HazardConsequence",
+      "evidence": "The report states that \"the initial explosion occurred inside a vertical above-ground storage tank that was being filled with VM&P naphtha\" and that the tank head space likely contained an ignitable vapor-air mixture that was ignited by a likely static spark during filling.",
+      "explanation": "The incident analysis is centered on an internal tank explosion during filling. The report mainly examines how an ignitable vapor-air mixture formed in the tank headspace and how static accumulation and a likely spark from the gauging float linkage ignited it. The later fireball, tank ruptures, and tank farm fire were escalation effects following the primary internal explosion.",
+      "source": "incident_description"
+    }
+  ],
+  "entity_nodes": [
+    {
+      "label": "Material",
+      "name": "VM&P naphtha",
+      "node_id": "En1",
+      "node_type": "Entity",
+      "evidence": "being filled with VM&P naphtha",
+      "explanation": "VM&P naphtha was the flammable liquid being transferred into the tank and generated the ignitable headspace vapor-air mixture involved in the explosion.",
+      "source": "incident_description"
+    },
+    {
+      "label": "Location",
+      "name": "15,000 gallon above-ground storage tank",
+      "node_id": "En2",
+      "node_type": "Entity",
+      "evidence": "into a 15,000 gallon above-ground storage tank",
+      "explanation": "The initial explosion occurred in the storage tank that was receiving the final compartment of the tanker-trailer.",
+      "source": "incident_description"
+    }
+  ],
+  "condition_nodes": [
+    {
+      "label": "Phase",
+      "name": "Vapor",
+      "node_id": "C1",
+      "node_type": "Condition",
+      "evidence": "The tank contained an ignitable vapor-air mixture in its head space.",
+      "explanation": "The confined explosion involved the vapor phase in the tank headspace.",
+      "source": "incident_description"
+    },
+    {
+      "label": "Temperature",
+      "name": "Atmospheric temperature",
+      "node_id": "C3",
+      "node_type": "Condition",
+      "evidence": "at approximately 77˚F (25˚C) (the handling temperature of the VM&P naphtha at the time of the incident)",
+      "explanation": "The material was handled at ambient conditions when the ignitable vapor-air mixture was present.",
+      "source": "incident_description"
+    },
+    {
+      "label": "Volatility",
+      "name": "High volatility",
+      "node_id": "C4",
+      "node_type": "Condition",
+      "evidence": "can produce ignitable vapor-air mixtures inside tanks",
+      "explanation": "The material readily generated ignitable vapors in the tank at the incident temperature.",
+      "source": "incident_description"
+    },
+    {
+      "label": "Combustibility",
+      "name": "Combustible",
+      "node_id": "C5",
+      "node_type": "Condition",
+      "evidence": "VM&P naphtha is a National Fire Protection Association (NFPA) Class IB flammable liquid",
+      "explanation": "The substance was a flammable liquid capable of burning and exploding when mixed with air and ignited.",
+      "source": "incident_description"
+    },
+    {
+      "label": "Conductivity",
+      "name": "Low conductivity",
+      "node_id": "C8",
+      "node_type": "Condition",
+      "evidence": "because of its low electrical conductivity, can accumulate dangerous levels of static electricity.",
+      "explanation": "Low conductivity allowed static charge to accumulate during transfer operations.",
+      "source": "incident_description"
+    },
+    {
+      "label": "Confinement",
+      "name": "High confinement",
+      "node_id": "C10",
+      "node_type": "Condition",
+      "evidence": "the initial explosion occurred inside a vertical above-ground storage tank",
+      "explanation": "The flammable vapor-air mixture was enclosed within the storage tank, creating a highly confined explosion environment.",
+      "source": "incident_description"
+    }
+  ],
+  "event_nodes": [
+    {
+      "label": "InitiatingEvent",
+      "name": "Rapid static charge accumulation during stop-start filling",
+      "node_id": "Ev1",
+      "node_type": "Event",
+      "evidence": "Stop-start filling, air in the transfer piping, and sediment and water (likely present in the tank) caused a rapid static charge accumulation inside the VM&P naphtha tank.",
+      "explanation": "This was the earliest abnormal process condition identified as initiating the sequence that led to ignition of the headspace vapor-air mixture.",
+      "source": "incident_description"
+    },
+    {
+      "label": "MechanicalFailure",
+      "name": "Loose linkage in tank liquid level gauging float separated",
+      "node_id": "Ev2",
+      "node_type": "Event",
+      "evidence": "The design of the tank liquid level gauging system float used by Barton incorporates a loose linkage at the float/tape junction that can separate slightly",
+      "explanation": "The gauging float linkage design created a mechanical malfunction potential that likely separated during filling and enabled spark generation.",
+      "source": "incident_description"
+    },
+    {
+      "label": "IgnitionSource",
+      "name": "Spark from separated gauging float linkage",
+      "node_id": "Ev3",
+      "node_type": "Event",
+      "evidence": "The tank had a liquid level gauging system float with a loose linkage that likely separated and created a spark during filling.",
+      "explanation": "The likely ignition source was a spark generated by the gauging float linkage during filling, which ignited the headspace vapor-air mixture.",
+      "source": "incident_description"
+    }
+  ],
+  "edges": [
+    {
+      "source": "En1",
+      "target": "C3",
+      "relation": "has"
+    },
+    {
+      "source": "En1",
+      "target": "C4",
+      "relation": "has"
+    },
+    {
+      "source": "En1",
+      "target": "C5",
+      "relation": "has"
+    },
+    {
+      "source": "En1",
+      "target": "C8",
+      "relation": "has"
+    },
+    {
+      "source": "En2",
+      "target": "C10",
+      "relation": "enables"
+    },
+    {
+      "source": "C3",
+      "target": "C1",
+      "relation": "enables"
+    },
+    {
+      "source": "C4",
+      "target": "C1",
+      "relation": "enables"
+    },
+    {
+      "source": "C8",
+      "target": "Ev1",
+      "relation": "enables"
+    },
+    {
+      "source": "Ev1",
+      "target": "Ev3",
+      "relation": "enables"
+    },
+    {
+      "source": "Ev2",
+      "target": "Ev3",
+      "relation": "enables"
+    },
+    {
+      "source": "C1",
+      "target": "H1",
+      "relation": "enables"
+    },
+    {
+      "source": "C5",
+      "target": "H1",
+      "relation": "enables"
+    },
+    {
+      "source": "C10",
+      "target": "H1",
+      "relation": "enables"
+    },
+    {
+      "source": "Ev3",
+      "target": "H1",
+      "relation": "enables"
+    }
+  ]
+}

@@ -1,0 +1,77 @@
+{
+  "id": "resp_02f9e133bce957100069b8d55548f4819cb31ed62a85b7100f",
+  "object": "response",
+  "created_at": 1773720917,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1773720954,
+  "error": null,
+  "frequency_penalty": 0.0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": 128000,
+  "max_tool_calls": null,
+  "model": "gpt-5.4-2026-03-05",
+  "output": [
+    {
+      "id": "rs_02f9e133bce957100069b8d555df58819cbe17cf2d8d2beea2",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_02f9e133bce957100069b8d578646c819ca906b985c1846261",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "{\n  \"edges\": [\n    {\n      \"source\": \"En1\",\n      \"target\": \"C1\",\n      \"relation\": \"has\"\n    },\n    {\n      \"source\": \"En1\",\n      \"target\": \"C5\",\n      \"relation\": \"has\"\n    },\n    {\n      \"source\": \"Ev1\",\n      \"target\": \"C3\",\n      \"relation\": \"enables\"\n    },\n    {\n      \"source\": \"C3\",\n      \"target\": \"C2\",\n      \"relation\": \"enables\"\n    },\n    {\n      \"source\": \"C2\",\n      \"target\": \"Ev2\",\n      \"relation\": \"enables\"\n    },\n    {\n      \"source\": \"Ev2\",\n      \"target\": \"C6\",\n      \"relation\": \"enables\"\n    },\n    {\n      \"source\": \"C6\",\n      \"target\": \"H1\",\n      \"relation\": \"enables\"\n    },\n    {\n      \"source\": \"C1\",\n      \"target\": \"H1\",\n      \"relation\": \"enables\"\n    },\n    {\n      \"source\": \"C5\",\n      \"target\": \"H1\",\n      \"relation\": \"enables\"\n    },\n    {\n      \"source\": \"Ev1\",\n      \"target\": \"H1\",\n      \"relation\": \"enables\"\n    }\n  ]\n}"
+        }
+      ],
+      "phase": "final_answer",
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0.0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": null,
+  "reasoning": {
+    "effort": "high",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1.0,
+  "text": {
+    "format": {
+      "type": "json_object"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 0.98,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 6813,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 3715,
+    "output_tokens_details": {
+      "reasoning_tokens": 3419
+    },
+    "total_tokens": 10528
+  },
+  "user": null,
+  "metadata": {}
+}

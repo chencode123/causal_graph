@@ -1,0 +1,165 @@
+You are an expert in process safety accident analysis.
+
+{few_shot_examples}
+
+INPUT:
+
+INCIDENT_DESCRIPTION
+{incident_description}
+
+IDENTIFIED_HAZARD_CONSEQUENCE
+{identify_hazard_consequence_output}
+
+CAUSAL_NARRATIVE_EXTRACTION_OUTPUT
+{causal_narrative_extraction_output}
+
+ACCIDENT_SCENARIO_SCHEMA
+{accident_scenario_schema}
+
+ACCIDENT_SCENARIO_SCHEMA_DEFINITION
+{accident_scenario_schema_definition}
+
+TASK:
+
+Your task is to construct one coherent accident causal graph directly from the incident description.
+
+You must perform node identification and edge linking together in one step.
+
+Use INCIDENT_DESCRIPTION as the primary factual source.
+Use IDENTIFIED_HAZARD_CONSEQUENCE as the required hazard consequence reference.
+Use CAUSAL_NARRATIVE_EXTRACTION_OUTPUT as the primary reference for the main accident progression and key intermediate steps.
+Use ACCIDENT_SCENARIO_SCHEMA and ACCIDENT_SCENARIO_SCHEMA_DEFINITION to constrain node labels, node types, and graph structure.
+
+Your goal is to produce a graph whose nodes are sufficient to represent the main causal chain without missing necessary intermediate steps, and whose edges reflect only direct local causal relationships.
+
+GRAPH CONSTRUCTION RULES
+
+1. First infer the main causal progression from INCIDENT_DESCRIPTION and CAUSAL_NARRATIVE_EXTRACTION_OUTPUT.
+
+2. Then identify the minimum necessary nodes required to represent that progression.
+
+3. Then connect those nodes using only direct edges.
+
+4. The hazard_consequence must copy the node provided in IDENTIFIED_HAZARD_CONSEQUENCE.
+
+5. If a key causal step is necessary for graph coherence, include a node for it.
+
+6. Do not mechanically fill the schema with weak or unnecessary nodes.
+
+7. Do not omit a necessary intermediate node if its absence would force unnatural or transitive edges.
+
+8. Exclude nodes that represent non-occurring or unspecified conditions, such as "Not dispersed" or "Not specified".
+
+9. The hazard consequence should be the downstream endpoint of the graph.
+
+10. Avoid transitive edges.
+If there is a path A -> B -> C, do not also create A -> C unless the text explicitly supports a separate direct relationship.
+
+11. Multiple upstream nodes may connect in parallel to the same downstream node if the report supports that structure.
+
+ALLOWED EDGE RELATIONS
+
+1. has
+   Used when a material or entity possesses a property, state, or defining condition.
+   Example:
+   Material -> Volatility
+   Material -> Temperature
+   Equipment -> High confinement
+
+2. enables
+   Used when the source directly contributes to the occurrence of the downstream event, condition, or hazard consequence as a causal mechanism.
+   Example:
+   Ignition source -> Flash fire
+
+SPECIAL LINKING RULES
+
+1. Follow the general causal hierarchy:
+   Entity -> Condition -> Event -> HazardConsequence
+   but the graph does not need to be strictly linear.
+
+2. Material may link to its properties only using relation "has".
+
+3. Conditions or events may connect to downstream conditions or events when there is a clear direct causal relationship.
+
+4. IgnitionSource must be treated as an independent triggering event.
+   Do not create edges pointing TO IgnitionSource unless the source physically generates or triggers the ignition mechanism.
+
+5. If the text describes a vapor cloud reaching an ignition source, this is contact, not causation.
+   Do not create VaporCloud -> IgnitionSource.
+
+EVIDENCE AND EXPLANATION RULES
+
+1. Evidence must be a short supporting text span grounded in INCIDENT_DESCRIPTION whenever possible.
+
+2. If the source text does not explicitly state the relation but strongly supports it, evidence may be a short paraphrase based on the input.
+
+3. Explanation must briefly explain the direct local relationship only.
+
+4. Do not explain the entire accident sequence inside one node or edge explanation.
+
+5. Keep evidence and explanation concise.
+
+OUTPUT REQUIREMENTS
+
+Return one JSON object with the following structure:
+
+{{
+  "hazard_consequence_node": [
+    {{
+      "label": "string",
+      "name": "string",
+      "node_id": "string",
+      "node_type": "HazardConsequence",
+      "evidence": "string",
+      "explanation": "string",
+      "source": "incident_description | Not specified"
+    }}
+  ],
+  "entity_nodes": [
+    {{
+      "label": "string",
+      "name": "string",
+      "node_id": "string",
+      "node_type": "Entity",
+      "evidence": "string",
+      "explanation": "string",
+      "source": "incident_description | Not specified"
+    }}
+  ],
+  "condition_nodes": [
+    {{
+      "label": "string",
+      "name": "string",
+      "node_id": "string",
+      "node_type": "Condition",
+      "evidence": "string",
+      "explanation": "string",
+      "source": "incident_description | Not specified"
+    }}
+  ],
+  "event_nodes": [
+    {{
+      "label": "string",
+      "name": "string",
+      "node_id": "string",
+      "node_type": "Event",
+      "evidence": "string",
+      "explanation": "string",
+      "source": "incident_description | Not specified"
+    }}
+  ],
+  "edges": [
+    {{
+      "source": "node_id",
+      "target": "node_id",
+      "relation": "has | enables",
+      "evidence": "string",
+      "explanation": "string"
+    }}
+  ]
+}}
+
+OUTPUT FORMAT
+
+Return JSON only.
+Do not include explanations or additional text outside the JSON object.

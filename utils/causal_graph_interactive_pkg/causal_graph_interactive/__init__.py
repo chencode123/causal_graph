@@ -26,6 +26,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable, Union, List, Optional, Dict, Set, Tuple
+from copy import deepcopy
 import json
 import os
 import re
@@ -48,10 +49,13 @@ HAZARD_COLORS: Dict[str, str] = {
     "asphyxiation": "#4CC9A1",
 }
 
+STYLE_VERSION = "card-style-v2.1"
+
 __all__ = [
     "HAZARD_COLORS",
     "draw_causal_graph_interactive",
     "draw_causal_graph_interactive_from_json",
+    "draw_updated_causal_graph_interactive_from_json",
 ]
 
 
@@ -254,8 +258,15 @@ def _collect_scenario_nodes(payload: Dict[str, object]) -> List[Dict[str, str]]:
     return nodes
 
 
-def _node_fill_from_type(node_type: str, name: str) -> str:
+def _canonicalize_node_type(node_type: str) -> str:
     normalized_type = (node_type or "").strip().lower()
+    if normalized_type == "intermediateevent":
+        return "event"
+    return normalized_type
+
+
+def _node_fill_from_type(node_type: str, name: str) -> str:
+    normalized_type = _canonicalize_node_type(node_type)
     if normalized_type == "hazardconsequence":
         return "#ffd6d6"
     if normalized_type == "condition":
@@ -294,7 +305,9 @@ def _build_elements_from_json_graph(
         name = str(node.get("name", "")).strip() or "N/A"
         if _should_hide_node(name):
             continue
-        node_type = str(node.get("node_type", "")).strip() or "Unknown"
+        raw_node_type = str(node.get("node_type", "")).strip()
+        canonical_node_type = _canonicalize_node_type(raw_node_type)
+        node_type = canonical_node_type or "Unknown"
         label_wrapped = _wrap_label(label, width=18)
         name_wrapped = _wrap_label(name, width=24)
         label_line_count = max(1, len(label_wrapped.splitlines()))
@@ -344,6 +357,8 @@ def _build_elements_from_json_graph(
         source = str(edge.get("source", "")).strip()
         target = str(edge.get("target", "")).strip()
         relation = str(edge.get("relation", "")).strip()
+        evidence = str(edge.get("evidence", "")).strip()
+        explanation = str(edge.get("explanation", "")).strip()
         if not source or not target:
             continue
         if source not in nodes_by_id or target not in nodes_by_id:
@@ -362,7 +377,16 @@ def _build_elements_from_json_graph(
                     "target": target,
                     "label": relation,
                     "relation": relation,
-                    "title": f"{source} -> {target}\nRelation: {relation or 'N/A'}",
+                    "evidence": evidence,
+                    "explanation": explanation,
+                    "title": "\n".join(
+                        [
+                            f"{source} -> {target}",
+                            f"Relation: {relation or 'N/A'}",
+                            f"Evidence: {evidence}",
+                            f"Explanation: {explanation}",
+                        ]
+                    ),
                 }
             }
         )
@@ -395,7 +419,7 @@ def _build_schema_form_options(schema_payload: Dict[str, object]) -> Dict[str, o
             if not isinstance(item, dict):
                 continue
             label = str(item.get("label", "")).strip()
-            node_type = str(item.get("node_type", "")).strip()
+            node_type = _canonicalize_node_type(str(item.get("node_type", "")).strip())
             if label and label not in labels:
                 labels.append(label)
             if node_type and node_type not in types:
@@ -409,6 +433,488 @@ def _build_schema_form_options(schema_payload: Dict[str, object]) -> Dict[str, o
         "label_to_type": label_to_type,
         "relations": ["has", "enables"],
     }
+
+
+def _apply_deleted_marks_from_review_state(
+    graph_elements: Dict[str, List[Dict[str, object]]],
+    review_state_payload: Dict[str, object],
+) -> None:
+    if not isinstance(graph_elements, dict) or not isinstance(review_state_payload, dict):
+        return
+
+    deleted_nodes_raw = review_state_payload.get("deleted_nodes", [])
+    deleted_edges_raw = review_state_payload.get("deleted_edges", [])
+
+    deleted_node_ids: Set[str] = set()
+    if isinstance(deleted_nodes_raw, list):
+        for item in deleted_nodes_raw:
+            if isinstance(item, str):
+                node_id = item.strip()
+                if node_id:
+                    deleted_node_ids.add(node_id)
+            elif isinstance(item, dict):
+                node_id = str(item.get("node_id", "")).strip() or str(item.get("id", "")).strip()
+                if node_id:
+                    deleted_node_ids.add(node_id)
+
+    deleted_edge_keys: Set[Tuple[str, str, str]] = set()
+    if isinstance(deleted_edges_raw, list):
+        for item in deleted_edges_raw:
+            if not isinstance(item, dict):
+                continue
+            source = str(item.get("source", "")).strip()
+            target = str(item.get("target", "")).strip()
+            relation = str(item.get("relation", "")).strip()
+            if source and target:
+                deleted_edge_keys.add((source, target, relation))
+
+    for node in graph_elements.get("nodes", []):
+        if not isinstance(node, dict):
+            continue
+        data = node.get("data", {})
+        if not isinstance(data, dict):
+            continue
+        node_id = str(data.get("nodeId", "")).strip() or str(data.get("id", "")).strip()
+        if node_id in deleted_node_ids:
+            classes = str(node.get("classes", "")).strip()
+            if "delete-mark" not in classes.split():
+                node["classes"] = f"{classes} delete-mark".strip()
+
+    for edge in graph_elements.get("edges", []):
+        if not isinstance(edge, dict):
+            continue
+        data = edge.get("data", {})
+        if not isinstance(data, dict):
+            continue
+        key = (
+            str(data.get("source", "")).strip(),
+            str(data.get("target", "")).strip(),
+            str(data.get("relation", data.get("label", ""))).strip(),
+        )
+        if key in deleted_edge_keys:
+            classes = str(edge.get("classes", "")).strip()
+            if "delete-mark" not in classes.split():
+                edge["classes"] = f"{classes} delete-mark".strip()
+
+
+def _extract_deleted_marks_from_existing_html(
+    html_path: Union[str, os.PathLike],
+) -> Dict[str, Set[Tuple[str, str, str]]]:
+    path = Path(html_path)
+    if not path.exists():
+        return {"nodes": set(), "edges": set()}
+
+    try:
+        text = path.read_text(encoding="utf-8")
+    except Exception:
+        return {"nodes": set(), "edges": set()}
+
+    match = re.search(
+        r"const elements = (.*?);\s*const schemaForm =",
+        text,
+        flags=re.DOTALL,
+    )
+    if not match:
+        return {"nodes": set(), "edges": set()}
+
+    elements_json = match.group(1).strip()
+    try:
+        elements = json.loads(elements_json)
+    except Exception:
+        return {"nodes": set(), "edges": set()}
+    if not isinstance(elements, dict):
+        return {"nodes": set(), "edges": set()}
+
+    deleted_node_ids: Set[Tuple[str, str, str]] = set()
+    for node in elements.get("nodes", []):
+        if not isinstance(node, dict):
+            continue
+        classes = str(node.get("classes", "")).strip().split()
+        if "delete-mark" not in classes:
+            continue
+        data = node.get("data", {})
+        if not isinstance(data, dict):
+            continue
+        node_id = str(data.get("nodeId", "")).strip() or str(data.get("id", "")).strip()
+        if node_id:
+            deleted_node_ids.add((node_id, "", ""))
+
+    deleted_edge_keys: Set[Tuple[str, str, str]] = set()
+    for edge in elements.get("edges", []):
+        if not isinstance(edge, dict):
+            continue
+        classes = str(edge.get("classes", "")).strip().split()
+        if "delete-mark" not in classes:
+            continue
+        data = edge.get("data", {})
+        if not isinstance(data, dict):
+            continue
+        source = str(data.get("source", "")).strip()
+        target = str(data.get("target", "")).strip()
+        relation = str(data.get("relation", data.get("label", ""))).strip()
+        if source and target:
+            deleted_edge_keys.add((source, target, relation))
+
+    return {"nodes": deleted_node_ids, "edges": deleted_edge_keys}
+
+
+def _apply_deleted_marks_from_existing_html(
+    graph_elements: Dict[str, List[Dict[str, object]]],
+    existing_html_path: Union[str, os.PathLike],
+) -> None:
+    extracted = _extract_deleted_marks_from_existing_html(existing_html_path)
+    deleted_nodes = extracted.get("nodes", set())
+    deleted_edges = extracted.get("edges", set())
+
+    if not deleted_nodes and not deleted_edges:
+        return
+
+    deleted_node_ids = {node_id for node_id, _, _ in deleted_nodes}
+
+    for node in graph_elements.get("nodes", []):
+        if not isinstance(node, dict):
+            continue
+        data = node.get("data", {})
+        if not isinstance(data, dict):
+            continue
+        node_id = str(data.get("nodeId", "")).strip() or str(data.get("id", "")).strip()
+        if node_id in deleted_node_ids:
+            classes = str(node.get("classes", "")).strip()
+            if "delete-mark" not in classes.split():
+                node["classes"] = f"{classes} delete-mark".strip()
+
+    for edge in graph_elements.get("edges", []):
+        if not isinstance(edge, dict):
+            continue
+        data = edge.get("data", {})
+        if not isinstance(data, dict):
+            continue
+        key = (
+            str(data.get("source", "")).strip(),
+            str(data.get("target", "")).strip(),
+            str(data.get("relation", data.get("label", ""))).strip(),
+        )
+        if key in deleted_edges:
+            classes = str(edge.get("classes", "")).strip()
+            if "delete-mark" not in classes.split():
+                edge["classes"] = f"{classes} delete-mark".strip()
+
+
+def _load_elements_from_existing_html(
+    html_path: Union[str, os.PathLike],
+) -> Dict[str, List[Dict[str, object]]]:
+    path = Path(html_path)
+    if not path.exists():
+        return {"nodes": [], "edges": []}
+    try:
+        text = path.read_text(encoding="utf-8")
+    except Exception:
+        return {"nodes": [], "edges": []}
+
+    match = re.search(
+        r"const elements = (.*?);\s*const schemaForm =",
+        text,
+        flags=re.DOTALL,
+    )
+    if not match:
+        return {"nodes": [], "edges": []}
+
+    try:
+        payload = json.loads(match.group(1).strip())
+    except Exception:
+        return {"nodes": [], "edges": []}
+    if not isinstance(payload, dict):
+        return {"nodes": [], "edges": []}
+
+    nodes = payload.get("nodes", [])
+    edges = payload.get("edges", [])
+    return {
+        "nodes": nodes if isinstance(nodes, list) else [],
+        "edges": edges if isinstance(edges, list) else [],
+    }
+
+
+def _merge_deleted_elements_from_existing_html(
+    graph_elements: Dict[str, List[Dict[str, object]]],
+    existing_html_path: Union[str, os.PathLike],
+) -> None:
+    existing = _load_elements_from_existing_html(existing_html_path)
+    existing_nodes = existing.get("nodes", [])
+    existing_edges = existing.get("edges", [])
+
+    if not existing_nodes and not existing_edges:
+        return
+
+    nodes = graph_elements.setdefault("nodes", [])
+    edges = graph_elements.setdefault("edges", [])
+
+    node_index: Dict[str, Dict[str, object]] = {}
+    for node in nodes:
+        if not isinstance(node, dict):
+            continue
+        data = node.get("data", {})
+        if not isinstance(data, dict):
+            continue
+        node_id = str(data.get("nodeId", "")).strip() or str(data.get("id", "")).strip()
+        if node_id:
+            node_index[node_id] = node
+
+    for old_node in existing_nodes:
+        if not isinstance(old_node, dict):
+            continue
+        old_classes = str(old_node.get("classes", "")).strip().split()
+        if "delete-mark" not in old_classes:
+            continue
+        data = old_node.get("data", {})
+        if not isinstance(data, dict):
+            continue
+        node_id = str(data.get("nodeId", "")).strip() or str(data.get("id", "")).strip()
+        if not node_id:
+            continue
+        if node_id in node_index:
+            classes = str(node_index[node_id].get("classes", "")).strip()
+            if "delete-mark" not in classes.split():
+                node_index[node_id]["classes"] = f"{classes} delete-mark".strip()
+        else:
+            copied = deepcopy(old_node)
+            classes = str(copied.get("classes", "")).strip()
+            if "delete-mark" not in classes.split():
+                copied["classes"] = f"{classes} delete-mark".strip()
+            nodes.append(copied)
+            node_index[node_id] = copied
+
+    edge_index: Dict[Tuple[str, str, str], Dict[str, object]] = {}
+    for edge in edges:
+        if not isinstance(edge, dict):
+            continue
+        data = edge.get("data", {})
+        if not isinstance(data, dict):
+            continue
+        key = (
+            str(data.get("source", "")).strip(),
+            str(data.get("target", "")).strip(),
+            str(data.get("relation", data.get("label", ""))).strip(),
+        )
+        if key[0] and key[1]:
+            edge_index[key] = edge
+
+    existing_node_by_id: Dict[str, Dict[str, object]] = {}
+    for old_node in existing_nodes:
+        if not isinstance(old_node, dict):
+            continue
+        data = old_node.get("data", {})
+        if not isinstance(data, dict):
+            continue
+        node_id = str(data.get("nodeId", "")).strip() or str(data.get("id", "")).strip()
+        if node_id:
+            existing_node_by_id[node_id] = old_node
+
+    for old_edge in existing_edges:
+        if not isinstance(old_edge, dict):
+            continue
+        old_classes = str(old_edge.get("classes", "")).strip().split()
+        if "delete-mark" not in old_classes:
+            continue
+        data = old_edge.get("data", {})
+        if not isinstance(data, dict):
+            continue
+        source = str(data.get("source", "")).strip()
+        target = str(data.get("target", "")).strip()
+        relation = str(data.get("relation", data.get("label", ""))).strip()
+        if not source or not target:
+            continue
+        key = (source, target, relation)
+
+        if source not in node_index and source in existing_node_by_id:
+            copied_src = deepcopy(existing_node_by_id[source])
+            src_classes = str(copied_src.get("classes", "")).strip()
+            if "delete-mark" not in src_classes.split():
+                copied_src["classes"] = f"{src_classes} delete-mark".strip()
+            nodes.append(copied_src)
+            node_index[source] = copied_src
+        if target not in node_index and target in existing_node_by_id:
+            copied_tgt = deepcopy(existing_node_by_id[target])
+            tgt_classes = str(copied_tgt.get("classes", "")).strip()
+            if "delete-mark" not in tgt_classes.split():
+                copied_tgt["classes"] = f"{tgt_classes} delete-mark".strip()
+            nodes.append(copied_tgt)
+            node_index[target] = copied_tgt
+
+        if key in edge_index:
+            classes = str(edge_index[key].get("classes", "")).strip()
+            if "delete-mark" not in classes.split():
+                edge_index[key]["classes"] = f"{classes} delete-mark".strip()
+        else:
+            copied_edge = deepcopy(old_edge)
+            classes = str(copied_edge.get("classes", "")).strip()
+            if "delete-mark" not in classes.split():
+                copied_edge["classes"] = f"{classes} delete-mark".strip()
+            edges.append(copied_edge)
+            edge_index[key] = copied_edge
+
+
+def _ensure_unique_element_ids(graph_elements: Dict[str, List[Dict[str, object]]]) -> None:
+    nodes = graph_elements.get("nodes", [])
+    edges = graph_elements.get("edges", [])
+
+    used_ids: Set[str] = set()
+    duplicate_index = 0
+
+    for node in nodes:
+        if not isinstance(node, dict):
+            continue
+        data = node.get("data", {})
+        if not isinstance(data, dict):
+            continue
+        raw_id = str(data.get("id", "")).strip()
+        if not raw_id:
+            duplicate_index += 1
+            raw_id = f"n_auto_{duplicate_index}"
+            data["id"] = raw_id
+        if raw_id in used_ids:
+            duplicate_index += 1
+            new_id = f"{raw_id}_dup_{duplicate_index}"
+            data["id"] = new_id
+            raw_id = new_id
+        used_ids.add(raw_id)
+        node_id = str(data.get("nodeId", "")).strip()
+        if not node_id:
+            data["nodeId"] = raw_id
+
+    for edge in edges:
+        if not isinstance(edge, dict):
+            continue
+        data = edge.get("data", {})
+        if not isinstance(data, dict):
+            continue
+        raw_id = str(data.get("id", "")).strip()
+        if not raw_id:
+            duplicate_index += 1
+            raw_id = f"e_auto_{duplicate_index}"
+            data["id"] = raw_id
+        if raw_id in used_ids:
+            duplicate_index += 1
+            new_id = f"{raw_id}_dup_{duplicate_index}"
+            data["id"] = new_id
+            raw_id = new_id
+        used_ids.add(raw_id)
+
+
+def _append_class(element: Dict[str, object], class_name: str) -> None:
+    classes = str(element.get("classes", "")).strip().split()
+    if class_name not in classes:
+        classes.append(class_name)
+    element["classes"] = " ".join(classes).strip()
+
+
+def _edge_key_from_data(data: Dict[str, object]) -> Tuple[str, str, str]:
+    source = str(data.get("source", "")).strip()
+    target = str(data.get("target", "")).strip()
+    relation = str(data.get("relation", data.get("label", ""))).strip()
+    return (source, target, relation)
+
+
+def _text_field(value: object) -> str:
+    return str(value or "").strip()
+
+
+def _apply_diff_marks_from_baseline_html(
+    graph_elements: Dict[str, List[Dict[str, object]]],
+    baseline_html_path: Union[str, os.PathLike],
+) -> None:
+    baseline = _load_elements_from_existing_html(baseline_html_path)
+    baseline_nodes = baseline.get("nodes", [])
+    baseline_edges = baseline.get("edges", [])
+    if not baseline_nodes and not baseline_edges:
+        return
+
+    nodes = graph_elements.setdefault("nodes", [])
+    edges = graph_elements.setdefault("edges", [])
+
+    current_node_index: Dict[str, Dict[str, object]] = {}
+    for node in nodes:
+        if not isinstance(node, dict):
+            continue
+        data = node.get("data", {})
+        if not isinstance(data, dict):
+            continue
+        node_id = _text_field(data.get("nodeId")) or _text_field(data.get("id"))
+        if node_id:
+            current_node_index[node_id] = node
+
+    baseline_node_index: Dict[str, Dict[str, object]] = {}
+    for node in baseline_nodes:
+        if not isinstance(node, dict):
+            continue
+        data = node.get("data", {})
+        if not isinstance(data, dict):
+            continue
+        node_id = _text_field(data.get("nodeId")) or _text_field(data.get("id"))
+        if node_id:
+            baseline_node_index[node_id] = node
+
+    # Mark node updates when node_id matches but text fields changed.
+    for node_id, current_node in current_node_index.items():
+        baseline_node = baseline_node_index.get(node_id)
+        if not baseline_node:
+            continue
+        current_data = current_node.get("data", {}) if isinstance(current_node.get("data", {}), dict) else {}
+        baseline_data = baseline_node.get("data", {}) if isinstance(baseline_node.get("data", {}), dict) else {}
+        changed = (
+            _text_field(current_data.get("name")) != _text_field(baseline_data.get("name"))
+            or _text_field(current_data.get("evidence")) != _text_field(baseline_data.get("evidence"))
+            or _text_field(current_data.get("explanation")) != _text_field(baseline_data.get("explanation"))
+        )
+        if changed:
+            _append_class(current_node, "added-highlight")
+
+    current_edge_index: Dict[Tuple[str, str, str], Dict[str, object]] = {}
+    for edge in edges:
+        if not isinstance(edge, dict):
+            continue
+        data = edge.get("data", {})
+        if not isinstance(data, dict):
+            continue
+        key = _edge_key_from_data(data)
+        if key[0] and key[1]:
+            current_edge_index[key] = edge
+
+    baseline_edge_index: Dict[Tuple[str, str, str], Dict[str, object]] = {}
+    for edge in baseline_edges:
+        if not isinstance(edge, dict):
+            continue
+        data = edge.get("data", {})
+        if not isinstance(data, dict):
+            continue
+        key = _edge_key_from_data(data)
+        if key[0] and key[1]:
+            baseline_edge_index[key] = edge
+
+    # Mark edges as added when they exist in current graph but not in baseline.
+    for key, current_edge in current_edge_index.items():
+        if key not in baseline_edge_index:
+            _append_class(current_edge, "added-highlight")
+
+    # Add deleted-edge traces for edges that existed in baseline but are gone now.
+    for key, baseline_edge in baseline_edge_index.items():
+        if key in current_edge_index:
+            continue
+        source_id, target_id, _ = key
+        if source_id not in current_node_index and source_id in baseline_node_index:
+            copied_src = deepcopy(baseline_node_index[source_id])
+            _append_class(copied_src, "delete-mark")
+            nodes.append(copied_src)
+            current_node_index[source_id] = copied_src
+        if target_id not in current_node_index and target_id in baseline_node_index:
+            copied_tgt = deepcopy(baseline_node_index[target_id])
+            _append_class(copied_tgt, "delete-mark")
+            nodes.append(copied_tgt)
+            current_node_index[target_id] = copied_tgt
+
+        copied_edge = deepcopy(baseline_edge)
+        _append_class(copied_edge, "delete-mark")
+        edges.append(copied_edge)
+        current_edge_index[key] = copied_edge
 
 # ============================================================
 # HTML generation
@@ -1088,9 +1594,12 @@ function isHazardConsequenceNode(label){
           selector: "node",
           style: {
             "shape": "round-rectangle",
-            "background-color": "data(fill)",
-            "border-color": COLORS.border,
-            "border-width": 1,
+            "background-color": "transparent",
+            "background-opacity": 0,
+            "border-color": "transparent",
+            "border-width": 0,
+            "border-opacity": 0,
+            "corner-radius": 0,
             "label": "data(labelWrapped)",
             "text-wrap": "wrap",
             "text-max-width": 220,
@@ -1106,8 +1615,8 @@ function isHazardConsequenceNode(label){
         {
           selector: "node:selected",
           style: {
-            "border-width": 3,
-            "border-color": "#7aa2ff",
+            "border-width": 0,
+            "border-color": "transparent",
             "shadow-blur": 12,
             "shadow-color": "rgba(122,162,255,0.55)",
             "shadow-opacity": 0.9,
@@ -1142,8 +1651,8 @@ function isHazardConsequenceNode(label){
         {
           selector: "node.added-highlight",
           style: {
-            "border-width": 3,
-            "border-color": "#ff4d4f",
+            "border-width": 0,
+            "border-color": "transparent",
             "border-style": "solid"
           }
         },
@@ -1159,8 +1668,8 @@ function isHazardConsequenceNode(label){
         {
           selector: "node.delete-mark",
           style: {
-            "border-width": 3,
-            "border-color": "#2ecc71",
+            "border-width": 0,
+            "border-color": "transparent",
             "border-style": "dashed"
           }
         },
@@ -1509,9 +2018,10 @@ function isHazardConsequenceNode(label){
 
     function markAsAdded(elements){
       if (!elements || !elements.length) return;
-      clearHistoryFlag(elements);
-      elements.removeClass("delete-mark");
-      elements.addClass("added-highlight");
+      const activeElements = elements.filter(ele => !ele.hasClass("delete-mark"));
+      if (!activeElements || !activeElements.length) return;
+      clearHistoryFlag(activeElements);
+      activeElements.addClass("added-highlight");
     }
 
     function markAsDeleted(elements){
@@ -1524,7 +2034,7 @@ function isHazardConsequenceNode(label){
     /******************************************************************
     * Deleted (green dashed) visibility + clear marks
     ******************************************************************/
-    let deletedVisible = true;
+    let deletedVisible = {{DELETED_VISIBLE_JSON}};
 
     function setDeletedVisibility(visible){
       deletedVisible = !!visible;
@@ -2124,10 +2634,11 @@ function isHazardConsequenceNode(label){
       const a = document.createElement("a");
       a.href = url;
       a.download = filename;
+      a.style.display = "none";
       document.body.appendChild(a);
       a.click();
       a.remove();
-      URL.revokeObjectURL(url);
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
     }
 
     function encodeJsonForScript(value){
@@ -3165,32 +3676,85 @@ _JSON_GRAPH_HTML_TEMPLATE = r"""<!doctype html>
       pointer-events: none;
       overflow: hidden;
     }
-    .node-overlay {
+    #node-measure-box {
       position: absolute;
+      left: -10000px;
+      top: -10000px;
+      width: 260px;
+      visibility: hidden;
+      pointer-events: none;
+    }
+    .node-measure-card {
       box-sizing: border-box;
-      padding: 8px 10px;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      text-align: center;
-      color: #111827;
-      line-height: 1.2;
-      font-size: 14px;
+      width: 260px;
+      border-radius: 8px;
+      border: 1px solid rgba(31, 41, 55, 0.18);
+      background: #ffffff;
+      box-shadow: none;
       overflow: hidden;
     }
+    .node-measure-header {
+      box-sizing: border-box;
+      font-weight: 700;
+      font-size: 18px;
+      line-height: 1.25;
+      color: #ffffff;
+      text-align: center;
+      white-space: pre-line;
+      padding: 8px 10px 7px;
+      margin: 0 0 6px 0;
+    }
+    .node-measure-body {
+      box-sizing: border-box;
+      font-size: 18px;
+      line-height: 1.25;
+      color: #111827;
+      white-space: normal;
+      text-align: left;
+      padding: 8px 10px 14px;
+    }
+    .node-measure-line + .node-measure-line {
+      margin-top: 3px;
+    }
+    .node-overlay {
+      --node-card-radius: 8px;
+      position: absolute;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      color: #111827;
+      line-height: 1.25;
+      font-size: 14px;
+      overflow: hidden;
+      border-radius: var(--node-card-radius);
+      border: 1px solid rgba(31, 41, 55, 0.18);
+      background: #ffffff;
+      box-shadow: none;
+    }
     .node-overlay.deleted-overlay {
-      opacity: 0.45;
+      opacity: 0.62;
+      filter: grayscale(0.75) saturate(0.7);
       text-decoration: line-through;
     }
     .node-overlay-label {
       font-weight: 700;
-      margin-bottom: 4px;
       white-space: pre-line;
+      color: #ffffff;
+      text-align: center;
     }
     .node-overlay-name {
-      font-weight: 400;
-      white-space: pre-line;
+      box-sizing: border-box;
+      flex: 1;
+      background: #ffffff;
+      color: #111827;
+      line-height: 1.25;
+      white-space: normal;
+      overflow: visible;
+      overflow-wrap: anywhere;
+      text-align: left;
+    }
+    .node-overlay-name-line + .node-overlay-name-line {
+      margin-top: 3px;
     }
     @media (max-width: 1100px) {
       .page {
@@ -3290,6 +3854,7 @@ _JSON_GRAPH_HTML_TEMPLATE = r"""<!doctype html>
     </div>
   </div>
   <div id="modal-backdrop" class="modal-backdrop"></div>
+  <div id="node-measure-box"></div>
   <script>
     cytoscape.use(cytoscapeDagre);
     const elements = {{GRAPH_ELEMENTS_JSON}};
@@ -3313,9 +3878,12 @@ _JSON_GRAPH_HTML_TEMPLATE = r"""<!doctype html>
           selector: "node",
           style: {
             "shape": "round-rectangle",
-            "background-color": "data(fill)",
-            "border-color": "#8f8f8f",
-            "border-width": 1.2,
+            "background-color": "transparent",
+            "background-opacity": 0,
+            "border-color": "transparent",
+            "border-width": 0,
+            "border-opacity": 0,
+            "corner-radius": 0,
             "label": "",
             "width": "data(nodeWidth)",
             "height": "data(nodeHeight)",
@@ -3349,8 +3917,8 @@ _JSON_GRAPH_HTML_TEMPLATE = r"""<!doctype html>
         {
           selector: "node.added-highlight",
           style: {
-            "border-color": "#dc2626",
-            "border-width": 3
+            "border-color": "transparent",
+            "border-width": 0
           }
         },
         {
@@ -3364,8 +3932,8 @@ _JSON_GRAPH_HTML_TEMPLATE = r"""<!doctype html>
         {
           selector: "node.delete-mark",
           style: {
-            "border-color": "#b45309",
-            "border-width": 3,
+            "border-color": "transparent",
+            "border-width": 0,
             "border-style": "dashed",
             "background-opacity": 0.35
           }
@@ -3383,7 +3951,7 @@ _JSON_GRAPH_HTML_TEMPLATE = r"""<!doctype html>
         {
           selector: ":selected",
           style: {
-            "border-color": "#2563eb",
+            "border-color": "transparent",
             "line-color": "#2563eb",
             "target-arrow-color": "#2563eb"
           }
@@ -3391,7 +3959,7 @@ _JSON_GRAPH_HTML_TEMPLATE = r"""<!doctype html>
         {
           selector: ".added-highlight:selected",
           style: {
-            "border-color": "#dc2626",
+            "border-color": "transparent",
             "line-color": "#dc2626",
             "target-arrow-color": "#dc2626"
           }
@@ -3409,10 +3977,12 @@ _JSON_GRAPH_HTML_TEMPLATE = r"""<!doctype html>
 
     const page = document.querySelector(".page");
     const overlay = document.getElementById("node-label-overlay");
+    const nodeMeasureBox = document.getElementById("node-measure-box");
     const detailContent = document.getElementById("detail-content");
     const revisionContent = document.getElementById("revision-content");
     const detailView = document.getElementById("detail-view");
     const revisionView = document.getElementById("revision-view");
+    const detailPanelScroll = document.querySelector(".detail-panel-scroll");
     const detailSummaryValue = document.getElementById("detail-summary-value");
     const detailTabButton = document.getElementById("detail-tab-button");
     const revisionTabButton = document.getElementById("revision-tab-button");
@@ -3434,7 +4004,7 @@ _JSON_GRAPH_HTML_TEMPLATE = r"""<!doctype html>
     const modalBackdrop = document.getElementById("modal-backdrop");
     let edgeCreationSource = null;
     let edgeCreationMode = false;
-    let deletedVisible = true;
+    let deletedVisible = {{DELETED_VISIBLE_JSON}};
     const undoStack = [];
     const redoStack = [];
     const MAX_HISTORY = 50;
@@ -3447,6 +4017,12 @@ _JSON_GRAPH_HTML_TEMPLATE = r"""<!doctype html>
     let leftPanelVisible = true;
     let rightPanelVisible = false;
     let initialViewportApplied = false;
+
+    function canonicalizeNodeType(nodeType) {
+      const normalized = String(nodeType || "").trim().toLowerCase();
+      if (normalized === "intermediateevent") return "entity";
+      return normalized;
+    }
 
     function setDetailSummary(text) {
       if (!detailSummaryValue) return;
@@ -3584,7 +4160,7 @@ _JSON_GRAPH_HTML_TEMPLATE = r"""<!doctype html>
         }
       });
       function reservePreviewNodeId(nodeType) {
-        const normalized = String(nodeType || "").toLowerCase();
+        const normalized = canonicalizeNodeType(nodeType);
         const prefixMap = {
           hazardconsequence: "H",
           entity: "En",
@@ -3634,6 +4210,7 @@ _JSON_GRAPH_HTML_TEMPLATE = r"""<!doctype html>
         });
       });
       (reviewSuggestions.node_additions || []).forEach((item, index) => {
+        const nodeAdditionKey = `node_addition_${index}`;
         const relatedNodeIds = [];
         const suggestedNodeType = String(item.suggested_node_type || "").trim();
         const previewNodeId = reservePreviewNodeId(suggestedNodeType);
@@ -3643,7 +4220,7 @@ _JSON_GRAPH_HTML_TEMPLATE = r"""<!doctype html>
             relatedNodeIds.push(link.source);
             const relation = link.relation || "enables";
             const edgeKey = `${link.source}|${previewNodeId}|${relation}`;
-            coveredEdgeAdditions.add(edgeKey);
+            coveredEdgeAdditions.set(edgeKey, nodeAdditionKey);
             coveredByThisNode.push(edgeKey);
           }
         });
@@ -3652,14 +4229,14 @@ _JSON_GRAPH_HTML_TEMPLATE = r"""<!doctype html>
             relatedNodeIds.push(link.target);
             const relation = link.relation || "enables";
             const edgeKey = `${previewNodeId}|${link.target}|${relation}`;
-            coveredEdgeAdditions.add(edgeKey);
+            coveredEdgeAdditions.set(edgeKey, nodeAdditionKey);
             coveredByThisNode.push(edgeKey);
           }
         });
         cards.push({
           kind: "Node Addition",
           actionable: true,
-          key: `node_addition_${index}`,
+          key: nodeAdditionKey,
           relatedNodeIds,
           relatedEdgeKeys: coveredByThisNode,
           summary: `${item.suggested_label || "Node"}: ${item.suggested_name || ""}`,
@@ -3790,8 +4367,13 @@ _JSON_GRAPH_HTML_TEMPLATE = r"""<!doctype html>
       return 99;
     }
 
-    function renderRevisionSuggestions(focus = null) {
+    function renderRevisionSuggestions(focus = null, options = {}) {
       if (!revisionContent) return;
+      const preserveScroll = !!options.preserveScroll;
+      const anchorKey = String(options.anchorKey || "");
+      const previousScrollTop = preserveScroll && detailPanelScroll
+        ? detailPanelScroll.scrollTop
+        : null;
       revisionFocus = focus;
       const cards = collectReviewCards().sort((a, b) => {
         const issueSummaryDiff = kindRank(a.kind) === 0 ? -1 : kindRank(b.kind) === 0 ? 1 : 0;
@@ -3869,12 +4451,45 @@ _JSON_GRAPH_HTML_TEMPLATE = r"""<!doctype html>
           handleRevisionDecision(key, action);
         });
       });
+      if (preserveScroll && detailPanelScroll && previousScrollTop !== null) {
+        window.requestAnimationFrame(() => {
+          detailPanelScroll.scrollTop = previousScrollTop;
+          if (!anchorKey) return;
+          const anchorButton = Array.from(revisionContent.querySelectorAll("[data-revision-key]"))
+            .find((button) => (button.getAttribute("data-revision-key") || "") === anchorKey);
+          const anchorCard = anchorButton ? anchorButton.closest(".revision-card") : null;
+          if (!anchorCard) return;
+          const containerRect = detailPanelScroll.getBoundingClientRect();
+          const cardRect = anchorCard.getBoundingClientRect();
+          const outsideView = (
+            cardRect.top < containerRect.top ||
+            cardRect.bottom > containerRect.bottom
+          );
+          if (outsideView) {
+            anchorCard.scrollIntoView({ block: "nearest" });
+          }
+        });
+      }
     }
 
     function findNodeByNodeId(nodeId) {
       return cy.nodes().filter((node) => {
         const data = node.data();
         return (data.nodeId || data.id || "") === nodeId;
+      })[0] || null;
+    }
+
+    function findNodeBySignature(label, name, nodeType) {
+      const normalizedLabel = String(label || "").trim().toLowerCase();
+      const normalizedName = String(name || "").trim().toLowerCase();
+      const normalizedType = canonicalizeNodeType(nodeType);
+      return cy.nodes().filter((node) => {
+        const data = node.data();
+        return (
+          String(data.label || "").trim().toLowerCase() === normalizedLabel &&
+          String(data.name || "").trim().toLowerCase() === normalizedName &&
+          canonicalizeNodeType(data.nodeType || "") === normalizedType
+        );
       })[0] || null;
     }
 
@@ -3887,6 +4502,57 @@ _JSON_GRAPH_HTML_TEMPLATE = r"""<!doctype html>
           ((data.relation || data.label || "") === relation)
         );
       })[0] || null;
+    }
+
+    function applyStoredRevisionHighlights() {
+      const acceptedKeys = Object.entries(revisionDecisions)
+        .filter(([_, decision]) => String(decision || "").toLowerCase() === "accepted")
+        .map(([key]) => key);
+      if (!acceptedKeys.length) return;
+
+      const cardsByKey = new Map(collectReviewCards().map((card) => [card.key, card]));
+      acceptedKeys.forEach((key) => {
+        const card = cardsByKey.get(key);
+        if (!card) return;
+        const item = card.payload || {};
+        const kind = String(card.kind || "").toLowerCase();
+        if (kind === "node update") {
+          const node = findNodeByNodeId(item.target_id || "");
+          if (node) markAsAdded(node);
+          return;
+        }
+        if (kind === "node addition") {
+          const node = findNodeBySignature(
+            item.suggested_label || "",
+            item.suggested_name || "",
+            item.suggested_node_type || ""
+          );
+          if (node) markAsAdded(node);
+          (item.suggested_upstream_links || []).forEach((link) => {
+            const edge = findEdgeByTriple(link.source || "", node?.data("nodeId") || node?.data("id") || "", link.relation || "enables");
+            if (edge) markAsAdded(edge);
+          });
+          (item.suggested_downstream_links || []).forEach((link) => {
+            const edge = findEdgeByTriple(node?.data("nodeId") || node?.data("id") || "", link.target || "", link.relation || "enables");
+            if (edge) markAsAdded(edge);
+          });
+          return;
+        }
+        if (kind === "node deletion") {
+          const node = findNodeByNodeId(item.target_id || "");
+          if (node) markAsDeleted(node);
+          return;
+        }
+        if (kind === "edge addition") {
+          const edge = findEdgeByTriple(item.source || "", item.target || "", item.relation || "");
+          if (edge) markAsAdded(edge);
+          return;
+        }
+        if (kind === "edge deletion") {
+          const edge = findEdgeByTriple(item.source || "", item.target || "", item.relation || "");
+          if (edge) markAsDeleted(edge);
+        }
+      });
     }
 
     function applyNodeUpdate(card) {
@@ -3975,7 +4641,16 @@ _JSON_GRAPH_HTML_TEMPLATE = r"""<!doctype html>
             target: targetId,
             label: relation,
             relation,
-            title: `${sourceId} -> ${targetId}\nRelation: ${relation}`,
+            evidence: "",
+            explanation: "",
+            title: buildEdgeTitle({
+              source: sourceId,
+              target: targetId,
+              label: relation,
+              relation,
+              evidence: "",
+              explanation: "",
+            }),
           },
         });
         markAsAdded(edge);
@@ -4030,7 +4705,16 @@ _JSON_GRAPH_HTML_TEMPLATE = r"""<!doctype html>
           target,
           label: relation,
           relation,
-          title: `${source} -> ${target}\nRelation: ${relation}`,
+          evidence: item.evidence || "",
+          explanation: item.explanation || item.reason || "",
+          title: buildEdgeTitle({
+            source,
+            target,
+            label: relation,
+            relation,
+            evidence: item.evidence || "",
+            explanation: item.explanation || item.reason || "",
+          }),
         },
       });
       markAsAdded(edge);
@@ -4057,7 +4741,16 @@ _JSON_GRAPH_HTML_TEMPLATE = r"""<!doctype html>
         ...edge.data(),
         relation: item.suggested_relation || edge.data("relation") || edge.data("label") || "",
         label: item.suggested_relation || edge.data("relation") || edge.data("label") || "",
-        title: `${item.source || edge.data("source")} -> ${item.target || edge.data("target")}\nRelation: ${item.suggested_relation || edge.data("relation") || edge.data("label") || ""}`,
+        evidence: item.evidence || edge.data("evidence") || "",
+        explanation: item.explanation || item.reason || edge.data("explanation") || "",
+        title: buildEdgeTitle({
+          source: item.source || edge.data("source"),
+          target: item.target || edge.data("target"),
+          relation: item.suggested_relation || edge.data("relation") || edge.data("label") || "",
+          label: item.suggested_relation || edge.data("relation") || edge.data("label") || "",
+          evidence: item.evidence || edge.data("evidence") || "",
+          explanation: item.explanation || item.reason || edge.data("explanation") || "",
+        }),
       });
       markAsAdded(edge);
       syncNodeOverlay();
@@ -4084,7 +4777,7 @@ _JSON_GRAPH_HTML_TEMPLATE = r"""<!doctype html>
       if (action === "reject") {
         pushUndoState();
         revisionDecisions[key] = "rejected";
-        renderRevisionSuggestions(revisionFocus);
+        renderRevisionSuggestions(revisionFocus, { preserveScroll: true, anchorKey: key });
         setRightPanelVisibility(true, previousTab);
         setFormStatus(saveFormStatus, `Rejected suggestion: ${card.kind}.`, false);
         return;
@@ -4094,7 +4787,7 @@ _JSON_GRAPH_HTML_TEMPLATE = r"""<!doctype html>
           pushUndoState();
           applyRevisionCard(card);
           revisionDecisions[key] = "accepted";
-          renderRevisionSuggestions(revisionFocus);
+          renderRevisionSuggestions(revisionFocus, { preserveScroll: true, anchorKey: key });
           setRightPanelVisibility(true, previousTab);
           setFormStatus(saveFormStatus, `Accepted suggestion: ${card.kind}.`, false);
         } catch (error) {
@@ -4116,10 +4809,14 @@ _JSON_GRAPH_HTML_TEMPLATE = r"""<!doctype html>
       const showName = true;
       const baseLabelFontSize = 18;
       const baseNameFontSize = 14;
-      const basePaddingY = 10;
-      const basePaddingX = 12;
-      const baseLabelGap = showName ? 6 : 0;
+      const baseLabelGap = 0;
+      const baseHeaderPaddingTop = 8;
+      const baseHeaderPaddingX = 10;
+      const baseHeaderPaddingBottom = 7;
+      const baseBodyPaddingY = 8;
+      const baseBodyPaddingX = 10;
       const fragments = [];
+
       cy.nodes().forEach((node) => {
         const pos = node.renderedPosition();
         const width = node.renderedWidth();
@@ -4129,21 +4826,49 @@ _JSON_GRAPH_HTML_TEMPLATE = r"""<!doctype html>
         const modelHeight = Number(node.data("nodeHeight")) || height || 1;
         const scale = Math.max(0.1, height / modelHeight);
         const labelFontSize = baseLabelFontSize * scale;
-        const nameFontSize = baseNameFontSize * scale;
-        const paddingY = basePaddingY * scale;
-        const paddingX = basePaddingX * scale;
+        const nameFontSize = labelFontSize;
         const labelGap = baseLabelGap * scale;
+        const headerPaddingTop = baseHeaderPaddingTop * scale;
+        const headerPaddingX = baseHeaderPaddingX * scale;
+        const headerPaddingBottom = baseHeaderPaddingBottom * scale;
+        const bodyPaddingY = baseBodyPaddingY * scale;
+      const bodyPaddingX = baseBodyPaddingX * scale;
+        const bodyPaddingBottom = bodyPaddingY;
+        let borderColor = "rgba(31, 41, 55, 0.18)";
+        let borderWidth = 1 * scale;
+        let borderStyle = "solid";
+        if (node.selected()) {
+          borderColor = "#2563eb";
+          borderWidth = 3 * scale;
+        }
+        if (node.hasClass("added-highlight")) {
+          borderColor = "#dc2626";
+          borderWidth = 3 * scale;
+        }
+        if (node.hasClass("delete-mark")) {
+          borderColor = "#b45309";
+          borderWidth = Math.max(1.4, 3 * scale);
+          borderStyle = "dashed";
+        }
         const labelText = escapeHtml(node.data("labelWrapped") || "");
-        const nameHtml = showName
-          ? `<div class="node-overlay-name" style="font-size:${nameFontSize}px;">${escapeHtml(node.data("nameWrapped"))}</div>`
-          : "";
+        const fillColor = String(node.data("fill") || "#6b7280");
+        const headerColor = adjustHeaderColor(fillColor);
+        let nameHtml = "";
+        if (showName) {
+          const rawName = String(node.data("name") || node.data("nameWrapped") || "")
+            .replace(/\s*\n\s*/g, " ")
+            .trim();
+          if (rawName) {
+            nameHtml = `<div class="node-overlay-name" style="font-size:${nameFontSize}px; line-height:${nameFontSize * 1.25}px; padding:${bodyPaddingY}px ${bodyPaddingX}px ${bodyPaddingBottom}px;">${escapeHtml(rawName)}</div>`;
+          }
+        }
         fragments.push(`
           <div
-            class="node-overlay${node.hasClass("delete-mark") ? " deleted-overlay" : ""}"
-            style="left:${left}px; top:${top}px; width:${width}px; height:${height}px; padding:${paddingY}px ${paddingX}px;"
+            class="node-overlay${node.selected() ? " selected-overlay" : ""}${node.hasClass("added-highlight") ? " added-overlay" : ""}${node.hasClass("delete-mark") ? " deleted-overlay" : ""}"
+            style="left:${left}px; top:${top}px; width:${width}px; height:${height}px; border-color:${escapeHtml(borderColor)}; border-width:${borderWidth}px; border-style:${borderStyle};"
             title="${escapeHtml(node.data("title"))}"
           >
-            <div class="node-overlay-label" style="margin-bottom:${labelGap}px; font-size:${labelFontSize}px;">${labelText}</div>
+            <div class="node-overlay-label" style="margin-bottom:${labelGap}px; font-size:${labelFontSize}px; background:${escapeHtml(headerColor)}; padding:${headerPaddingTop}px ${headerPaddingX}px ${headerPaddingBottom}px;">${labelText}</div>
             ${nameHtml}
           </div>
         `);
@@ -4344,9 +5069,10 @@ _JSON_GRAPH_HTML_TEMPLATE = r"""<!doctype html>
 
     function markAsAdded(elements) {
       if (!elements || !elements.length) return;
-      elements.removeClass("delete-mark");
-      elements.style("display", "element");
-      elements.addClass("added-highlight");
+      const activeElements = elements.filter((element) => !element.hasClass("delete-mark"));
+      if (!activeElements.length) return;
+      activeElements.style("display", "element");
+      activeElements.addClass("added-highlight");
     }
 
     function markAsDeleted(elements) {
@@ -4508,7 +5234,8 @@ _JSON_GRAPH_HTML_TEMPLATE = r"""<!doctype html>
           explanation: data.explanation || "",
           source: data.source || "updated_graph",
         };
-        const normalizedType = String(data.nodeType || "").toLowerCase();
+        const normalizedType = canonicalizeNodeType(data.nodeType || "");
+        item.node_type = normalizedType || "";
         if (normalizedType === "hazardconsequence") {
           payload.hazard_consequence_node.push(item);
         } else if (normalizedType === "entity") {
@@ -4526,6 +5253,8 @@ _JSON_GRAPH_HTML_TEMPLATE = r"""<!doctype html>
           source: data.source || "",
           target: data.target || "",
           relation: data.relation || data.label || "",
+          evidence: data.evidence || "",
+          explanation: data.explanation || "",
         });
       });
 
@@ -4533,8 +5262,23 @@ _JSON_GRAPH_HTML_TEMPLATE = r"""<!doctype html>
     }
 
     function serializeReviewDecisionPayload() {
+      const deletedNodes = cy.nodes()
+        .filter((node) => node.hasClass("delete-mark"))
+        .map((node) => String(node.data("nodeId") || node.data("id") || "").trim())
+        .filter((nodeId) => !!nodeId);
+      const deletedEdges = cy.edges()
+        .filter((edge) => edge.hasClass("delete-mark"))
+        .map((edge) => ({
+          source: String(edge.data("source") || "").trim(),
+          target: String(edge.data("target") || "").trim(),
+          relation: String(edge.data("relation") || edge.data("label") || "").trim(),
+        }))
+        .filter((edge) => edge.source && edge.target);
       return {
         review_decisions: { ...revisionDecisions },
+        deleted_nodes: deletedNodes,
+        deleted_edges: deletedEdges,
+        deleted_visible: deletedVisible,
       };
     }
 
@@ -4544,10 +5288,11 @@ _JSON_GRAPH_HTML_TEMPLATE = r"""<!doctype html>
       const anchor = document.createElement("a");
       anchor.href = url;
       anchor.download = filename;
+      anchor.style.display = "none";
       document.body.appendChild(anchor);
       anchor.click();
       anchor.remove();
-      URL.revokeObjectURL(url);
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
     }
 
     function exportCurrentHtml() {
@@ -4571,16 +5316,22 @@ _JSON_GRAPH_HTML_TEMPLATE = r"""<!doctype html>
     }
 
     function exportCurrentGraph() {
-      const payload = serializeUpdatePayload();
-      const reviewStatePayload = serializeReviewDecisionPayload();
-      downloadText("updated_causal_graph.json", JSON.stringify(payload, null, 2));
-      downloadText("updated_causal_graph_review_state.json", JSON.stringify(reviewStatePayload, null, 2));
-      downloadText("updated_causal_graph.html", exportCurrentHtml());
-      setFormStatus(saveFormStatus, "Saved updated_causal_graph.json, updated_causal_graph_review_state.json, and updated_causal_graph.html.", false);
+      try {
+        const payload = serializeUpdatePayload();
+        const reviewStatePayload = serializeReviewDecisionPayload();
+        downloadText("updated_causal_graph.json", JSON.stringify(payload, null, 2));
+        downloadText("updated_causal_graph_review_state.json", JSON.stringify(reviewStatePayload, null, 2));
+        downloadText("updated_causal_graph.html", exportCurrentHtml());
+        setFormStatus(saveFormStatus, "Saved updated_causal_graph.json, updated_causal_graph_review_state.json, and updated_causal_graph.html.", false);
+      } catch (error) {
+        const message = error && error.message ? error.message : String(error);
+        console.error("Failed to save updates:", error);
+        setFormStatus(saveFormStatus, `Save failed: ${message}`, true);
+      }
     }
 
     function nextNodeIdForType(nodeType) {
-      const normalized = String(nodeType || "").toLowerCase();
+      const normalized = canonicalizeNodeType(nodeType);
       const prefixMap = {
         hazardconsequence: "H",
         entity: "En",
@@ -4601,7 +5352,7 @@ _JSON_GRAPH_HTML_TEMPLATE = r"""<!doctype html>
     }
 
     function nodeFillFromType(nodeType) {
-      const normalized = String(nodeType || "").toLowerCase();
+      const normalized = canonicalizeNodeType(nodeType);
       if (normalized === "hazardconsequence") return "#ffd6d6";
       if (normalized === "condition") return "#d8ebff";
       if (normalized === "entity") return "#ddf5df";
@@ -4627,16 +5378,50 @@ _JSON_GRAPH_HTML_TEMPLATE = r"""<!doctype html>
       return lines.join("\n");
     }
 
+    function adjustHeaderColor(color) {
+      const normalized = String(color || "").trim().toLowerCase();
+      if (normalized === "#f3e7ff") return "#874fff";
+      if (normalized === "#ddf5df") return "#66d575";
+      if (normalized === "#d8ebff") return "#3dadff";
+      if (normalized === "#ffd6d6") return "#ffc7c2";
+      return "#9ca3af";
+    }
+
+    function buildMeasuredNodeMarkup(labelWrapped, nameWrapped, fill) {
+      const safeLabel = escapeHtml(labelWrapped || "");
+      const safeNameText = escapeHtml(
+        String(nameWrapped || "")
+          .replace(/\s*\n\s*/g, " ")
+          .trim()
+      );
+      const headerColor = adjustHeaderColor(fill || "#6b7280");
+      const nameHtml = safeNameText
+        ? `<div class="node-measure-body" style="padding:8px 10px 8px;">${safeNameText}</div>`
+        : `<div class="node-measure-body"></div>`;
+      return `
+        <div class="node-measure-card">
+          <div class="node-measure-header" style="background:${escapeHtml(headerColor)};">${safeLabel}</div>
+          ${nameHtml}
+        </div>
+      `;
+    }
+
     function computeNodeSize(labelWrapped, nameWrapped) {
-      const labelLines = Math.max(1, String(labelWrapped || "").split("\n").length);
-      const nameLines = Math.max(1, String(nameWrapped || "").split("\n").length);
-      const labelLineHeight = 22;
-      const nameLineHeight = 18;
-      const verticalPadding = 20;
-      const labelGap = 6;
+      if (!nodeMeasureBox) {
+        return { nodeWidth: 260, nodeHeight: 96 };
+      }
+      nodeMeasureBox.innerHTML = buildMeasuredNodeMarkup(labelWrapped, nameWrapped, "#6b7280");
+      const measured = nodeMeasureBox.firstElementChild;
+      if (!measured) {
+        nodeMeasureBox.innerHTML = "";
+        return { nodeWidth: 260, nodeHeight: 96 };
+      }
+
+      const measuredHeight = measured.getBoundingClientRect().height || measured.scrollHeight || 0;
+      nodeMeasureBox.innerHTML = "";
       return {
         nodeWidth: 260,
-        nodeHeight: verticalPadding * 2 + labelLines * labelLineHeight + nameLines * nameLineHeight + labelGap,
+        nodeHeight: Math.max(64, Math.ceil(measuredHeight) + 0),
       };
     }
 
@@ -4649,6 +5434,21 @@ _JSON_GRAPH_HTML_TEMPLATE = r"""<!doctype html>
         edgeSep: 16,
         padding: 30
       }).run();
+    }
+
+    function normalizeInitialNodeSizes() {
+      cy.nodes().forEach((node) => {
+        const data = { ...node.data() };
+        const labelWrapped = wrapText(data.label || "", 18);
+        const nameWrapped = wrapText(data.name || "", 24);
+        const size = computeNodeSize(labelWrapped, nameWrapped);
+        node.data({
+          labelWrapped,
+          nameWrapped,
+          nodeWidth: size.nodeWidth,
+          nodeHeight: size.nodeHeight,
+        });
+      });
     }
 
     function renderDetailSections(title, fields) {
@@ -4676,6 +5476,15 @@ _JSON_GRAPH_HTML_TEMPLATE = r"""<!doctype html>
         `Type: ${nodeData.nodeType || ""}`,
         `Evidence: ${nodeData.evidence || ""}`,
         `Explanation: ${nodeData.explanation || ""}`,
+      ].join("\n");
+    }
+
+    function buildEdgeTitle(edgeData) {
+      return [
+        `${edgeData.source || ""} -> ${edgeData.target || ""}`,
+        `Relation: ${edgeData.relation || edgeData.label || ""}`,
+        `Evidence: ${edgeData.evidence || ""}`,
+        `Explanation: ${edgeData.explanation || ""}`,
       ].join("\n");
     }
 
@@ -4822,31 +5631,128 @@ _JSON_GRAPH_HTML_TEMPLATE = r"""<!doctype html>
       }
     }
 
-    function showEdgeDetails(edge) {
+    function showEdgeDetails(edge, detailStatusMessage = "", detailStatusKind = "") {
       setRightPanelVisibility(true, "details");
       const data = edge.data();
       const source = edge.source().data();
       const target = edge.target().data();
-      setDetailSummary(`${source.label || data.source} -> ${target.label || data.target}`);
-      renderDetailSections(
-        `${source.label || data.source} -> ${target.label || data.target}`,
-        [
-          ["Edge ID", data.id || ""],
-          ["Source ID", data.source || ""],
-          ["Source", `${source.label || ""}: ${source.name || ""}`],
-          ["Target ID", data.target || ""],
-          ["Target", `${target.label || ""}: ${target.name || ""}`],
-          ["Relation", data.relation || data.label || ""],
-          ["Status", edge.hasClass("delete-mark") ? "Deleted" : "Active"],
-          ["Raw Title", data.title || ""],
-        ],
-      );
+      const edgeTitle = `${source.label || data.source} -> ${target.label || data.target}`;
+      const isDeleted = edge.hasClass("delete-mark");
+      setDetailSummary(edgeTitle);
+      const relationOptions = (schemaForm.relations || []).map((relation) => {
+        const selected = relation === (data.relation || data.label || "") ? " selected" : "";
+        return `<option value="${escapeHtml(relation)}"${selected}>${escapeHtml(relation)}</option>`;
+      }).join("");
+      const rawEvidence = data.evidence || extractFieldFromTitle(data.title, "Evidence");
+      const rawExplanation = data.explanation || extractFieldFromTitle(data.title, "Explanation");
+      detailContent.innerHTML = `
+        <div class="detail-section">
+          <div class="detail-label">Selected Edge</div>
+          <div class="detail-value">${escapeHtml(edgeTitle)}</div>
+        </div>
+        <form id="detail-edge-form" class="detail-form">
+          <label>Edge ID
+            <input id="detail-edge-id" type="text" value="${escapeHtml(data.id || "")}" readonly />
+          </label>
+          <label>Source ID
+            <input id="detail-edge-source-id" type="text" value="${escapeHtml(data.source || "")}" readonly />
+          </label>
+          <label>Source
+            <input id="detail-edge-source-label" type="text" value="${escapeHtml(`${source.label || ""}: ${source.name || ""}`)}" readonly />
+          </label>
+          <label>Target ID
+            <input id="detail-edge-target-id" type="text" value="${escapeHtml(data.target || "")}" readonly />
+          </label>
+          <label>Target
+            <input id="detail-edge-target-label" type="text" value="${escapeHtml(`${target.label || ""}: ${target.name || ""}`)}" readonly />
+          </label>
+          <label>Relation
+            <select id="detail-edge-relation">${relationOptions}</select>
+          </label>
+          <label>Evidence
+            <textarea id="detail-edge-evidence">${escapeHtml(rawEvidence)}</textarea>
+          </label>
+          <label>Explanation
+            <textarea id="detail-edge-explanation">${escapeHtml(rawExplanation)}</textarea>
+          </label>
+          <div id="detail-edge-status" class="${detailStatusKind ? `detail-status ${detailStatusKind}` : "detail-status"}">${escapeHtml(detailStatusMessage)}</div>
+          <div class="detail-actions">
+            <button id="detail-edge-save" type="submit">Save Changes</button>
+            <button id="detail-edge-toggle-delete" type="button">${isDeleted ? "Restore Edge" : "Delete Edge"}</button>
+          </div>
+        </form>
+      `;
       renderRevisionSuggestions({
         type: "edge",
         source: data.source || "",
         target: data.target || "",
         relation: data.relation || data.label || "",
       });
+
+      const detailEdgeForm = document.getElementById("detail-edge-form");
+      const detailEdgeRelation = document.getElementById("detail-edge-relation");
+      const detailEdgeEvidence = document.getElementById("detail-edge-evidence");
+      const detailEdgeExplanation = document.getElementById("detail-edge-explanation");
+      const detailEdgeStatus = document.getElementById("detail-edge-status");
+      const detailEdgeToggleDelete = document.getElementById("detail-edge-toggle-delete");
+
+      const setEdgeDetailStatus = (message, kind = "") => {
+        if (!detailEdgeStatus) return;
+        detailEdgeStatus.textContent = message || "";
+        detailEdgeStatus.className = kind ? `detail-status ${kind}` : "detail-status";
+      };
+
+      if (detailEdgeForm) {
+        detailEdgeForm.addEventListener("submit", (event) => {
+          event.preventDefault();
+          if (detailEdgeRelation) {
+            detailEdgeRelation.classList.remove("field-invalid");
+          }
+          const relation = String(detailEdgeRelation?.value || "").trim();
+          const evidence = String(detailEdgeEvidence?.value || "").trim();
+          const explanation = String(detailEdgeExplanation?.value || "").trim();
+          if (!relation) {
+            if (detailEdgeRelation) {
+              detailEdgeRelation.classList.add("field-invalid");
+            }
+            setEdgeDetailStatus("Relation is required.", "error");
+            return;
+          }
+
+          pushUndoState();
+          edge.data({
+            ...edge.data(),
+            label: relation,
+            relation,
+            evidence,
+            explanation,
+            title: buildEdgeTitle({
+              ...edge.data(),
+              label: relation,
+              relation,
+              evidence,
+              explanation,
+            }),
+          });
+          markAsAdded(edge);
+          updateSummary();
+          showEdgeDetails(edge, "Edge updated.", "success");
+        });
+      }
+
+      if (detailEdgeToggleDelete) {
+        detailEdgeToggleDelete.addEventListener("click", () => {
+          if (edge.hasClass("delete-mark")) {
+            pushUndoState();
+            edge.removeClass("delete-mark");
+            showEdgeDetails(edge, "Edge restored.", "success");
+            return;
+          }
+          pushUndoState();
+          markAsDeleted(edge);
+          showEdgeDetails(edge, "Edge marked as deleted.", "success");
+        });
+      }
     }
 
     function extractFieldFromTitle(title, fieldName) {
@@ -4963,10 +5869,18 @@ _JSON_GRAPH_HTML_TEMPLATE = r"""<!doctype html>
       openModal(
         "Add Edge",
         `Choose a relation for ${sourceNode.data("nodeId")} -> ${targetNode.data("nodeId")}.`,
-        `<label>Relation<select id="modal-edge-relation">${relationOptions}</select></label>`,
+        `
+          <label>Relation<select id="modal-edge-relation">${relationOptions}</select></label>
+          <label>Evidence<textarea id="modal-edge-evidence"></textarea></label>
+          <label>Explanation<textarea id="modal-edge-explanation"></textarea></label>
+        `,
         ({ showModalError }) => {
           const relationEl = document.getElementById("modal-edge-relation");
+          const evidenceEl = document.getElementById("modal-edge-evidence");
+          const explanationEl = document.getElementById("modal-edge-explanation");
           const relation = String(relationEl?.value || "").trim();
+          const evidence = String(evidenceEl?.value || "").trim();
+          const explanation = String(explanationEl?.value || "").trim();
           if (!relation) {
             setFormStatus(edgeFormStatus, "Relation is required.", true);
             showModalError("Relation is required.", ["modal-edge-relation"]);
@@ -4993,7 +5907,16 @@ _JSON_GRAPH_HTML_TEMPLATE = r"""<!doctype html>
               target: targetId,
               label: relation,
               relation,
-              title: `${sourceId} -> ${targetId}\nRelation: ${relation}`,
+              evidence,
+              explanation,
+              title: buildEdgeTitle({
+                source: sourceId,
+                target: targetId,
+                label: relation,
+                relation,
+                evidence,
+                explanation,
+              }),
             },
           });
           markAsAdded(newEdge);
@@ -5006,8 +5929,12 @@ _JSON_GRAPH_HTML_TEMPLATE = r"""<!doctype html>
       );
     }
 
+    normalizeInitialNodeSizes();
+    runLayout();
     cy.once("layoutstop", ensureNameVisibleInitialViewport);
     cy.on("render layoutstop dragfree position pan zoom add remove", syncNodeOverlay);
+    syncNodeOverlay();
+    applyStoredRevisionHighlights();
     syncNodeOverlay();
     updateSummary();
     renderRevisionSuggestions();
@@ -5203,6 +6130,7 @@ def _render_html(
     html = html.replace("{{NEUTRAL_COLOR}}", neutral_color)
     html = html.replace("{{CASE_ID_JSON}}", json.dumps(final_case_id, ensure_ascii=False))
     html = html.replace("{{TRACK_DIFF_JSON}}", "null")
+    html = html.replace("{{DELETED_VISIBLE_JSON}}", "true")
 
     html_path.parent.mkdir(parents=True, exist_ok=True)
     html_path.write_text(html, encoding="utf-8")
@@ -5215,10 +6143,11 @@ def _render_json_graph_html(
     schema_form_options: Dict[str, object],
     review_suggestions: Dict[str, object] | None,
     revision_decisions: Dict[str, object] | None,
+    deleted_visible: bool = True,
     html_path: Path,
     case_id: str | None = None,
 ) -> Path:
-    page_title = f"Interactive Causal Graph - {case_id or html_path.parent.name}"
+    page_title = f"Interactive Causal Graph - {case_id or html_path.parent.name} [{STYLE_VERSION}]"
     html = _JSON_GRAPH_HTML_TEMPLATE
     html = html.replace("{{PAGE_TITLE}}", page_title)
     html = html.replace(
@@ -5236,6 +6165,10 @@ def _render_json_graph_html(
     html = html.replace(
         "{{REVISION_DECISIONS_JSON}}",
         json.dumps(revision_decisions or {}, ensure_ascii=False),
+    )
+    html = html.replace(
+        "{{DELETED_VISIBLE_JSON}}",
+        "true" if deleted_visible else "false",
     )
     html_path.parent.mkdir(parents=True, exist_ok=True)
     html_path.write_text(html, encoding="utf-8")
@@ -5444,6 +6377,61 @@ def draw_causal_graph_interactive_from_json(
         schema_form_options=schema_form_options,
         review_suggestions=review_payload,
         revision_decisions=revision_decisions_payload.get("review_decisions", revision_decisions_payload),
+        deleted_visible=bool(revision_decisions_payload.get("deleted_visible", True)),
         html_path=Path(save_path),
+        case_id=case_id,
+    )
+
+
+def draw_updated_causal_graph_interactive_from_json(
+    updated_causal_graph: Union[str, os.PathLike, Dict[str, object]],
+    *,
+    save_path: Union[str, os.PathLike],
+    accident_scenario_schema: Union[str, os.PathLike, Dict[str, object], None] = None,
+    review_causal_graph: Union[str, os.PathLike, Dict[str, object], None] = None,
+    revision_decisions: Union[str, os.PathLike, Dict[str, object], None] = None,
+    case_id: str | None = None,
+    width: int = 26,
+) -> Path:
+    output_html_path = Path(save_path)
+    updated_payload = _load_json_payload(updated_causal_graph)
+    schema_payload = (
+        _load_json_payload(accident_scenario_schema)
+        if accident_scenario_schema is not None
+        else {}
+    )
+    review_payload = (
+        _load_json_payload(review_causal_graph)
+        if review_causal_graph is not None
+        else {}
+    )
+    revision_decisions_payload = (
+        _load_json_payload(revision_decisions)
+        if revision_decisions is not None
+        else {}
+    )
+    if not isinstance(updated_payload, dict):
+        raise TypeError("updated_causal_graph must resolve to a JSON object.")
+    if not isinstance(schema_payload, dict):
+        raise TypeError("accident_scenario_schema must resolve to a JSON object.")
+    if not isinstance(review_payload, dict):
+        raise TypeError("review_causal_graph must resolve to a JSON object.")
+    if not isinstance(revision_decisions_payload, dict):
+        raise TypeError("revision_decisions must resolve to a JSON object.")
+
+    graph_elements = _build_elements_from_json_graph(
+        updated_payload,
+        updated_payload,
+        width=width,
+    )
+    _ensure_unique_element_ids(graph_elements)
+    schema_form_options = _build_schema_form_options(schema_payload)
+    return _render_json_graph_html(
+        graph_elements=graph_elements,
+        schema_form_options=schema_form_options,
+        review_suggestions=review_payload,
+        revision_decisions=revision_decisions_payload.get("review_decisions", revision_decisions_payload),
+        deleted_visible=bool(revision_decisions_payload.get("deleted_visible", True)),
+        html_path=output_html_path,
         case_id=case_id,
     )

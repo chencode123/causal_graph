@@ -2,15 +2,17 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any, Callable, Dict, List
+from typing import Any, Callable, Dict, Iterable, List
 from pipeline.step_registry import STEP_REGISTRY
 
 
 ACTIVE_STEP_KEYS: List[str] = [
     # "identify_hazard_consequence",
+    # "causal_narrative_extraction",
     # "identify_accident_scenario",
-    "causal_edge_linking",
-    "review_causal_graph",
+    "joint_accident_graph_extraction",
+    # "causal_edge_linking",
+    # "review_causal_graph",
 ]
 
 
@@ -59,6 +61,122 @@ def _extract_incident_text_from_json(path: Path) -> str:
             blocks.extend(related_texts)
 
     return "\n\n".join(blocks).strip() or path.read_text(encoding="utf-8")
+
+
+def _read_text(path: Path) -> str:
+    return path.read_text(encoding="utf-8").strip()
+
+
+def _format_few_shot_example(title: str, sections: Iterable[tuple[str, str]]) -> str:
+    lines: List[str] = [title, ""]
+    for label, content in sections:
+        lines.append(label)
+        lines.append(content.strip())
+        lines.append("")
+    return "\n".join(lines).strip()
+
+
+def _build_few_shot_examples(step_key: str, case_dirs: Iterable[Path]) -> str:
+    cases = list(case_dirs)
+    if not cases:
+        return ""
+
+    lines: List[str] = ["FEW-SHOT EXAMPLES", ""]
+    for index, case_dir in enumerate(cases, start=1):
+        if step_key == "identify_hazard_consequence":
+            sections = [
+                (
+                    "IDENTIFY_INCIDENT_OUTPUT",
+                    _extract_incident_text_from_json(case_dir / "identify_incident_output.json"),
+                ),
+                (
+                    "CORRECT OUTPUT",
+                    _read_text(case_dir / "identify_hazard_consequence_output.json"),
+                ),
+            ]
+        elif step_key == "identify_accident_scenario":
+            sections = [
+                (
+                    "INCIDENT_DESCRIPTION",
+                    _extract_incident_text_from_json(case_dir / "identify_incident_output.json"),
+                ),
+                (
+                    "IDENTIFIED_HAZARD_CONSEQUENCE",
+                    _read_text(case_dir / "identify_hazard_consequence_output.json"),
+                ),
+                (
+                    "CAUSAL_NARRATIVE_EXTRACTION",
+                    _read_text(case_dir / "causal_narrative_extraction_output.json"),
+                ),
+                (
+                    "CORRECT OUTPUT",
+                    _read_text(case_dir / "identify_accident_scenario_output.json"),
+                ),
+            ]
+        elif step_key == "causal_narrative_extraction":
+            sections = [
+                (
+                    "INCIDENT_DESCRIPTION",
+                    _extract_incident_text_from_json(case_dir / "identify_incident_output.json"),
+                ),
+                (
+                    "IDENTIFIED_HAZARD_CONSEQUENCE",
+                    _read_text(case_dir / "identify_hazard_consequence_output.json"),
+                ),
+                (
+                    "CORRECT OUTPUT",
+                    _read_text(case_dir / "causal_narrative_extraction_output.json"),
+                ),
+            ]
+        elif step_key == "causal_edge_linking":
+            sections = [
+                (
+                    "INCIDENT_DESCRIPTION",
+                    _extract_incident_text_from_json(case_dir / "identify_incident_output.json"),
+                ),
+                (
+                    "IDENTIFY_ACCIDENT_SCENARIO",
+                    _read_text(case_dir / "identify_accident_scenario_output.json"),
+                ),
+                (
+                    "CORRECT OUTPUT",
+                    _read_text(case_dir / "causal_edge_linking_output.json"),
+                ),
+            ]
+        elif step_key == "joint_accident_graph_extraction":
+            sections = [
+                (
+                    "INCIDENT_DESCRIPTION",
+                    _extract_incident_text_from_json(case_dir / "identify_incident_output.json"),
+                ),
+                (
+                    "IDENTIFIED_HAZARD_CONSEQUENCE",
+                    _read_text(case_dir / "identify_hazard_consequence_output.json"),
+                ),
+                (
+                    "CAUSAL_NARRATIVE_EXTRACTION",
+                    _read_text(case_dir / "causal_narrative_extraction_output.json"),
+                ),
+                (
+                    "CORRECT OUTPUT",
+                    _read_text(case_dir / "joint_accident_graph_extraction_output.json"),
+                ),
+            ]
+        else:
+            return ""
+
+        lines.append(_format_few_shot_example(f"Example {index}", sections))
+        lines.append("")
+
+    lines.extend(
+        [
+            "End of examples.",
+            "Use the examples only as references for reasoning style and output structure.",
+            "Do not copy incident-specific content from the examples.",
+            "",
+        ]
+    )
+    return "\n".join(lines)
 
 
 def _resolve_required_var(
@@ -129,13 +247,15 @@ def _build_vars_from_registry(
     hazards_json: Path,
     conditions_json: Path,
     project_root: Path,
+    use_few_shot: bool,
+    few_shot_cases: Iterable[Path],
 ) -> Dict[str, Any]:
     required_vars = STEP_REGISTRY[key].get("required_vars", {})
     if not isinstance(required_vars, dict):
         raise TypeError(
             f"STEP_REGISTRY['{key}']['required_vars'] must be a dict of var->source."
         )
-    return {
+    resolved = {
         var_name: _resolve_required_var(
             var_name,
             key=key,
@@ -146,6 +266,10 @@ def _build_vars_from_registry(
         )
         for var_name in required_vars
     }
+    resolved["few_shot_examples"] = (
+        _build_few_shot_examples(key, few_shot_cases) if use_few_shot else ""
+    )
+    return resolved
 
 
 def get_step_var_builder(
@@ -154,6 +278,8 @@ def get_step_var_builder(
     hazards_json: Path,
     conditions_json: Path,
     project_root: Path,
+    use_few_shot: bool = False,
+    few_shot_cases: Iterable[Path] = (),
 ) -> Callable[[Path], Dict[str, Any]]:
     if key not in STEP_REGISTRY:
         raise KeyError(f"Unsupported step key in STEP_REGISTRY: {key}")
@@ -164,4 +290,6 @@ def get_step_var_builder(
         hazards_json=hazards_json,
         conditions_json=conditions_json,
         project_root=project_root,
+        use_few_shot=use_few_shot,
+        few_shot_cases=few_shot_cases,
     )

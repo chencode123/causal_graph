@@ -39,7 +39,13 @@ class Step:
         return folder / self.output_filename
 
 
-def build_pipeline(hazards_json: Path, conditions_json: Path) -> List[Step]:
+def build_pipeline(
+    hazards_json: Path,
+    conditions_json: Path,
+    *,
+    use_few_shot: bool = False,
+    few_shot_cases_by_step: dict[str, tuple[Path, ...]] | None = None,
+) -> List[Step]:
     steps: List[Step] = []
     for key in ACTIVE_STEP_KEYS:
         steps.append(
@@ -50,6 +56,8 @@ def build_pipeline(hazards_json: Path, conditions_json: Path) -> List[Step]:
                     hazards_json=hazards_json,
                     conditions_json=conditions_json,
                     project_root=PROJECT_ROOT,
+                    use_few_shot=use_few_shot,
+                    few_shot_cases=(few_shot_cases_by_step or {}).get(key, ()),
                 ),
             )
         )

@@ -1,0 +1,972 @@
+You are a process safety analyst specializing in accident investigation, hazard scenario reconstruction, and causal graph review.
+
+INPUT DATA
+
+INCIDENT_DESCRIPTION
+{
+  "document_classification": {
+    "is_summary_style": false,
+    "is_full_incident_report": true,
+    "contains_multiple_independent_incidents": false,
+    "requires_incident_split": false,
+    "recommended_output_mode": "single_incident",
+    "classification_reason": "The document is a substantial CSB case study centered on one primary incident on January 7, 2010, with detailed background, pre-incident chronology, incident description, and analytical sections. Although it references prior incidents and other university incidents for lessons learned and context, those are not presented as independent full incident narratives within this document."
+  },
+  "incidents": [
+    {
+      "incident_id": "incident_1",
+      "is_independent_incident": true,
+      "time_reference": "January 7, 2010",
+      "incident_summary_section": {
+        "section_title": "1.0 INTRODUCTION",
+        "text": "1.0 INTRODUCTION\nOn January 7, 2010, a graduate student within \nthe Chemistry and Biochemistry Department at \nTexas Tech University (Texas Tech) lost three \nfi ngers, his hands and face were burned, and one \nof his eyes was injured after the chemical he was \nworking with detonated. The Chemical Safety \nBoard (CSB) investigated and found systemic \ndefi ciencies within Texas Tech that contributed \nto the incident: the physical hazard risks inher￾ent in the research were not effectively assessed, \nplanned for, or mitigated; the university lacked \nsafety management accountability and oversight; \nand previous incidents with preventative lessons \nwere not documented, tracked, and formally \ncommunicated. The lessons learned from the \nincident provide all academic institutions with \nan important opportunity to compare their own \npolicies and practices to that which existed at \nTexas Tech leading up to the incident. \nLooking beyond Texas Tech, the CSB identifi ed \na lack of good practice guidance recognized by \nthe academic community; limitations in using \nthe Occupational Safety and Health Administration’s (OSHA) Occupational Exposure to \nHazardous Chemicals in Laboratories Standard (29 CFR 1910.1450) as guidance for miti￾gating physical hazards in the laboratory; and a missed opportunity for a granting agency \nto infl uence safety practices. While a vast number of references, standards and guidelines \nhave been developed to describe and promote different types of hazard evaluation meth￾odologies in an industrial setting, similar resources that address the unique cultural and \ndynamic nature of an academic laboratory setting have not been generated. Good-practice \nguidelines would provide universities a metric to evaluate their current hazard evaluation \nprocedures against, or for schools with none in place, would enable a more rapid process \nfor their development. If universities choose to use OSHA’s Laboratory Standard as guid￾ance for developing a plan to mitigate chemical hazards, they need to understand that the \nstandard was not created to address physical hazards of chemicals, but rather health haz￾ards as a result of chemical exposures. Physical hazards though, as evidenced in the Texas \nTech incident and the 2008 laboratory fi re that resulted in the death of a staff research \nassociate at University of California, Los Angeles (UCLA), are deserving of similar attention \nto that given to health hazards. Finally, the granting agency, which provides funding for the \nresearch and thus maintains a level of control and authority over the researchers, did not \nprescribe any safety provisions specifi c to the research work being conducted at Texas Tech \nuntil after the incident occurred."
+      },
+      "incident_description_section": {
+        "section_title": "4.0 INCIDENT DESCRIPTION",
+        "text": "4.0 INCIDENT DESCRIPTION\nBeginning about a month prior to the January 7 incident, the fifth-year graduate student \nand a first-year graduate student he was mentoring began synthesizing a nickel hydrazine \nperchlorate (NHP) derivative.7\n The amounts of NHP synthesized were on the order of \n50-300 milligrams. Typical analytical techniques used in the laboratory to characterize the \nenergetic properties of new compounds included differential scanning calorimetry (DSC),8\ndrop hammer tests,9\n and thermal gravimetric analysis (TGA).10 Due to the amounts of com￾pound needed to run each analytical test,11 the students synthesizing the NHP decided they \nwould need to make several batches of the compound to fully characterize it; additionally, \nthey had concerns of reproducibility between batches. They wanted to synthesize a single \nbatch of NHP that would provide enough compound to complete all the necessary charac￾terizations; thus, they decided to scale-up the synthesis of NHP to make approximately 10 \ngrams.12 The PIs of the research were not consulted on the decision to scale up. No written \npolicies or procedures existed at the laboratory, departmental, or university levels which \nwould have required the students to consult with the PIs before making this decision. Based \non experience, the two students had discovered that smaller amounts of the compound \nwould not ignite or explode on impact when wet with water or hexane, and they assumed \nthe hazards of larger quantities of NHP would be controlled in a similar manner.\nAfter the scale-up, the more senior student observed clumps in the product, and believed \nuniform particle size of the sample was important. As a result, he transferred about half of \nthe synthesized NHP into a mortar, added hexane, and then used a pestle to gently break \nup the clumps. No formal hazard evaluation13 was conducted to analyze the effectiveness \nof using either water or hexane to mitigate the potential explosive hazards associated with \nthe quantity of NHP synthesized the day of the incident. At this point, the graduate student \nworking on the clumps was wearing goggles, but removed them and walked away from the \nmortar after he finished breaking the clumps. Several individuals from the lab indicated that \nthe decision to wear goggles was a personal choice which they based on how dangerous an \nactivity was perceived to be. \nThe more senior student working with NHP returned to the mortar but did not replace his \ngoggles while he stirred the NHP “one more time.” At this point, the compound detonated.\nAfter the incident, all of the universities who were partners in the ALERT program imple￾mented a voluntary stop-work order in the laboratories working with energetic materials. \nThis stop-work was maintained until safety changes could be implemented and an inde￾pendent review board made up of energetic materials experts could audit the laboratories’ \nwritten standard operating procedures and safety protocols. The stop-work order at Texas \nTech lasted approximately 4 months and up to 10 months at the other universities."
+      },
+      "other_related_sections": [
+        {
+          "section_title": "3.0 PRE-INCIDENT EVENTS",
+          "text": "3.0 PRE-INCIDENT EVENTS\nIn October 2008, Texas Tech entered into a subcontract agreement with Northeastern \nUniversity (NEU) to participate in a program titled “Awareness and Localization of Explosive￾Related Threats” (ALERT), which was (and continues to be) funded by the U.S. Department of \nHomeland Security (DHS).2\n Texas Tech’s research focus is the detection of energetic materials \nthat could represent a future security threat and includes synthesizing and characterizing new \npotentially energetic materials.3\n NEU and University of Rhode Island lead the ALERT pro￾gram, which includes Texas Tech and several other academic partners.4\nThe terms of the subcontract agreement between NEU and Texas Tech were intended to \nprovide maximum scientific freedom to Texas Tech while remaining consistent with the overall \nobjectives of the ALERT program and DHS regulations. Both the cooperative agreement \nbetween DHS and NEU and the subcontractor agreement between NEU and Texas Tech \nstipulated a number of research practices that required pre-approval of research protocols by \nvarious committees before work could begin.5\n However, pre-approval of experimental proto￾cols for the energetic work being conducted at Texas Tech was not required. \nThe injured Texas Tech student, in his fifth year of graduate study at the time of the incident, \nbegan working on the ALERT project about a year prior to the incident. None of the graduate \nstudent’s previous work had been with energetics, thus when he began the project, he had to \nlearn new techniques and methods. The graduate student did not receive any formal training \nfor working with energetic compounds, but he stated to the CSB that he independently com￾pleted a literature review prior to beginning work to familiarize himself with similar energetic \ncompounds. Safety restrictions, such as a 100 milligram limit on the amount of compound \npermitted to be synthesized, were verbally communicated by the two Principal Investigators \n(PIs)6\n of the research to some students. It was assumed senior graduate students would transmit \nthe information to newer group members; however, no formal documentation system was in \nplace to ensure that such information was effectively communicated to students and/or that \nstudents understood the information. Consequently, none of the students the CSB interviewed \nas part of its investigation, including those directly involved in the incident, stated they were \naware of a strict 100 milligram limit. Instead, students indicated to the CSB they believed they \nshould work with “very small amounts,” on the order of 200 to 300 milligrams."
+        },
+        {
+          "section_title": "5.0 INCIDENT ANALYSIS",
+          "text": "5.0 INCIDENT ANALYSIS\nWith any serious event, it is all too common for attention to be focused on the actions and \ndecisions of the individuals involved in the immediate activities preceding the event. Yet \nmodern accident causation theory recognizes that incidents are not the result of a single \nmalfunctioning piece of equipment or the erroneous actions of one person, but instead are \nthe result of a number of failures and deficiencies at many levels within an organization \nand its technical community (CCPS, 2003, p.89-90). Focusing safety improvements at the \nimmediate level of accident causation has limited reach and impact because doing so misses \nthe underlying organizational factors that influence and contribute to an incident; examin￾ing higher-level system deficiencies within an organization and making safety changes at \nthose levels have a much greater preventative impact.14\nThis theory of accident causation can be illustrated using James Reason’s aptly named \n“Swiss cheese model” within the context of an academic institution.15 Reason \nuses his model to depict a series of safety layers (or system defenses) capable of preventing \nan incident. The holes represent gaps within each system where failure could occur. If a \nnumber of failures align, an incident results (Reason, 2000, p.769).\nThus, when the CSB investigates an incident, it not only examines the immediate events \nleading up to that incident, but it also looks beyond those events to the larger organization \nor company involved. It identifies the regulatory framework that existed at the time of the \nincident for the work being conducted, and the safety influence of technical associations \nand professional societies. Appendix A provides a more detailed visual representation of the \nCSB’s investigative analysis; the agency used a modified technique of the AcciMap accident \nanalysis tool, which aims to identify various decision-makers that have a potential for \nimproving safety (Rasmussen, 2000, p. 20). \nThrough a review of evidentiary records, interviews, and post-incident observations, the CSB \nconcluded that each layer of safety management within the institution had deficiencies that \ncontributed to the January 2010 Texas Tech incident. Additionally, the CSB identified several \ngaps beyond the university itself where safety management and practices of the researchers \ncould have been influenced to aid in prevention, including the grant funding agency, the exist￾ing laboratory safety regulations, and good practice guidance. Specifically, the CSB found: \nUÊThe physical hazards of the energetic materials research work were not effectively assessed \nand controlled at Texas Tech;\nUÊTexas Tech’s laboratory safety management program was modeled after OSHA’s Occupa￾tional Exposure to Hazardous Chemicals in Laboratories Standard (29 CFR 1910.1450); \nyet, the Standard was created not to address physical hazards of chemicals, but rather \nhealth hazards as a result of chemical exposures;\nUÊComprehensive hazard evaluation guidance for research laboratories does not exist;\nUÊPrevious Texas Tech laboratory incidents with preventative lessons were not always docu￾mented, tracked, and formally communicated at the university;\nUÊThe research-granting agency, DHS, prescribed no safety provisions specific to the research \nwork being conducted at Texas Tech at the time of the incident, missing an opportunity \nfor safety influence; and\nUÊSafety accountability and oversight by the principal investigators, the department, and \nuniversity administration at Texas Tech were insufficient."
+        },
+        {
+          "section_title": "7.0 LESSONS NOT LEARNED FROM PREVIOUS INCIDENTS AND NEAR-MISSES",
+          "text": "7.0 LESSONS NOT LEARNED FROM PREVIOUS \nINCIDENTS AND NEAR-MISSES\n“Good organizations learn lessons from incidents and take actions to strengthen their safety \nprocesses and programs and foster a strong safety culture” (Hill and Finster, 2010, p. 31). Yet \nreporting and learning from incidents does not always occur. Prudent Practices states, “The \n‘culture of chemistry’ is still at odds with that of safety. Some of us may have witnessed unsafe \nbehavior or minor accidents, and yet, rather than viewing these incidents with concern and as \nopportunities to modify practices and behavior, we often have failed to act upon these ‘teachable \nmoments.’” (NRC, 2011, p. viii) \nApproximately three years prior to the January 2010 detonation, two previous incidents had oc￾curred within the same research groups; however, some students within these groups indicated \nthat they were unaware of the incidents until after the 2010 event. While no one was injured in \nthe previous incidents, they presented the PIs, and the entire Chemistry Department, an oppor￾tunity to recognize gaps in safety-critical knowledge and hazard awareness.\nThe first incident occurred when a reaction was being completed by a student. The reaction \nbegan to emit nitrogen, causing loud bangs. After another student recommended removing \nthe reaction from the ice bath it was in, the banging increased. This frightened the student \nand caused her to flee. The lesson learned, as reported to the CSB investigators, was that a \nstudent should not leave the scene because responders may need information to be able to \nmitigate the situation. While it is important that researchers are available to consult with \nemergency responders, the CSB concludes that other safety issues could also have been \nidentified. Similarities between this incident and the 2010 detonation include:\nUÊNo formal hazard evaluation and risk assessment had been completed to characterize the \npotential danger of the research activity and to plan for the worst-case scenario;\nUÊStudent sought peer advice;\nUÊNo policy was in place at the laboratory, department, or university level to prompt a stu￾dent to seek PI advice or evaluation of experimental activities.\nHad remedial actions been taken after this 2007 incident, they could have played a preventative \nrole in the 2010 event. \nThe second previous incident involved a scale-up situation within the same research groups; \na student unintentionally used the wrong units of measure and created an excess of a \nknown energetic material. While reporting the synthesis at a group meeting, the PI asked \nhow much compound the student had made, at which point the student reported 30 grams; \nthe PI immediately separated the 30 grams of explosive material into smaller, less hazardous \nquantities. The graduate student injured in the 2010 incident was a researcher in the labora￾tory at the time of this near-miss and witnessed the interaction between the PI and the \nstudent, but the near-miss was not reported to anyone outside of the research groups. Had \nthe dangers of scale-up been formally communicated through written SOPs and reinforced \nas new students joined the research group, the likelihood of the occurrence of the 2010 \nincident may have been lessened.\nEntities looking to improve safety should encourage the reporting of such incidents, even \nwhen injuries or damage do not result, as accidents and near-miss reports indicate critical \nareas where safety controls may be needed. The collection of reports from an entire depart￾ment could be used as a safety metric to help determine how a department as a whole is \ndoing and/or improving. \nIn addition, incident and near-miss reports could become a resource for future research￾ers as those individuals assess and mitigate the potential hazards of their work. Zakzeski \n(2008, p. 8) suggests storing near-miss reports in an online database accessible to research￾ers beginning work with new chemicals or processes.30"
+        }
+      ],
+      "extraction_notes": "Primary incident summary was taken from the Introduction because it most clearly summarizes the January 7, 2010 event and investigation findings. The main chronological physical evolution was extracted from 4.0 INCIDENT DESCRIPTION. Additional related sections include pre-incident buildup, causal/consequence analysis, and prior-incident lessons relevant to hazard evolution and consequence development."
+    }
+  ]
+}
+
+ACCIDENT_SCENARIO_SCHEMA
+{
+  "hazard_consequence_node":[
+    {
+      "label": "HazardConsequence",
+      "name": "VCE | BLEVE | Dust explosion | Confined explosion | Pool fire | Jet fire | Fire ball | Flash fire | Toxicity dispersion | Asphyxiation",
+      "node_id": "H#",
+      "node_type": "HazardConsequence",
+      "evidence": "string",
+      "explanation": "string",
+      "source": "incident_description | Not specified"
+    }
+  ],
+
+  "entity_nodes": [
+
+    {
+      "label": "Material",
+      "name": "string | Not specified",
+      "node_id": "En#",
+      "node_type": "Entity",
+      "evidence": "string",
+      "explanation": "string",
+      "source": "incident_description | Not specified"
+    },
+
+    {
+      "label": "Location",
+      "name": "string | Not specified",
+      "node_id": "En#",
+      "node_type": "Entity",
+      "evidence": "string | N/A",
+      "explanation": "string",
+      "source": "incident_description | Not specified"
+    }
+  ],
+
+  "condition_nodes": [
+
+    {
+      "label": "Phase",
+      "name": "Liquid | Vapor | Solid | TwoPhase | Not specified",
+      "node_id": "C#",
+      "node_type": "Condition",
+      "evidence": "string | N/A",
+      "explanation": "string",
+      "source": "incident_description | Not specified"
+    },
+
+    {
+      "label": "Pressure",
+      "name": "High pressure | Low pressure | Not specified",
+      "node_id": "C#",
+      "node_type": "Condition",
+      "evidence": "string | N/A",
+      "explanation": "string",
+      "source": "incident_description | Not specified"
+    },
+
+    {
+      "label": "Temperature",
+      "name": "Low temperature| Atmospheric temperature| High temperature| Not specified",
+      "node_id": "C#",
+      "node_type": "Condition",
+      "evidence": "string | N/A",
+      "explanation": "string",
+      "source": "incident_description | Not specified"
+    },
+    
+    {
+      "label": "Volatility",
+      "name": "Low volatility| High volatility| Not specified",
+      "node_id": "C#",
+      "node_type": "Condition",
+      "evidence": "string | N/A",
+      "explanation": "string",
+      "source": "incident_description | Not specified"
+    },
+
+    {
+      "label": "Combustibility",
+      "name": "Combustible | Non-combustible | Not specified",
+      "node_id": "C#",
+      "node_type": "Condition",
+      "evidence": "string | N/A",
+      "explanation": "string",
+      "source": "incident_description | Not specified"
+    },
+
+    {
+      "label": "ToxicSubstance",
+      "name": "Toxic | Non-toxic | Not specified",
+      "node_id": "C#",
+      "node_type": "Condition",
+      "evidence": "string | N/A",
+      "explanation": "string",
+      "source": "incident_description | Not specified"
+    },
+
+    {
+      "label": "Asphyxiant",
+      "name": "Asphyxiant | Non-asphyxiant | Not specified",
+      "node_id": "C#",
+      "node_type": "Condition",
+      "evidence": "string | N/A",
+      "explanation": "string",
+      "source": "incident_description | Not specified"
+    },
+
+    {
+      "label": "Conductivity",
+      "name": "Low conductivity| High conductivity| Not specified",
+      "node_id": "C#",
+      "node_type": "Condition",
+      "evidence": "string | N/A",
+      "explanation": "string",
+      "source": "incident_description | Not specified"
+    },
+
+    {
+      "label": "ReleaseType",
+      "name": "Continuous release | Instant release | Not specified",
+      "node_id": "C#",
+      "node_type": "Condition",
+      "evidence": "string | N/A",
+      "explanation": "string",
+      "source": "incident_description | Not specified"
+    },
+
+    {
+      "label": "Confinement",
+      "name": "High confinement | Low confinement | Not specified",
+      "node_id": "C#",
+      "node_type": "Condition",
+      "evidence": "string | N/A",
+      "explanation": "string",
+      "source": "incident_description | Not specified"
+    },
+
+    {
+      "label": "Dispersion",
+      "name": "Dispersed | Not dispersed | Not specified",
+      "node_id": "C#",
+      "node_type": "Condition",
+      "evidence": "string | N/A",
+      "explanation": "string",
+      "source": "incident_description | Not specified"
+    }
+
+  ],
+
+  "event_nodes": [
+    {
+      "label": "InitiatingEvent",
+      "name": "string | Not specified",
+      "node_id": "Ev#",
+      "node_type": "Event",
+      "evidence": "string",
+      "explanation": "string",
+      "source": "incident_description | Not specified"
+    },
+
+    {
+      "label": "MechanicalFailure",
+      "name": "string | Unknown mechanical failure | Not specified",
+      "node_id": "Ev#",
+      "node_type": "Event",
+      "evidence": "string",
+      "explanation": "string",
+      "source": "incident_description | Not specified"
+    },
+
+    {
+      "label": "IgnitionSource",
+      "name": "string | Unknown ignition source | Not specified",
+      "node_id": "Ev#",
+      "node_type": "Event",
+      "evidence": "string | N/A",
+      "explanation": "string",
+      "source": "incident_description | Not specified"
+    }
+  ]
+}
+
+
+ACCIDENT_SCENARIO_SCHEMA_DEFINITION
+SCHEMA DEFINITION
+
+The output must strictly follow the provided JSON schema. Each field has a specific meaning and must be filled according to the rules below.
+
+General Rules
+
+Evidence
+
+The "evidence" field must contain a short quote copied directly from the source that supports the extracted value.
+
+If source = "incident_description":
+The evidence must be copied verbatim from the incident report text.
+
+Do not invent, paraphrase, or infer evidence.
+
+If no supporting evidence can be found, set:
+evidence = "N/A"
+source = "Not specified".
+
+Source
+
+The "source" field indicates where the information was obtained, the allowed source are listed in each nodes.
+
+Allowed values:
+
+incident_description  
+Information directly extracted from the incident report.
+
+
+Not specified  
+Used when the information cannot be determined from the incident report or reliable external knowledge sources.
+
+Node ID
+
+Each node must include a `node_id`, which serves as a unique identifier in the graph.
+
+The `node_id` must follow the prefix corresponding to the node type:
+
+- H#  → HazardConsequence nodes
+- En# → Entity nodes
+- C#  → Condition nodes
+- Ev# → Event nodes
+
+Where # is a sequential integer starting from 1 within each node category.
+
+Examples:
+H1, En1, C1, Ev1
+
+Rules:
+- Each node must have exactly one `node_id`.
+- All `node_id` values must be unique within the output.
+- The prefix must match the node's `node_type`.
+- Do not invent other ID formats.
+- The `node_id` is only an identifier and must not contain semantic meaning.
+
+--------------------------------------------------
+Material
+--------------------------------------------------
+
+Definition
+The hazardous substance involved in the accident scenario.
+
+This refers to the chemical or material present in the process that participates in the release, dispersion, ignition, or hazard consequence.
+
+
+--------------------------------------------------
+Location
+--------------------------------------------------
+
+Definition
+The physical place or equipment where the accident-related event occurs.
+
+This may include process units, storage tanks, pipelines, packaging areas, or other facility locations relevant to the accident.
+
+
+--------------------------------------------------
+Phase
+--------------------------------------------------
+
+Definition
+The physical phase of the material at the time of the accident.
+
+This condition describes whether the material exists as liquid, vapor, solid, or a two-phase mixture, which can influence release behavior and hazard consequences.
+
+
+--------------------------------------------------
+Temperature
+--------------------------------------------------
+
+Definition
+The temperature condition of the material or environment during the accident scenario.
+
+Temperature can affect vapor generation, chemical stability, and the likelihood of ignition or hazardous reactions.
+
+--------------------------------------------------
+Pressure
+--------------------------------------------------
+
+Definition
+The pressure condition of the material or process system during the accident scenario.
+
+Pressure influences the containment, release rate, and phase behavior of the material.
+Elevated pressure can increase the driving force for a release and accelerate discharge from equipment, while low or atmospheric pressure conditions may affect vapor formation and dispersion behavior.
+
+--------------------------------------------------
+Volatility
+--------------------------------------------------
+
+Definition
+The tendency of a substance to vaporize.
+
+High volatility substances can easily form flammable or toxic vapor clouds that may contribute to explosion or dispersion hazards.
+
+
+--------------------------------------------------
+Combustibility
+--------------------------------------------------
+
+Definition
+Whether the material is capable of burning in the presence of an ignition source.
+
+Combustible materials can participate in fires or explosions when mixed with air and exposed to ignition.
+
+
+--------------------------------------------------
+ToxicSubstance
+--------------------------------------------------
+
+Definition
+Whether the material has toxic properties that can cause harm to humans or the environment.
+
+Toxic substances may produce hazardous exposure through vapor dispersion or direct contact.
+
+
+--------------------------------------------------
+Asphyxiant
+--------------------------------------------------
+
+Definition
+Whether the substance can cause oxygen displacement or interfere with oxygen transport in the body.
+
+Asphyxiants may lead to suffocation or oxygen deficiency hazards in confined or poorly ventilated spaces.
+
+
+--------------------------------------------------
+Conductivity
+--------------------------------------------------
+
+Definition
+The electrical conductivity property of the material.
+
+Low conductivity liquids may accumulate static electricity during transfer operations, increasing the risk of static discharge ignition.
+
+
+--------------------------------------------------
+ReleaseType
+--------------------------------------------------
+
+Definition
+The manner in which hazardous material is released into the environment.
+
+This condition distinguishes between instantaneous releases and continuous releases, which influence dispersion behavior and accident escalation.
+
+
+--------------------------------------------------
+IgnitionSource
+--------------------------------------------------
+
+Definition
+The source of energy that can ignite a flammable mixture.
+
+Examples include static electricity sparks, open flames, hot surfaces, electrical equipment, or mechanical sparks.
+
+
+--------------------------------------------------
+Confinement
+--------------------------------------------------
+
+Definition
+The degree to which flammable or hazardous material is enclosed within a confined space.
+
+High confinement can increase explosion overpressure and significantly influence explosion severity.
+
+
+--------------------------------------------------
+Dispersion
+--------------------------------------------------
+
+Definition
+The spreading of released material into the surrounding environment.
+
+Dispersion determines how vapors, gases, or toxic substances distribute in air and whether hazardous concentrations can form.
+
+
+--------------------------------------------------
+MechanicalFailure
+--------------------------------------------------
+
+Definition
+A physical failure of equipment that contributes to the accident.
+
+This may include rupture, leakage, seal failure, structural failure, or malfunction of process equipment that leads to loss of containment.
+
+If a mechanical failure clearly occurred and contributed to the accident,
+but the exact failed component or exact failure mode cannot be determined
+from the incident description, use "Unknown mechanical failure" as the name.
+
+Use "Not specified" only when the incident description does not provide enough
+support to identify whether a mechanical failure should be represented at all.
+
+--------------------------------------------------
+InitiatingEvent
+--------------------------------------------------
+
+Definition
+The first abnormal operational or physical event
+that directly initiates the accident sequence
+within the process system.
+
+The initiating event may summarize closely related
+operational actions and conditions that immediately
+lead to the hazardous sequence.
+
+--------------------------------------------------
+IgnitionSource Special Rule
+--------------------------------------------------
+
+If ignition clearly occurred in the incident, but the exact ignition source
+cannot be determined from the incident description, use
+"Unknown ignition source" as the name.
+
+Use "Not specified" only when the incident description does not provide enough
+support to identify whether an ignition source should be represented at all.
+
+
+IDENTIFY_ACCIDENT_SCENARIO_OUTPUT
+{
+  "hazard_consequence_node": [
+    {
+      "label": "HazardConsequence",
+      "name": "Confined explosion",
+      "node_id": "H1",
+      "node_type": "HazardConsequence",
+      "evidence": "The report states that on January 7, 2010, the student was injured \"after the chemical he was working with detonated.\" In the incident description, \"he transferred about half of the synthesized NHP into a mortar, added hexane... [and] the compound detonated.\" The analysis repeatedly focuses on the explosive hazards of the energetic material, the scale-up to about 10 grams, and the lack of formal hazard evaluation for that explosive risk.",
+      "explanation": "The central accident mechanism analyzed is the detonation/explosion of an energetic solid during handling in a mortar. Among the available labels, this is best represented as a confined explosion because the incident is fundamentally an explosive event localized in handling equipment, not a vapor cloud, BLEVE, dust cloud, fire, or toxic/asphyxiation event.",
+      "source": "incident_description"
+    }
+  ],
+  "entity_nodes": [
+    {
+      "label": "Material",
+      "name": "nickel hydrazine perchlorate (NHP) derivative",
+      "node_id": "En1",
+      "node_type": "Entity",
+      "evidence": "\"began synthesizing a nickel hydrazine perchlorate (NHP) derivative\"",
+      "explanation": "This was the energetic compound being synthesized, scaled up, and handled when the detonation occurred.",
+      "source": "incident_description"
+    },
+    {
+      "label": "Location",
+      "name": "mortar",
+      "node_id": "En2",
+      "node_type": "Entity",
+      "evidence": "\"transferred about half of the synthesized NHP into a mortar\"",
+      "explanation": "The material was being handled in a mortar immediately before the explosion.",
+      "source": "incident_description"
+    }
+  ],
+  "condition_nodes": [
+    {
+      "label": "Phase",
+      "name": "Solid",
+      "node_id": "C1",
+      "node_type": "Condition",
+      "evidence": "\"observed clumps in the product\"",
+      "explanation": "The energetic material was present as a solid product, although it had been wetted with hexane.",
+      "source": "incident_description"
+    },
+    {
+      "label": "Pressure",
+      "name": "Not specified",
+      "node_id": "C2",
+      "node_type": "Condition",
+      "evidence": "N/A",
+      "explanation": "The incident description does not specify a pressure condition or a pressurized system.",
+      "source": "Not specified"
+    },
+    {
+      "label": "Temperature",
+      "name": "Not specified",
+      "node_id": "C3",
+      "node_type": "Condition",
+      "evidence": "N/A",
+      "explanation": "The incident description does not specify the temperature of the material or surroundings.",
+      "source": "Not specified"
+    },
+    {
+      "label": "Volatility",
+      "name": "Not specified",
+      "node_id": "C4",
+      "node_type": "Condition",
+      "evidence": "N/A",
+      "explanation": "The incident description does not explicitly state the volatility of the hazardous material driving the explosion scenario.",
+      "source": "Not specified"
+    },
+    {
+      "label": "Combustibility",
+      "name": "Combustible",
+      "node_id": "C5",
+      "node_type": "Condition",
+      "evidence": "\"the potential explosive hazards associated with the quantity of NHP synthesized\"",
+      "explanation": "The material exhibited energetic behavior and detonated, indicating combustible/explosive reactivity.",
+      "source": "incident_description"
+    },
+    {
+      "label": "ToxicSubstance",
+      "name": "Not specified",
+      "node_id": "C6",
+      "node_type": "Condition",
+      "evidence": "N/A",
+      "explanation": "The incident description does not identify toxicity as the driving hazard in this scenario.",
+      "source": "Not specified"
+    },
+    {
+      "label": "Asphyxiant",
+      "name": "Not specified",
+      "node_id": "C7",
+      "node_type": "Condition",
+      "evidence": "N/A",
+      "explanation": "The incident description does not indicate an asphyxiation hazard.",
+      "source": "Not specified"
+    },
+    {
+      "label": "Conductivity",
+      "name": "Not specified",
+      "node_id": "C8",
+      "node_type": "Condition",
+      "evidence": "N/A",
+      "explanation": "The incident description does not provide information about the electrical conductivity of the material.",
+      "source": "Not specified"
+    },
+    {
+      "label": "ReleaseType",
+      "name": "Instant release",
+      "node_id": "C9",
+      "node_type": "Condition",
+      "evidence": "\"At this point, the compound detonated.\"",
+      "explanation": "The hazardous event occurred suddenly rather than as a prolonged release.",
+      "source": "incident_description"
+    },
+    {
+      "label": "Confinement",
+      "name": "Low confinement",
+      "node_id": "C10",
+      "node_type": "Condition",
+      "evidence": "\"into a mortar\"",
+      "explanation": "The material was in an open mortar rather than a closed vessel, indicating limited confinement.",
+      "source": "incident_description"
+    },
+    {
+      "label": "Dispersion",
+      "name": "Not dispersed",
+      "node_id": "C11",
+      "node_type": "Condition",
+      "evidence": "\"transferred about half of the synthesized NHP into a mortar, added hexane\"",
+      "explanation": "The material remained as a localized wetted solid in the mortar; no vapor or dust cloud dispersion before detonation is described.",
+      "source": "incident_description"
+    }
+  ],
+  "event_nodes": [
+    {
+      "label": "InitiatingEvent",
+      "name": "Scale-up of NHP synthesis to approximately 10 grams",
+      "node_id": "Ev1",
+      "node_type": "Event",
+      "evidence": "\"they decided to scale-up the synthesis of NHP to make approximately 10 grams\"",
+      "explanation": "The accident sequence began when the energetic material was intentionally scaled up from small laboratory quantities to a much larger batch.",
+      "source": "incident_description"
+    },
+    {
+      "label": "IgnitionSource",
+      "name": "Unknown ignition source",
+      "node_id": "Ev2",
+      "node_type": "Event",
+      "evidence": "\"did not replace his goggles while he stirred the NHP “one more time.” At this point, the compound detonated.\"",
+      "explanation": "A detonation occurred during manual stirring, but the incident description does not identify the exact ignition or initiation source.",
+      "source": "incident_description"
+    }
+  ]
+}
+
+CAUSAL_EDGE_LINKING_OUTPUT
+{
+  "edges": [
+    {
+      "source": "En1",
+      "target": "C1",
+      "relation": "has"
+    },
+    {
+      "source": "En1",
+      "target": "C5",
+      "relation": "has"
+    },
+    {
+      "source": "En2",
+      "target": "C10",
+      "relation": "has"
+    },
+    {
+      "source": "C1",
+      "target": "H1",
+      "relation": "enables"
+    },
+    {
+      "source": "C5",
+      "target": "H1",
+      "relation": "enables"
+    },
+    {
+      "source": "C10",
+      "target": "H1",
+      "relation": "enables"
+    },
+    {
+      "source": "Ev1",
+      "target": "H1",
+      "relation": "enables"
+    },
+    {
+      "source": "Ev2",
+      "target": "H1",
+      "relation": "enables"
+    }
+  ]
+}
+
+CAUSAL_GRAPH_JSON
+{
+  "hazard_consequence_node": [
+    {
+      "label": "HazardConsequence",
+      "name": "Confined explosion",
+      "node_id": "H1",
+      "node_type": "HazardConsequence",
+      "evidence": "The report states that on January 7, 2010, the student was injured \"after the chemical he was working with detonated.\" In the incident description, \"he transferred about half of the synthesized NHP into a mortar, added hexane... [and] the compound detonated.\" The analysis repeatedly focuses on the explosive hazards of the energetic material, the scale-up to about 10 grams, and the lack of formal hazard evaluation for that explosive risk.",
+      "explanation": "The central accident mechanism analyzed is the detonation/explosion of an energetic solid during handling in a mortar. Among the available labels, this is best represented as a confined explosion because the incident is fundamentally an explosive event localized in handling equipment, not a vapor cloud, BLEVE, dust cloud, fire, or toxic/asphyxiation event.",
+      "source": "incident_description"
+    }
+  ],
+  "entity_nodes": [
+    {
+      "label": "Material",
+      "name": "nickel hydrazine perchlorate (NHP) derivative",
+      "node_id": "En1",
+      "node_type": "Entity",
+      "evidence": "\"began synthesizing a nickel hydrazine perchlorate (NHP) derivative\"",
+      "explanation": "This was the energetic compound being synthesized, scaled up, and handled when the detonation occurred.",
+      "source": "incident_description"
+    },
+    {
+      "label": "Location",
+      "name": "mortar",
+      "node_id": "En2",
+      "node_type": "Entity",
+      "evidence": "\"transferred about half of the synthesized NHP into a mortar\"",
+      "explanation": "The material was being handled in a mortar immediately before the explosion.",
+      "source": "incident_description"
+    }
+  ],
+  "condition_nodes": [
+    {
+      "label": "Phase",
+      "name": "Solid",
+      "node_id": "C1",
+      "node_type": "Condition",
+      "evidence": "\"observed clumps in the product\"",
+      "explanation": "The energetic material was present as a solid product, although it had been wetted with hexane.",
+      "source": "incident_description"
+    },
+    {
+      "label": "Combustibility",
+      "name": "Combustible",
+      "node_id": "C5",
+      "node_type": "Condition",
+      "evidence": "\"the potential explosive hazards associated with the quantity of NHP synthesized\"",
+      "explanation": "The material exhibited energetic behavior and detonated, indicating combustible/explosive reactivity.",
+      "source": "incident_description"
+    },
+    {
+      "label": "Confinement",
+      "name": "Low confinement",
+      "node_id": "C10",
+      "node_type": "Condition",
+      "evidence": "\"into a mortar\"",
+      "explanation": "The material was in an open mortar rather than a closed vessel, indicating limited confinement.",
+      "source": "incident_description"
+    }
+  ],
+  "event_nodes": [
+    {
+      "label": "InitiatingEvent",
+      "name": "Scale-up of NHP synthesis to approximately 10 grams",
+      "node_id": "Ev1",
+      "node_type": "Event",
+      "evidence": "\"they decided to scale-up the synthesis of NHP to make approximately 10 grams\"",
+      "explanation": "The accident sequence began when the energetic material was intentionally scaled up from small laboratory quantities to a much larger batch.",
+      "source": "incident_description"
+    },
+    {
+      "label": "IgnitionSource",
+      "name": "Unknown ignition source",
+      "node_id": "Ev2",
+      "node_type": "Event",
+      "evidence": "\"did not replace his goggles while he stirred the NHP “one more time.” At this point, the compound detonated.\"",
+      "explanation": "A detonation occurred during manual stirring, but the incident description does not identify the exact ignition or initiation source.",
+      "source": "incident_description"
+    }
+  ],
+  "edges": [
+    {
+      "source": "En1",
+      "target": "C1",
+      "relation": "has"
+    },
+    {
+      "source": "En1",
+      "target": "C5",
+      "relation": "has"
+    },
+    {
+      "source": "En2",
+      "target": "C10",
+      "relation": "has"
+    },
+    {
+      "source": "C1",
+      "target": "H1",
+      "relation": "enables"
+    },
+    {
+      "source": "C5",
+      "target": "H1",
+      "relation": "enables"
+    },
+    {
+      "source": "C10",
+      "target": "H1",
+      "relation": "enables"
+    },
+    {
+      "source": "Ev1",
+      "target": "H1",
+      "relation": "enables"
+    },
+    {
+      "source": "Ev2",
+      "target": "H1",
+      "relation": "enables"
+    }
+  ]
+}
+
+TASK
+
+Your task is to review the existing CAUSAL_GRAPH_JSON against the INCIDENT_DESCRIPTION, ACCIDENT_SCENARIO_SCHEMA, ACCIDENT_SCENARIO_SCHEMA_DEFINITION, IDENTIFY_ACCIDENT_SCENARIO_OUTPUT, and CAUSAL_EDGE_LINKING_OUTPUT.
+
+You must identify structural problems, semantic problems, missing key causal steps, duplicated nodes or events, and incorrect or weak edges.
+
+You must return structured revision suggestions in JSON only.
+
+REVIEW OBJECTIVES
+
+1. Check whether the nodes in CAUSAL_GRAPH_JSON are consistent with the incident description and accident scenario extraction.
+
+2. Check whether the graph follows a reasonable process safety accident logic.
+
+3. Check whether the edge directions and relations are appropriate.
+
+4. Check whether there are duplicated nodes that represent the same accident step or meaning.
+
+5. Check whether important causal steps are missing.
+
+6. Check whether some nodes or edges should be removed because they are unsupported, redundant, overly transitive, or semantically weak.
+
+7. Prefer the smallest necessary set of changes that materially improves the causal graph.
+
+REVIEW RULES
+
+1. Use the INCIDENT_DESCRIPTION as the primary factual basis.
+
+2. Use IDENTIFY_ACCIDENT_SCENARIO_OUTPUT as the primary reference for what nodes were extracted and how they were described.
+
+3. Use CAUSAL_EDGE_LINKING_OUTPUT as the primary reference for how the current edge suggestions were produced.
+
+4. Use ACCIDENT_SCENARIO_SCHEMA and ACCIDENT_SCENARIO_SCHEMA_DEFINITION to judge whether labels, node types, and meanings are appropriate.
+
+5. Do not invent unsupported accident mechanisms, conditions, or events.
+
+6. Do not recommend changes only for stylistic preference.
+
+7. If the graph is already acceptable, say so and keep the suggested changes minimal.
+
+8. Prefer renaming or updating an existing node over deleting and re-adding it, unless the current node is fundamentally incorrect.
+
+9. Prefer deleting redundant duplicate nodes when two nodes represent the same accident step.
+
+10. Avoid recommending transitive edges.
+If there is already a more direct causal chain A -> B -> C, do not recommend an additional edge A -> C unless the incident description explicitly supports a separate direct causal relationship.
+
+11. A location node should usually not directly cause a hazard consequence unless the incident description explicitly supports that role.
+
+12. Hazard consequence nodes should normally be the downstream end of the causal chain.
+
+13. Material nodes should usually connect to material properties using relation "has".
+
+14. Conditions and events should generally connect with relation "enables" when they make a downstream step possible or more likely.
+
+15. If an important event clearly occurred but is missing from the graph, recommend adding it only when there is direct support in the incident description.
+
+16. If a node in the graph is unsupported by the incident description or is too weak to justify graph inclusion, recommend removing it.
+
+17. If the graph contains a duplicated event pattern such as an InitiatingEvent and a MechanicalFailure that describe essentially the same physical occurrence, recommend a merge, deletion, or role clarification.
+
+18. If a node or edge is weak but still acceptable, classify the issue severity as low instead of recommending unnecessary deletion.
+
+SEVERITY GUIDANCE
+
+- high:
+  The issue materially breaks or distorts the main accident causal chain.
+
+- medium:
+  The issue weakens the graph logic or misses an important step, but the overall chain is still understandable.
+
+- low:
+  The issue is minor, stylistic, weakly redundant, or only slightly misleading.
+
+OUTPUT REQUIREMENTS
+
+Return one JSON object with the following structure:
+
+{
+  "case_assessment": {
+    "overall_quality": "good | acceptable | weak",
+    "summary": "string",
+    "main_problems": [
+      "string"
+    ]
+  },
+  "node_updates": [
+    {
+      "target_id": "node_id",
+      "change_type": "rename | relabel | retype | clarify_role | update_evidence | update_explanation",
+      "current_state": "string",
+      "suggested_state": "string",
+      "reason": "string",
+      "evidence": "string",
+      "severity": "high | medium | low",
+      "confidence": "high | medium | low"
+    }
+  ],
+  "node_additions": [
+    {
+      "suggested_label": "string",
+      "suggested_name": "string",
+      "suggested_node_type": "Entity | Condition | Event | HazardConsequence",
+      "suggested_upstream_links": [
+        {
+          "source": "node_id",
+          "relation": "has | enables"
+        }
+      ],
+      "suggested_downstream_links": [
+        {
+          "target": "node_id",
+          "relation": "has | enables"
+        }
+      ],
+      "reason": "string",
+      "evidence": "string",
+      "severity": "high | medium | low",
+      "confidence": "high | medium | low"
+    }
+  ],
+  "node_deletions": [
+    {
+      "target_id": "node_id",
+      "reason": "string",
+      "evidence": "string",
+      "severity": "high | medium | low",
+      "confidence": "high | medium | low"
+    }
+  ],
+  "edge_additions": [
+    {
+      "source": "node_id",
+      "target": "node_id",
+      "relation": "has | enables",
+      "reason": "string",
+      "evidence": "string",
+      "severity": "high | medium | low",
+      "confidence": "high | medium | low"
+    }
+  ],
+  "edge_deletions": [
+    {
+      "source": "node_id",
+      "target": "node_id",
+      "relation": "has | enables",
+      "reason": "string",
+      "evidence": "string",
+      "severity": "high | medium | low",
+      "confidence": "high | medium | low"
+    }
+  ],
+  "edge_updates": [
+    {
+      "source": "node_id",
+      "target": "node_id",
+      "current_relation": "has | enables",
+      "suggested_relation": "has | enables",
+      "reason": "string",
+      "evidence": "string",
+      "severity": "high | medium | low",
+      "confidence": "high | medium | low"
+    }
+  ],
+  "issues_summary": [
+    {
+      "issue_type": "missing_step | duplicate_node | weak_edge | wrong_direction | wrong_relation | unsupported_node | unsupported_edge | schema_mismatch | other",
+      "description": "string",
+      "severity": "high | medium | low"
+    }
+  ]
+}
+
+OUTPUT FORMAT
+
+Return JSON only.
+Do not include explanations or additional text outside the JSON object.

@@ -1,0 +1,64 @@
+{
+  "edges": [
+    {
+      "source": "En1",
+      "target": "C1",
+      "relation": "has"
+    },
+    {
+      "source": "En1",
+      "target": "C4",
+      "relation": "has"
+    },
+    {
+      "source": "En4",
+      "target": "C6",
+      "relation": "has"
+    },
+    {
+      "source": "Ev2",
+      "target": "Ev1",
+      "relation": "enables"
+    },
+    {
+      "source": "Ev1",
+      "target": "C3",
+      "relation": "enables"
+    },
+    {
+      "source": "Ev1",
+      "target": "C5",
+      "relation": "enables"
+    },
+    {
+      "source": "C3",
+      "target": "Ev3",
+      "relation": "enables"
+    },
+    {
+      "source": "C5",
+      "target": "Ev3",
+      "relation": "enables"
+    },
+    {
+      "source": "C1",
+      "target": "H1",
+      "relation": "enables"
+    },
+    {
+      "source": "C4",
+      "target": "H1",
+      "relation": "enables"
+    },
+    {
+      "source": "C6",
+      "target": "H1",
+      "relation": "enables"
+    },
+    {
+      "source": "Ev3",
+      "target": "H1",
+      "relation": "enables"
+    }
+  ]
+}

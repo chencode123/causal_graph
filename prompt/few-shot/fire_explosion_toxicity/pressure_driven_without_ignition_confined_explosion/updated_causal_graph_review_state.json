@@ -1,0 +1,55 @@
+{
+  "review_decisions": {
+    "node_addition_0": "accepted",
+    "node_update_1": "accepted",
+    "edge_deletion_0": "accepted",
+    "node_update_0": "accepted"
+  },
+  "deleted_nodes": [
+    "Ev1",
+    "Ev2"
+  ],
+  "deleted_edges": [
+    {
+      "source": "C1",
+      "target": "Ev1",
+      "relation": "enables"
+    },
+    {
+      "source": "C2",
+      "target": "Ev2",
+      "relation": "enables"
+    },
+    {
+      "source": "Ev1",
+      "target": "Ev2",
+      "relation": "enables"
+    },
+    {
+      "source": "C10",
+      "target": "H1",
+      "relation": "enables"
+    },
+    {
+      "source": "Ev2",
+      "target": "H1",
+      "relation": "enables"
+    },
+    {
+      "source": "Ev1",
+      "target": "Ev3",
+      "relation": "enables"
+    },
+    {
+      "source": "Ev3",
+      "target": "Ev2",
+      "relation": "enables"
+    },
+    {
+      "source": "Ev3",
+      "target": "C2",
+      "relation": "enables"
+    }
+  ],
+  "deleted_visible": false
+}

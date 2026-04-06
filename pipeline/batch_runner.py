@@ -37,6 +37,7 @@ def _load_required_prompts() -> Dict[str, str]:
     """Load only the prompt files required by the current pipeline."""
     prompt_paths = {
         "identify_hazard_consequence": Path("prompt/identify_hazard_consequence.txt"),
+        "causal_narrative_extraction": Path("prompt/causal_narrative_extraction.txt"),
         "identify_accident_scenario": Path("prompt/identify_accident_scenario.txt"),
         "causal_edge_linking": Path("prompt/causal_edge_linking.txt"),
         "review_causal_graph": Path("prompt/review_causal_graph.txt"),
@@ -267,6 +268,8 @@ def run_batch_pipeline(config: Any) -> None:
     pipeline = build_pipeline(
         hazards_json=config.hazards_json_path,
         conditions_json=config.conditions_json_path,
+        use_few_shot=getattr(config, "use_few_shot", False),
+        few_shot_cases_by_step=getattr(config, "few_shot_cases_by_step", None),
     )
     batch_workdir = getattr(config, "batch_workdir", None) or (config.base_dir / "_batch_pipeline")
     batch_workdir.mkdir(parents=True, exist_ok=True)

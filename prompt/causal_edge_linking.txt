@@ -1,5 +1,7 @@
 You are an expert in process safety accident analysis.
 
+{few_shot_examples}
+
 INPUT:
 
 INCIDENT_DESCRIPTION
@@ -28,10 +30,10 @@ Allowed edge relations:
    Material → Pressure
 
 2. enables
-   Used when a event or condition makes an event or consequence possible.
+   enables = directly contributes to the occurrence of the downstream event
+   AND represents a causal mechanism, not just a necessary condition or context
    Example:
-   Vapor → Ignition
-   High confinement → Confined explosion
+   ignition source → flash fire
 
 Linking rules:
 1. Follow the general causal hierarchy:
@@ -45,11 +47,26 @@ However, the structure is not strictly linear. Multiple events may occur in para
    Material → Conductivity
    Use relation: has
 
-3. Conditions or events may connect to conditions or events when they make the them possible or more likely.
+3. Conditions or events may connect to conditions or events when they have clear has or enable relationship
    Example:
-   Vapor → Ignition
-   Low conductivity → Static charge accumulation
-   Use relation: enables or contributes_to
+   Low conductivity enables Static charge accumulation
+
+4. IgnitionSource must be treated as an independent triggering event.
+
+Do NOT create edges pointing TO IgnitionSource unless:
+- The source node physically generates or triggers the ignition mechanism.
+
+Allowed examples:
+- Mechanical spark → IgnitionSource
+- Electrical discharge → IgnitionSource
+
+Not allowed:
+- Vapor cloud → IgnitionSource
+- Combustibility → IgnitionSource
+- Location → IgnitionSource
+
+If the text describes a vapor cloud reaching or encountering an ignition source,
+this represents contact, not causation. Do NOT create an edge from the vapor cloud to the ignition source.
 
 7. If multiple nodes influence the same downstream node, connect them in parallel, not in a chain, unless the report explicitly describes a sequence.
 
@@ -72,6 +89,17 @@ Each edge must contain:
 - source
 - target
 - relation
+- evidence
+- explanation
+
+Evidence and explanation requirements:
+1. evidence must be a short supporting text span grounded in INCIDENT_DESCRIPTION or IDENTIFY_ACCIDENT_SCENARIO.
+2. If the source text does not explicitly state the edge but strongly supports it, evidence may be a short paraphrase based on the input.
+3. explanation must briefly explain why the source node directly causes, enables, or characterizes the target node.
+4. explanation must describe the direct local relationship only. Do not explain the entire accident sequence.
+5. Keep evidence and explanation concise.
+6. If few-shot examples are provided above, use them only as references for reasoning style and output structure.
+7. Do not copy incident-specific content from the examples.
 
 Return the result in JSON format:
 
@@ -80,7 +108,9 @@ Return the result in JSON format:
       {{
          "source": "node_id",
          "target": "node_id",
-         "relation": "has | enables"
+         "relation": "has | enables",
+         "evidence": "short supporting evidence from the input",
+         "explanation": "brief explanation of why the direct edge exists"
       }}
    ]
 }}

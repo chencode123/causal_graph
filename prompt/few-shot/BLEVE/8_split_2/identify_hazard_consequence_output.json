@@ -1,0 +1,52 @@
+{
+  "hazard_consequence_node": {
+    "label": "BLEVE",
+    "name": "BLEVE",
+    "node_id": "H1",
+    "node_type": "HazardConsequence",
+    "evidence": "Section 3.2 states: \"Based upon these process conditions at the time of the failure, a BLEVE occurred.\" The incident description explains that the reboiler shell \"suddenly and catastrophically ruptured\" under normal operating conditions while containing liquid above its atmospheric boiling point and above atmospheric pressure. The cause statement further identifies the central event as \"the catastrophic failure of a reboiler\" whose shell had thinned from HF corrosion until it could no longer contain operating pressure.",
+    "explanation": "The primary hazard consequence is BLEVE because the incident analysis centers on the pressure vessel rupture mechanism, rapid loss of containment, blast effects, and vessel fragmentation. The toxic HF and chlorine releases were major consequences of that rupture, but the report explicitly identifies the hazardous phenomenon itself as a BLEVE.",
+    "source": "incident_description"
+  },
+  "explanation": {
+    "reasoning": "BLEVE is the primary hazard consequence because the incident description explicitly classifies the reboiler rupture as a boiling liquid expanding vapor explosion and the report’s technical analysis focuses on vessel thinning, loss of pressure containment, rupture, and fragment projection. Although toxic dispersion followed, it was secondary to the central accident mechanism.",
+    "excluded_alternatives": [
+      {
+        "label": "VCE",
+        "reason": "No vapor cloud ignition or combustion explosion is described; the event was a vessel rupture/BLEVE, not a fuel-air vapor cloud explosion."
+      },
+      {
+        "label": "Dust explosion",
+        "reason": "The incident involved pressurized process liquids and gases, not combustible dust."
+      },
+      {
+        "label": "Confined explosion",
+        "reason": "The report identifies a pressure vessel rupture with BLEVE characteristics, not an internal confined combustion explosion."
+      },
+      {
+        "label": "Pool fire",
+        "reason": "No liquid pool ignition or sustained surface burning occurred."
+      },
+      {
+        "label": "Jet fire",
+        "reason": "There was no ignited pressurized release producing a jet flame."
+      },
+      {
+        "label": "Fire ball",
+        "reason": "Although a BLEVE can sometimes involve a fireball, this event involved toxic, nonflammable releases and no fireball is reported."
+      },
+      {
+        "label": "Flash fire",
+        "reason": "No transient flame spread through a flammable vapor cloud is described."
+      },
+      {
+        "label": "Toxicity dispersion",
+        "reason": "HF and chlorine dispersion occurred, but the report’s main accident mechanism and explicit hazard classification is the BLEVE that caused the release."
+      },
+      {
+        "label": "Asphyxiation",
+        "reason": "No oxygen-deficient atmosphere or asphyxiation hazard is identified as the main consequence."
+      }
+    ]
+  }
+}

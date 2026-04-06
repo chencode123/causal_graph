@@ -1,0 +1,35 @@
+{
+  "review_decisions": {
+    "node_update_1": "accepted",
+    "node_addition_0": "accepted",
+    "edge_deletion_0": "accepted",
+    "node_update_0": "accepted",
+    "edge_deletion_1": "accepted"
+  },
+  "deleted_nodes": [
+    "C2"
+  ],
+  "deleted_edges": [
+    {
+      "source": "En2",
+      "target": "C2",
+      "relation": "has"
+    },
+    {
+      "source": "C1",
+      "target": "C6",
+      "relation": "enables"
+    },
+    {
+      "source": "C2",
+      "target": "Ev3",
+      "relation": "enables"
+    },
+    {
+      "source": "Ev4",
+      "target": "C2",
+      "relation": "enables"
+    }
+  ],
+  "deleted_visible": false
+}

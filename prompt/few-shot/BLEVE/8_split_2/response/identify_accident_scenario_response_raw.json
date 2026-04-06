@@ -1,0 +1,77 @@
+{
+  "id": "resp_02e0e86acafe341f0069b87a39f514819484752b6a6be6cf63",
+  "object": "response",
+  "created_at": 1773697594,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1773697723,
+  "error": null,
+  "frequency_penalty": 0.0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": 128000,
+  "max_tool_calls": null,
+  "model": "gpt-5.4-2026-03-05",
+  "output": [
+    {
+      "id": "rs_02e0e86acafe341f0069b87a3a54388194b91cc197e3a19f35",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_02e0e86acafe341f0069b87aafd6988194bbb5fb898e8596dc",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "{\n  \"hazard_consequence_node\": [\n    {\n      \"label\": \"BLEVE\",\n      \"name\": \"BLEVE\",\n      \"node_id\": \"H1\",\n      \"node_type\": \"HazardConsequence\",\n      \"evidence\": \"Section 3.2 states: \\\"Based upon these process conditions at the time of the failure, a BLEVE occurred.\\\" The incident description explains that the reboiler shell \\\"suddenly and catastrophically ruptured\\\" under normal operating conditions while containing liquid above its atmospheric boiling point and above atmospheric pressure. The cause statement further identifies the central event as \\\"the catastrophic failure of a reboiler\\\" whose shell had thinned from HF corrosion until it could no longer contain operating pressure.\",\n      \"explanation\": \"The primary hazard consequence is BLEVE because the incident analysis centers on the pressure vessel rupture mechanism, rapid loss of containment, blast effects, and vessel fragmentation. The toxic HF and chlorine releases were major consequences of that rupture, but the report explicitly identifies the hazardous phenomenon itself as a BLEVE.\",\n      \"source\": \"incident_description\"\n    }\n  ],\n  \"entity_nodes\": [\n    {\n      \"label\": \"Material\",\n      \"name\": \"Anhydrous hydrogen fluoride (HF)\",\n      \"node_id\": \"En1\",\n      \"node_type\": \"Entity\",\n      \"evidence\": \"releasing over 800 pounds of anhydrous HF\",\n      \"explanation\": \"HF was one of the primary process chemicals released, and the report also identifies HF corrosion as the mechanism that thinned the reboiler shell.\",\n      \"source\": \"incident_description\"\n    },\n    {\n      \"label\": \"Location\",\n      \"name\": \"Reboiler shell\",\n      \"node_id\": \"En2\",\n      \"node_type\": \"Entity\",\n      \"evidence\": \"the reboiler shell suddenly and catastrophically ruptured\",\n      \"explanation\": \"The BLEVE originated at the reboiler shell in the 245 unit.\",\n      \"source\": \"incident_description\"\n    }\n  ],\n  \"condition_nodes\": [\n    {\n      \"label\": \"Phase\",\n      \"name\": \"Liquid\",\n      \"node_id\": \"C1\",\n      \"node_type\": \"Condition\",\n      \"evidence\": \"a liquid that exists above its normal atmospheric pressure boiling point\",\n      \"explanation\": \"The BLEVE criteria cited in the report indicate the vessel contained liquid above its atmospheric boiling point at failure.\",\n      \"source\": \"incident_description\"\n    },\n    {\n      \"label\": \"Pressure\",\n      \"name\": \"High pressure\",\n      \"node_id\": \"C2\",\n      \"node_type\": \"Condition\",\n      \"evidence\": \"the pressure was greater than atmospheric pressure\",\n      \"explanation\": \"The reboiler contents were pressurized when the shell failed.\",\n      \"source\": \"incident_description\"\n    },\n    {\n      \"label\": \"Temperature\",\n      \"name\": \"High temperature\",\n      \"node_id\": \"C3\",\n      \"node_type\": \"Condition\",\n      \"evidence\": \"the temperature was greater than the fluids’ atmospheric boiling points\",\n      \"explanation\": \"The process fluid temperature exceeded atmospheric boiling conditions at the time of failure.\",\n      \"source\": \"incident_description\"\n    },\n    {\n      \"label\": \"Volatility\",\n      \"name\": \"High volatility\",\n      \"node_id\": \"C4\",\n      \"node_type\": \"Condition\",\n      \"evidence\": \"results in rapidly expanding vapor and flashing liquid\",\n      \"explanation\": \"The material flashed and expanded to vapor upon sudden depressurization, indicating high volatility under incident conditions.\",\n      \"source\": \"incident_description\"\n    },\n    {\n      \"label\": \"Combustibility\",\n      \"name\": \"Not specified\",\n      \"node_id\": \"C5\",\n      \"node_type\": \"Condition\",\n      \"evidence\": \"N/A\",\n      \"explanation\": \"The incident description does not directly classify the involved material as combustible or non-combustible, and no combustion event is described.\",\n      \"source\": \"Not specified\"\n    },\n    {\n      \"label\": \"ToxicSubstance\",\n      \"name\": \"Toxic\",\n      \"node_id\": \"C6\",\n      \"node_type\": \"Condition\",\n      \"evidence\": \"accidental release of toxic HF and chlorine\",\n      \"explanation\": \"The released process chemicals were explicitly identified as toxic.\",\n      \"source\": \"incident_description\"\n    },\n    {\n      \"label\": \"Asphyxiant\",\n      \"name\": \"Not specified\",\n      \"node_id\": \"C7\",\n      \"node_type\": \"Condition\",\n      \"evidence\": \"N/A\",\n      \"explanation\": \"The incident description does not identify the released materials as asphyxiants or describe oxygen-displacement effects.\",\n      \"source\": \"Not specified\"\n    },\n    {\n      \"label\": \"Conductivity\",\n      \"name\": \"Not specified\",\n      \"node_id\": \"C8\",\n      \"node_type\": \"Condition\",\n      \"evidence\": \"N/A\",\n      \"explanation\": \"The incident description does not provide information on electrical conductivity.\",\n      \"source\": \"Not specified\"\n    },\n    {\n      \"label\": \"ReleaseType\",\n      \"name\": \"Instant release\",\n      \"node_id\": \"C9\",\n      \"node_type\": \"Condition\",\n      \"evidence\": \"the reboiler shell suddenly and catastrophically ruptured\",\n      \"explanation\": \"The initiating loss of containment was sudden and catastrophic, consistent with an instantaneous release/BLEVE.\",\n      \"source\": \"incident_description\"\n    },\n    {\n      \"label\": \"Confinement\",\n      \"name\": \"Low confinement\",\n      \"node_id\": \"C10\",\n      \"node_type\": \"Condition\",\n      \"evidence\": \"released into the ambient air\",\n      \"explanation\": \"The release occurred into open plant surroundings rather than a confined enclosure.\",\n      \"source\": \"incident_description\"\n    },\n    {\n      \"label\": \"Dispersion\",\n      \"name\": \"Dispersed\",\n      \"node_id\": \"C11\",\n      \"node_type\": \"Condition\",\n      \"evidence\": \"released into the ambient air\",\n      \"explanation\": \"After rupture, the released materials dispersed into the surrounding atmosphere.\",\n      \"source\": \"incident_description\"\n    }\n  ],\n  \"event_nodes\": [\n    {\n      \"label\": \"InitiatingEvent\",\n      \"name\": \"Reboiler shell thinned to the point it could no longer contain operating pressure\",\n      \"node_id\": \"Ev1\",\n      \"node_type\": \"Event\",\n      \"evidence\": \"when the reboiler shell thinned to the point at which it could no longer contain the operating pressure\",\n      \"explanation\": \"HF corrosion progressively reduced shell thickness until normal operating pressure exceeded the remaining shell strength.\",\n      \"source\": \"incident_description\"\n    },\n    {\n      \"label\": \"MechanicalFailure\",\n      \"name\": \"Reboiler shell rupture\",\n      \"node_id\": \"Ev2\",\n      \"node_type\": \"Event\",\n      \"evidence\": \"the reboiler shell suddenly and catastrophically ruptured\",\n      \"explanation\": \"The shell rupture was the direct equipment failure that caused the BLEVE and loss of containment.\",\n      \"source\": \"incident_description\"\n    },\n    {\n      \"label\": \"IgnitionSource\",\n      \"name\": \"Not specified\",\n      \"node_id\": \"Ev3\",\n      \"node_type\": \"Event\",\n      \"evidence\": \"N/A\",\n      \"explanation\": \"No ignition, fire, or ignition source is described; the event was a BLEVE from vessel rupture rather than a combustion scenario.\",\n      \"source\": \"Not specified\"\n    }\n  ]\n}"
+        }
+      ],
+      "phase": "final_answer",
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0.0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": null,
+  "reasoning": {
+    "effort": "high",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1.0,
+  "text": {
+    "format": {
+      "type": "json_object"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 0.98,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 10583,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 13459,
+    "output_tokens_details": {
+      "reasoning_tokens": 11829
+    },
+    "total_tokens": 24042
+  },
+  "user": null,
+  "metadata": {}
+}

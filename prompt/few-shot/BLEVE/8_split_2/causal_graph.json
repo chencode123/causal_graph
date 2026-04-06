@@ -1,0 +1,148 @@
+{
+  "hazard_consequence_node": [
+    {
+      "label": "BLEVE",
+      "name": "BLEVE",
+      "node_id": "H1",
+      "node_type": "HazardConsequence",
+      "evidence": "Section 3.2 states: \"Based upon these process conditions at the time of the failure, a BLEVE occurred.\" The incident description explains that the reboiler shell \"suddenly and catastrophically ruptured\" under normal operating conditions while containing liquid above its atmospheric boiling point and above atmospheric pressure. The cause statement further identifies the central event as \"the catastrophic failure of a reboiler\" whose shell had thinned from HF corrosion until it could no longer contain operating pressure.",
+      "explanation": "The primary hazard consequence is BLEVE because the incident analysis centers on the pressure vessel rupture mechanism, rapid loss of containment, blast effects, and vessel fragmentation. The toxic HF and chlorine releases were major consequences of that rupture, but the report explicitly identifies the hazardous phenomenon itself as a BLEVE.",
+      "source": "incident_description"
+    }
+  ],
+  "entity_nodes": [
+    {
+      "label": "Material",
+      "name": "Anhydrous hydrogen fluoride (HF)",
+      "node_id": "En1",
+      "node_type": "Entity",
+      "evidence": "releasing over 800 pounds of anhydrous HF",
+      "explanation": "HF was one of the primary process chemicals released, and the report also identifies HF corrosion as the mechanism that thinned the reboiler shell.",
+      "source": "incident_description"
+    }
+  ],
+  "condition_nodes": [
+    {
+      "label": "Phase",
+      "name": "Liquid",
+      "node_id": "C1",
+      "node_type": "Condition",
+      "evidence": "a liquid that exists above its normal atmospheric pressure boiling point",
+      "explanation": "The BLEVE criteria cited in the report indicate the vessel contained liquid above its atmospheric boiling point at failure.",
+      "source": "incident_description"
+    },
+    {
+      "label": "Pressure",
+      "name": "High pressure",
+      "node_id": "C2",
+      "node_type": "Condition",
+      "evidence": "the pressure was greater than atmospheric pressure",
+      "explanation": "The reboiler contents were pressurized when the shell failed.",
+      "source": "incident_description"
+    },
+    {
+      "label": "Temperature",
+      "name": "High temperature",
+      "node_id": "C3",
+      "node_type": "Condition",
+      "evidence": "the temperature was greater than the fluids’ atmospheric boiling points",
+      "explanation": "The process fluid temperature exceeded atmospheric boiling conditions at the time of failure.",
+      "source": "incident_description"
+    },
+    {
+      "label": "Volatility",
+      "name": "High volatility",
+      "node_id": "C4",
+      "node_type": "Condition",
+      "evidence": "results in rapidly expanding vapor and flashing liquid",
+      "explanation": "The material flashed and expanded to vapor upon sudden depressurization, indicating high volatility under incident conditions.",
+      "source": "incident_description"
+    },
+    {
+      "label": "ReleaseType",
+      "name": "Instant release",
+      "node_id": "C9",
+      "node_type": "Condition",
+      "evidence": "the reboiler shell suddenly and catastrophically ruptured",
+      "explanation": "The initiating loss of containment was sudden and catastrophic, consistent with an instantaneous release/BLEVE.",
+      "source": "incident_description"
+    }
+  ],
+  "event_nodes": [
+    {
+      "label": "InitiatingEvent",
+      "name": "Reboiler shell thinned to the point it could no longer contain operating pressure",
+      "node_id": "Ev1",
+      "node_type": "Event",
+      "evidence": "when the reboiler shell thinned to the point at which it could no longer contain the operating pressure",
+      "explanation": "HF corrosion progressively reduced shell thickness until normal operating pressure exceeded the remaining shell strength.",
+      "source": "incident_description"
+    },
+    {
+      "label": "MechanicalFailure",
+      "name": "Reboiler shell rupture",
+      "node_id": "Ev2",
+      "node_type": "Event",
+      "evidence": "the reboiler shell suddenly and catastrophically ruptured",
+      "explanation": "The shell rupture was the direct equipment failure that caused the BLEVE and loss of containment.",
+      "source": "incident_description"
+    }
+  ],
+  "edges": [
+    {
+      "source": "En1",
+      "target": "C1",
+      "relation": "has"
+    },
+    {
+      "source": "En1",
+      "target": "C2",
+      "relation": "has"
+    },
+    {
+      "source": "En1",
+      "target": "C3",
+      "relation": "has"
+    },
+    {
+      "source": "En1",
+      "target": "C4",
+      "relation": "has"
+    },
+    {
+      "source": "Ev1",
+      "target": "Ev2",
+      "relation": "enables"
+    },
+    {
+      "source": "Ev2",
+      "target": "C9",
+      "relation": "enables"
+    },
+    {
+      "source": "C1",
+      "target": "H1",
+      "relation": "enables"
+    },
+    {
+      "source": "C2",
+      "target": "H1",
+      "relation": "enables"
+    },
+    {
+      "source": "C3",
+      "target": "H1",
+      "relation": "enables"
+    },
+    {
+      "source": "C4",
+      "target": "H1",
+      "relation": "enables"
+    },
+    {
+      "source": "C9",
+      "target": "H1",
+      "relation": "enables"
+    }
+  ]
+}

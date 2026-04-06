@@ -1,5 +1,7 @@
 You are a process safety analyst.
 
+{few_shot_examples}
+
 INPUT (JSON):
 HAZARD_CONSEQUENCE: {hazards_consequence_json}
 IDENTIFIED_INCIDENT: {identify_incident_output}
@@ -20,5 +22,10 @@ Selection rules
 6. You must explicitly consider every label in HAZARD_CONSEQUENCE before selecting the final label.
 7. excluded_alternatives must include all non-selected labels, each with a brief exclusion reason.
 8. Do not omit any label from the evaluation.
+
+If few-shot examples are provided above:
+1. Use them only as references for reasoning style and output structure.
+2. Do not copy incident-specific content from the examples.
+3. Base the final answer only on the current input.
 
 Return JSON only in the following format OUTPUT_SCHEMA:

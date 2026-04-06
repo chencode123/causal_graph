@@ -72,7 +72,26 @@ The physical place or equipment where the accident-related event occurs.
 
 This may include process units, storage tanks, pipelines, packaging areas, or other facility locations relevant to the accident.
 
+--------------------------------------------------
+IntermediateEvent
+--------------------------------------------------
 
+An intermediate event that occurs after the initiating event and before the final hazard consequence, 
+only when a necessary accident-process step cannot be adequately represented by the existing node types.
+
+Use IntermediateEvent sparingly.
+
+Do not create an IntermediateEvent if the same accident logic can already be represented by:
+- MechanicalFailure
+- InitiatingEvent
+- IgnitionSource
+- Entity nodes
+- Condition nodes
+
+IntermediateEvent should only be used for a process-significant transition that adds unique causal 
+information and cannot be expressed by the other node types.
+Do not use IntermediateEvent merely to restate an observed outcome such as overpressure, explosion, 
+or fire unless that stage is distinctly necessary in the accident progression.
 --------------------------------------------------
 Phase
 --------------------------------------------------
@@ -199,7 +218,11 @@ MechanicalFailure
 Definition
 A physical failure of equipment that contributes to the accident.
 
-This may include rupture, leakage, seal failure, structural failure, or malfunction of process equipment that leads to loss of containment.
+This may include rupture, leakage, seal failure, structural failure, refractory degradation, 
+or malfunction of process equipment that leads to loss of containment or abnormal process behavior.
+
+If the report describes a plausible or observed physical failure in the analysis section, 
+extract it as a MechanicalFailure even if the report does not confirm it as the exact root cause.
 
 If a mechanical failure clearly occurred and contributed to the accident,
 but the exact failed component or exact failure mode cannot be determined
@@ -212,14 +235,15 @@ support to identify whether a mechanical failure should be represented at all.
 InitiatingEvent
 --------------------------------------------------
 
-Definition
-The first abnormal operational or physical event
-that directly initiates the accident sequence
-within the process system.
+The first abnormal operational or process event that initiates the accident sequence within the process system.
 
-The initiating event may summarize closely related
-operational actions and conditions that immediately
-lead to the hazardous sequence.
+Prefer events that represent a process upset or system disturbance.
+
+Do NOT use an observed consequence (e.g., overpressure, explosion, fire) as the InitiatingEvent 
+if it can be explained as the result of other identified causes (e.g., mechanical failure or process conditions).
+
+If a concrete MechanicalFailure is identified, it should generally precede or explain the InitiatingEvent, 
+rather than being replaced by it.
 
 --------------------------------------------------
 IgnitionSource Special Rule

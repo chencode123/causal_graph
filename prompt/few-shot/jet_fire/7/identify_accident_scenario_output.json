@@ -1,0 +1,109 @@
+{
+  "hazard_consequence_node": [
+    {
+      "label": "Jet fire",
+      "name": "Jet fire",
+      "node_id": "H1",
+      "node_type": "hazardconsequence",
+      "evidence": "\"Very quickly after the mud started spraying out of the well, the diesel oil-based mud and gas escaping the well caught on fire.\"",
+      "explanation": "Within the provided consequence categories, the main hazardous phenomenon is a sustained fire from a pressurized gas/mud release at the well after loss of well control. The report's central analysis is the blowout development, missed influx indications, and failure to shut in the well before ignition, which most closely corresponds to a jet fire rather than an explosion or a brief flash event.",
+      "source": "updated_graph"
+    }
+  ],
+  "entity_nodes": [
+    {
+      "label": "Material",
+      "name": "diesel oil-based mud and gas",
+      "node_id": "En1",
+      "node_type": "entity",
+      "evidence": "the diesel oil-based mud and gas escaping the well caught on fire",
+      "explanation": "The blowout release that ignited consisted of flammable gas and diesel oil-based drilling mud escaping from the well.",
+      "source": "updated_graph"
+    },
+    {
+      "label": "Location",
+      "name": "open well hole on the rig floor",
+      "node_id": "En2",
+      "node_type": "entity",
+      "evidence": "open well hole on the rig floor",
+      "explanation": "The uncontrolled release emerged from the well opening at the rig floor, where the blowout and immediate fire developed.",
+      "source": "updated_graph"
+    }
+  ],
+  "condition_nodes": [
+    {
+      "label": "Phase",
+      "name": "TwoPhase",
+      "node_id": "C1",
+      "node_type": "condition",
+      "evidence": "the diesel oil-based mud and gas escaping the well caught on fire",
+      "explanation": "The released material included both gas and liquid oil-based mud, indicating a two-phase release.",
+      "source": "updated_graph"
+    },
+    {
+      "label": "Pressure",
+      "name": "High pressure",
+      "node_id": "C2",
+      "node_type": "condition",
+      "evidence": "the pressure on the well side of the orbit valve was previously so high that the trip tank pumps had deadheaded",
+      "explanation": "Elevated well pressure existed before the blowout and provided the driving force for the forceful release from the well.",
+      "source": "updated_graph"
+    },
+    {
+      "label": "Combustibility",
+      "name": "Combustible",
+      "node_id": "C4",
+      "node_type": "condition",
+      "evidence": "caught on fire",
+      "explanation": "The released gas and oil-based mud were capable of burning once ignited.",
+      "source": "updated_graph"
+    },
+    {
+      "label": "ReleaseType",
+      "name": "Continuous release",
+      "node_id": "C5",
+      "node_type": "condition",
+      "evidence": "The BOP did not seal the well to stop the blowout",
+      "explanation": "The release was sustained as an ongoing blowout rather than a single instantaneous discharge.",
+      "source": "updated_graph"
+    },
+    {
+      "label": "Confinement",
+      "name": "Low confinement",
+      "node_id": "C6",
+      "node_type": "condition",
+      "evidence": "open well hole on the rig floor",
+      "explanation": "The release occurred at an open rig-floor location rather than inside a confined enclosure.",
+      "source": "updated_graph"
+    }
+  ],
+  "event_nodes": [
+    {
+      "label": "InitiatingEvent",
+      "name": "Gas influx into the wellbore",
+      "node_id": "Ev1",
+      "node_type": "event",
+      "evidence": "gas began entering the wellbore",
+      "explanation": "The accident sequence began when gas entered the underbalanced well, initiating the loss-of-well-control progression that led to the blowout.",
+      "source": "updated_graph"
+    },
+    {
+      "label": "IgnitionSource",
+      "name": "Unknown ignition source",
+      "node_id": "Ev3",
+      "node_type": "event",
+      "evidence": "the diesel oil-based mud and gas escaping the well caught on fire",
+      "explanation": "The report clearly states that ignition occurred, but it does not identify the specific ignition source.",
+      "source": "updated_graph"
+    },
+    {
+      "label": "IntermediateEvent",
+      "name": "Mud and gas started spraying out of the well",
+      "node_id": "Ev4",
+      "node_type": "event",
+      "evidence": "At 8:36 am, shortly after the driller communicated that he was going to close the blind rams, mud started spraying out of the well.",
+      "explanation": "The graph currently jumps from gas influx/high pressure directly to the jet fire. The immediate blowout release to atmosphere is the missing physical accident step that directly precedes ignition.",
+      "source": "updated_graph"
+    }
+  ]
+}

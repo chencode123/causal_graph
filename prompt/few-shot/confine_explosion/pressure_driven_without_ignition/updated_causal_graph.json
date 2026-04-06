@@ -1,0 +1,143 @@
+{
+  "hazard_consequence_node": [
+    {
+      "label": "HazardConsequence",
+      "name": "Confined explosion",
+      "node_id": "H1",
+      "node_type": "hazardconsequence",
+      "evidence": "Use a direct quote such as: \"the MP odorizer exploded less than five minutes after the draining operation had begun\"",
+      "explanation": "The main accident mechanism analyzed is a reactive chemical explosion occurring inside a sealed odorizer vessel, causing vessel rupture and projectile hazards. This is best classified as a confined explosion because the hazardous phenomenon was an internal explosion/overpressure event within enclosed equipment, not a vapor cloud, dust, fire, or toxic release event.",
+      "source": "updated_graph"
+    }
+  ],
+  "entity_nodes": [
+    {
+      "label": "Material",
+      "name": "reactive, unstable chemicals",
+      "node_id": "En1",
+      "node_type": "entity",
+      "evidence": "reactive, unstable chemicals that exploded when workers tried to drain the uncharacterized, chemically treated liquid",
+      "explanation": "The report identifies reactive, unstable chemicals in the chemically treated liquid as the material that exploded inside the odorizer.",
+      "source": "updated_graph"
+    },
+    {
+      "label": "Location",
+      "name": "MP odorizer",
+      "node_id": "En2",
+      "node_type": "entity",
+      "evidence": "the MP odorizer exploded less than five minutes after the draining operation had begun",
+      "explanation": "The explosion occurred in the MP odorizer vessel being drained.",
+      "source": "updated_graph"
+    }
+  ],
+  "condition_nodes": [
+    {
+      "label": "Phase",
+      "name": "Liquid",
+      "node_id": "C1",
+      "node_type": "condition",
+      "evidence": "workers tried to drain the uncharacterized, chemically treated liquid",
+      "explanation": "The hazardous material involved in the operation was present as liquid being drained from the odorizer.",
+      "source": "updated_graph"
+    },
+    {
+      "label": "Pressure",
+      "name": "High pressure",
+      "node_id": "C2",
+      "node_type": "condition",
+      "evidence": "Pressurized liquid flowed through the hose toward the tote.",
+      "explanation": "The vessel contents were under pressure during the draining operation, consistent with the confined explosion scenario.",
+      "source": "updated_graph"
+    },
+    {
+      "label": "Confinement",
+      "name": "High confinement",
+      "node_id": "C10",
+      "node_type": "condition",
+      "evidence": "the MP vessels were filled with unknown liquid chemicals and sealed tight",
+      "explanation": "The reactive contents were enclosed in a sealed vessel, providing strong confinement for an internal explosion.",
+      "source": "updated_graph"
+    },
+    {
+      "label": "Phase",
+      "name": "vapor",
+      "node_id": "C11",
+      "node_type": "condition",
+      "evidence": "",
+      "explanation": "",
+      "source": "updated_graph"
+    },
+    {
+      "label": "Temperature",
+      "name": "High temperature",
+      "node_id": "C12",
+      "node_type": "condition",
+      "evidence": "",
+      "explanation": "",
+      "source": "updated_graph"
+    }
+  ],
+  "event_nodes": [
+    {
+      "label": "InitiatingEvent",
+      "name": "Unexpected chemical reaction in chemically treated MP odorizer during draining",
+      "node_id": "Ev3",
+      "node_type": "event",
+      "evidence": "In both cases, the work activities disturbed the contents of the MP odorizer. it appears an unexpected chemical reaction occurred, resulting in the rupture of the two MP odorizers",
+      "explanation": "This is the key missing causal step. The report explicitly says an unexpected chemical reaction occurred and resulted in rupture; without this node, the graph incorrectly implies that draining directly caused rupture.",
+      "source": "updated_graph"
+    }
+  ],
+  "edges": [
+    {
+      "source": "En1",
+      "target": "C1",
+      "relation": "has"
+    },
+    {
+      "source": "En1",
+      "target": "C2",
+      "relation": "has"
+    },
+    {
+      "source": "En2",
+      "target": "C10",
+      "relation": "has"
+    },
+    {
+      "source": "C1",
+      "target": "Ev3",
+      "relation": "enables"
+    },
+    {
+      "source": "C10",
+      "target": "C2",
+      "relation": "enables"
+    },
+    {
+      "source": "Ev3",
+      "target": "C11",
+      "relation": "enables"
+    },
+    {
+      "source": "Ev3",
+      "target": "C12",
+      "relation": "enables"
+    },
+    {
+      "source": "C11",
+      "target": "C2",
+      "relation": "enables"
+    },
+    {
+      "source": "C12",
+      "target": "C2",
+      "relation": "enables"
+    },
+    {
+      "source": "C2",
+      "target": "H1",
+      "relation": "enables"
+    }
+  ]
+}

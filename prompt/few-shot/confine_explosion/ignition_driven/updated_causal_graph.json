@@ -1,0 +1,209 @@
+{
+  "hazard_consequence_node": [
+    {
+      "label": "HazardConsequence",
+      "name": "Confined explosion",
+      "node_id": "H1",
+      "node_type": "HazardConsequence",
+      "evidence": "\"the initial explosion occurred inside a vertical above-ground storage tank that was being filled with VM&P naphtha.\"",
+      "explanation": "The incident analysis is centered on an internal tank explosion during filling. The report mainly examines how an ignitable vapor-air mixture formed in the tank headspace and how static accumulation and a likely spark from the gauging float linkage ignited it. The later fireball, tank ruptures, and tank farm fire were escalation effects following the primary internal explosion.",
+      "source": "updated_graph"
+    }
+  ],
+  "entity_nodes": [
+    {
+      "label": "Material",
+      "name": "VM&P naphtha",
+      "node_id": "En1",
+      "node_type": "Entity",
+      "evidence": "being filled with VM&P naphtha",
+      "explanation": "VM&P naphtha was the flammable liquid being transferred into the tank and generated the ignitable headspace vapor-air mixture involved in the explosion.",
+      "source": "updated_graph"
+    },
+    {
+      "label": "Location",
+      "name": "15,000 gallon above-ground storage tank",
+      "node_id": "En2",
+      "node_type": "Entity",
+      "evidence": "into a 15,000 gallon above-ground storage tank",
+      "explanation": "The initial explosion occurred in the storage tank that was receiving the final compartment of the tanker-trailer.",
+      "source": "updated_graph"
+    }
+  ],
+  "condition_nodes": [
+    {
+      "label": "Phase",
+      "name": "Vapor",
+      "node_id": "C1",
+      "node_type": "Condition",
+      "evidence": "The tank contained an ignitable vapor-air mixture in its head space.",
+      "explanation": "The confined explosion involved the vapor phase in the tank headspace.",
+      "source": "updated_graph"
+    },
+    {
+      "label": "Temperature",
+      "name": "Atmospheric temperature",
+      "node_id": "C3",
+      "node_type": "Condition",
+      "evidence": "at approximately 77˚F (25˚C) (the handling temperature of the VM&P naphtha at the time of the incident)",
+      "explanation": "The material was handled at ambient conditions when the ignitable vapor-air mixture was present.",
+      "source": "updated_graph"
+    },
+    {
+      "label": "Volatility",
+      "name": "High volatility",
+      "node_id": "C4",
+      "node_type": "Condition",
+      "evidence": "can produce ignitable vapor-air mixtures inside tanks",
+      "explanation": "The material readily generated ignitable vapors in the tank at the incident temperature.",
+      "source": "updated_graph"
+    },
+    {
+      "label": "Combustibility",
+      "name": "Combustible",
+      "node_id": "C5",
+      "node_type": "Condition",
+      "evidence": "VM&P naphtha is a National Fire Protection Association (NFPA) Class IB flammable liquid",
+      "explanation": "The substance was a flammable liquid capable of burning and exploding when mixed with air and ignited.",
+      "source": "updated_graph"
+    },
+    {
+      "label": "Conductivity",
+      "name": "Low conductivity",
+      "node_id": "C8",
+      "node_type": "Condition",
+      "evidence": "because of its low electrical conductivity, can accumulate dangerous levels of static electricity.",
+      "explanation": "Low conductivity allowed static charge to accumulate during transfer operations.",
+      "source": "updated_graph"
+    },
+    {
+      "label": "Confinement",
+      "name": "High confinement",
+      "node_id": "C10",
+      "node_type": "Condition",
+      "evidence": "the initial explosion occurred inside a vertical above-ground storage tank",
+      "explanation": "The flammable vapor-air mixture was enclosed within the storage tank, creating a highly confined explosion environment.",
+      "source": "updated_graph"
+    }
+  ],
+  "event_nodes": [
+    {
+      "label": "InitiatingEvent",
+      "name": "Rapid static charge accumulation during stop-start filling",
+      "node_id": "Ev1",
+      "node_type": "Event",
+      "evidence": "Stop-start filling, air in the transfer piping, and sediment and water (likely present in the tank) caused a rapid static charge accumulation inside the VM&P naphtha tank.",
+      "explanation": "This was the earliest abnormal process condition identified as initiating the sequence that led to ignition of the headspace vapor-air mixture.",
+      "source": "updated_graph"
+    },
+    {
+      "label": "MechanicalFailure",
+      "name": "Gauge float linkage likely separated during filling",
+      "node_id": "Ev2",
+      "node_type": "Event",
+      "evidence": "\"turbulence and bubbling during the stop-start transfer pumping, in addition to creating rapid static charge accumulation, also likely created slack in the gauge tape connected to the float, causing the linkage to separate\"",
+      "explanation": "The explanation should emphasize that Ev2 represents the actual linkage separation during filling; the loose-linkage design is the latent feature that made that separation possible.",
+      "source": "updated_graph"
+    },
+    {
+      "label": "IgnitionSource",
+      "name": "Spark from separated gauging float linkage",
+      "node_id": "Ev3",
+      "node_type": "Event",
+      "evidence": "The tank had a liquid level gauging system float with a loose linkage that likely separated and created a spark during filling.",
+      "explanation": "The likely ignition source was a spark generated by the gauging float linkage during filling, which ignited the headspace vapor-air mixture.",
+      "source": "updated_graph"
+    },
+    {
+      "label": "InitiatingEvent",
+      "name": "Turbulence and bubbling during stop-start transfer pumping",
+      "node_id": "Ev4",
+      "node_type": "Event",
+      "evidence": "The report states that \"turbulence and bubbling during the stop-start transfer pumping, in addition to creating rapid static charge accumulation, also likely created slack in the gauge tape connected to the float, causing the linkage to separate and spark.\"",
+      "explanation": "The report describes stop-start transfer turbulence/bubbling as the shared operational precursor that contributed both to rapid static accumulation and to slack/separation in the gauging linkage. Adding this node makes the causal chain more explicit without changing the main scenario.",
+      "source": "updated_graph"
+    }
+  ],
+  "edges": [
+    {
+      "source": "En1",
+      "target": "C3",
+      "relation": "has"
+    },
+    {
+      "source": "En1",
+      "target": "C4",
+      "relation": "has"
+    },
+    {
+      "source": "En1",
+      "target": "C5",
+      "relation": "has"
+    },
+    {
+      "source": "En1",
+      "target": "C8",
+      "relation": "has"
+    },
+    {
+      "source": "En2",
+      "target": "C10",
+      "relation": "enables"
+    },
+    {
+      "source": "C3",
+      "target": "C1",
+      "relation": "enables"
+    },
+    {
+      "source": "C4",
+      "target": "C1",
+      "relation": "enables"
+    },
+    {
+      "source": "C8",
+      "target": "Ev1",
+      "relation": "enables"
+    },
+    {
+      "source": "Ev1",
+      "target": "Ev3",
+      "relation": "enables"
+    },
+    {
+      "source": "Ev2",
+      "target": "Ev3",
+      "relation": "enables"
+    },
+    {
+      "source": "C1",
+      "target": "H1",
+      "relation": "enables"
+    },
+    {
+      "source": "C5",
+      "target": "H1",
+      "relation": "enables"
+    },
+    {
+      "source": "C10",
+      "target": "H1",
+      "relation": "enables"
+    },
+    {
+      "source": "Ev3",
+      "target": "H1",
+      "relation": "enables"
+    },
+    {
+      "source": "Ev4",
+      "target": "Ev1",
+      "relation": "enables"
+    },
+    {
+      "source": "Ev4",
+      "target": "Ev2",
+      "relation": "enables"
+    }
+  ]
+}

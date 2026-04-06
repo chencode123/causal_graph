@@ -1,0 +1,223 @@
+{
+  "hazard_consequence_node": [
+    {
+      "label": "HazardConsequence",
+      "name": "VCE",
+      "node_id": "H1",
+      "node_type": "hazardconsequence",
+      "evidence": "\"The explosion was fueled by vapor released from a 2000-gallon tank of highly flammable liquid.\"",
+      "explanation": "The primary hazardous consequence is a vapor cloud explosion: flammable solvent vapors were generated from an overheated unsealed process tank, accumulated in the building, and ignited, producing the destructive overpressure that is the main focus of the investigation. The subsequent long-duration fire was a secondary consequence.",
+      "source": "updated_graph"
+    }
+  ],
+  "entity_nodes": [
+    {
+      "label": "Material",
+      "name": "heptane, isopropyl alcohol, and normal propyl alcohol",
+      "node_id": "En1",
+      "node_type": "entity",
+      "evidence": "a more than 2000-gallon liquid mixture of heptane, isopropyl alcohol, and normal propyl alcohol",
+      "explanation": "These flammable solvents were charged to mix tank 3, heated, vaporized, and their vapors fueled the explosion.",
+      "source": "updated_graph"
+    },
+    {
+      "label": "Location",
+      "name": "mix tank 3",
+      "node_id": "En2",
+      "node_type": "entity",
+      "evidence": "a 2000-gallon ink vehicle batch containing more than 10,000 pounds of flammable liquid in mix tank 3",
+      "explanation": "Mix tank 3 was the process vessel where the solvent mixture was heated and from which vapor was released.",
+      "source": "updated_graph"
+    },
+    {
+      "label": "Location",
+      "name": "production area of the CAI/Arnel building",
+      "node_id": "En3",
+      "node_type": "entity",
+      "evidence": "accumulate in the building production area",
+      "explanation": "The solvent vapor accumulated and mixed in this enclosed building area before ignition.",
+      "source": "updated_graph"
+    }
+  ],
+  "condition_nodes": [
+    {
+      "label": "Phase",
+      "name": "Vapor",
+      "node_id": "C1",
+      "node_type": "condition",
+      "evidence": "released enough heptane/alcohol vapor into the unventilated building to fuel the explosion",
+      "explanation": "The hazardous material was present as a flammable vapor cloud at the time of the explosion.",
+      "source": "updated_graph"
+    },
+    {
+      "label": "Temperature",
+      "name": "High temperature",
+      "node_id": "C2",
+      "node_type": "condition",
+      "evidence": "most likely caused the flammable liquid to overheat",
+      "explanation": "Uncontrolled steam heating raised the solvent mixture temperature until it boiled and generated vapor.",
+      "source": "updated_graph"
+    },
+    {
+      "label": "Volatility",
+      "name": "High volatility",
+      "node_id": "C3",
+      "node_type": "condition",
+      "evidence": "forms a low-boiling (positive) azeotrope with an average boiling point of 165.6°F",
+      "explanation": "The low-boiling solvent mixture readily vaporized when heated, promoting vapor cloud formation.",
+      "source": "updated_graph"
+    },
+    {
+      "label": "Combustibility",
+      "name": "Combustible",
+      "node_id": "C4",
+      "node_type": "condition",
+      "evidence": "CAI heated Class I flammable liquids in unsealed tanks inside a closed building",
+      "explanation": "The solvent mixture was flammable and capable of supporting ignition and explosion.",
+      "source": "updated_graph"
+    },
+    {
+      "label": "ReleaseType",
+      "name": "Continuous release",
+      "node_id": "C5",
+      "node_type": "condition",
+      "evidence": "As long as the steam valve was open, the boiling mixture would continue to release many hundreds of pounds of flammable vapor",
+      "explanation": "The vapor release occurred over hours while the steam valve remained open and the mixture boiled.",
+      "source": "updated_graph"
+    },
+    {
+      "label": "Confinement",
+      "name": "High confinement",
+      "node_id": "C6",
+      "node_type": "condition",
+      "evidence": "the vapor cloud accumulated and was confined inside the closed CAI/Arnel building",
+      "explanation": "The closed building, together with ventilation being turned off, allowed flammable vapor to remain confined/retained in the production area and increased explosion severity.",
+      "source": "updated_graph"
+    },
+    {
+      "label": "Dispersion",
+      "name": "Dispersed",
+      "node_id": "C7",
+      "node_type": "condition",
+      "evidence": "thoroughly mix the heptane and alcohol vapor throughout the production area",
+      "explanation": "The released vapor dispersed through the production area and formed a near-homogeneous flammable mixture.",
+      "source": "updated_graph"
+    }
+  ],
+  "event_nodes": [
+    {
+      "label": "InitiatingEvent",
+      "name": "Steam valve on mix tank 3 left open, allowing the flammable mixture to boil",
+      "node_id": "Ev1",
+      "node_type": "event",
+      "evidence": "the mix tank 3 heater steam valve was left open, allowing the flammable mixture to boil in the unsealed tank",
+      "explanation": "Leaving the steam valve open initiated the abnormal overheating and vapor generation sequence.",
+      "source": "updated_graph"
+    },
+    {
+      "label": "IgnitionSource",
+      "name": "Unknown ignition source",
+      "node_id": "Ev2",
+      "node_type": "event",
+      "evidence": "An unknown ignition source ignited the flammable atmosphere, causing the explosion",
+      "explanation": "The report confirms ignition occurred, but the exact ignition source could not be identified.",
+      "source": "updated_graph"
+    },
+    {
+      "label": "InitiatingEvent",
+      "name": "Building ventilation fans turned off while flammable liquid heating remained active",
+      "node_id": "Ev3",
+      "node_type": "event",
+      "evidence": "Shortly before 6:00 pm, the last CAI employee in the building turned off the dust collector fans, wall-mounted exhaust fans, and fresh air supply fan, then locked the building and left for the night.",
+      "explanation": "The incident report explicitly identifies ventilation shutdown / inadequate ventilation as a causal contributor to vapor accumulation in the building, but the current graph does not represent this step.",
+      "source": "updated_graph"
+    }
+  ],
+  "edges": [
+    {
+      "source": "En1",
+      "target": "C1",
+      "relation": "has"
+    },
+    {
+      "source": "En1",
+      "target": "C2",
+      "relation": "has"
+    },
+    {
+      "source": "En1",
+      "target": "C3",
+      "relation": "has"
+    },
+    {
+      "source": "En1",
+      "target": "C4",
+      "relation": "has"
+    },
+    {
+      "source": "En2",
+      "target": "Ev1",
+      "relation": "enables"
+    },
+    {
+      "source": "En3",
+      "target": "C6",
+      "relation": "enables"
+    },
+    {
+      "source": "Ev1",
+      "target": "C2",
+      "relation": "enables"
+    },
+    {
+      "source": "C3",
+      "target": "C1",
+      "relation": "enables"
+    },
+    {
+      "source": "C2",
+      "target": "C1",
+      "relation": "enables"
+    },
+    {
+      "source": "C2",
+      "target": "C5",
+      "relation": "enables"
+    },
+    {
+      "source": "C1",
+      "target": "C7",
+      "relation": "enables"
+    },
+    {
+      "source": "C5",
+      "target": "C7",
+      "relation": "enables"
+    },
+    {
+      "source": "C6",
+      "target": "H1",
+      "relation": "enables"
+    },
+    {
+      "source": "C7",
+      "target": "H1",
+      "relation": "enables"
+    },
+    {
+      "source": "C4",
+      "target": "H1",
+      "relation": "enables"
+    },
+    {
+      "source": "Ev2",
+      "target": "H1",
+      "relation": "enables"
+    },
+    {
+      "source": "Ev3",
+      "target": "C6",
+      "relation": "enables"
+    }
+  ]
+}

@@ -1,0 +1,77 @@
+{
+  "id": "resp_06e0bb4d46e41d9f0069b73de485908194a9ffdbd3fb4ef18d",
+  "object": "response",
+  "created_at": 1773616612,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1773616626,
+  "error": null,
+  "frequency_penalty": 0.0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": 128000,
+  "max_tool_calls": null,
+  "model": "gpt-5.4-2026-03-05",
+  "output": [
+    {
+      "id": "rs_06e0bb4d46e41d9f0069b73de50c908194879e28e406d566f4",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_06e0bb4d46e41d9f0069b73decd8008194ae6a4cdf46ba61c0",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "{\n  \"hazard_consequence_node\": {\n    \"label\": \"HazardConsequence\",\n    \"name\": \"VCE\",\n    \"node_id\": \"H1\",\n    \"node_type\": \"HazardConsequence\",\n    \"evidence\": \"The report states that Tank 409 overflowed, gasoline 'formed a vapor cloud,' and at 12:23 a.m. 'the vapor cloud exploded, creating a pressure wave that damaged hundreds of homes and businesses up to 1.25 miles from the site.' The root cause section also identifies the physical cause as gasoline overflow resulting in 'a vapor cloud formation' that 'ignited in the WWT area.'\",\n    \"explanation\": \"The central accident mechanism analyzed is a large gasoline vapor cloud formed by tank overfill, migrated across the site, and then exploded. The subsequent fires and secondary tank explosions are described as escalation effects, but the report's main causal analysis focuses on the vapor cloud explosion.\",\n    \"source\": \"incident_description\"\n  },\n  \"explanation\": {\n    \"reasoning\": \"VCE is the primary hazard consequence because the report's incident description and cause findings center on overfill-driven vapor cloud formation, migration, ignition, and explosion, with blast effects as the defining event.\",\n    \"excluded_alternatives\": [\n      {\n        \"label\": \"BLEVE\",\n        \"reason\": \"No boiling liquid expanding vapor explosion of a pressurized vessel is described; the incident involved atmospheric gasoline storage tanks.\"\n      },\n      {\n        \"label\": \"Dust explosion\",\n        \"reason\": \"The released material was gasoline vapor/aerosol, not combustible dust.\"\n      },\n      {\n        \"label\": \"Confined explosion\",\n        \"reason\": \"The explosion occurred in an outdoor tank farm and wastewater treatment area, not as a primarily confined-space explosion.\"\n      },\n      {\n        \"label\": \"Pool fire\",\n        \"reason\": \"Pooling gasoline and long-duration fires occurred after the release/explosion, but they were secondary consequences rather than the central mechanism analyzed.\"\n      },\n      {\n        \"label\": \"Jet fire\",\n        \"reason\": \"There was no sustained pressurized release igniting as a directional jet flame.\"\n      },\n      {\n        \"label\": \"Fire ball\",\n        \"reason\": \"The report does not identify a fireball as the principal event; the defining phenomenon was vapor cloud explosion followed by tank fires.\"\n      },\n      {\n        \"label\": \"Flash fire\",\n        \"reason\": \"A flash fire was observed at ignition, but the report emphasizes that the vapor cloud then exploded and produced the major damage-causing pressure wave.\"\n      },\n      {\n        \"label\": \"Toxicity dispersion\",\n        \"reason\": \"Although smoke and vapors affected the community, toxic exposure dispersion was not the primary hazard mechanism investigated.\"\n      },\n      {\n        \"label\": \"Asphyxiation\",\n        \"reason\": \"No asphyxiation mechanism or oxygen-deficient exposure is identified as a key consequence.\"\n      }\n    ]\n  }\n}"
+        }
+      ],
+      "phase": "final_answer",
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0.0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": null,
+  "reasoning": {
+    "effort": "high",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1.0,
+  "text": {
+    "format": {
+      "type": "json_object"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 0.98,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 6181,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 1349,
+    "output_tokens_details": {
+      "reasoning_tokens": 721
+    },
+    "total_tokens": 7530
+  },
+  "user": null,
+  "metadata": {}
+}

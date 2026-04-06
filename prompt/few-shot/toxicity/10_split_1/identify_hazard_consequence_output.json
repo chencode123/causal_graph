@@ -1,0 +1,52 @@
+{
+  "hazard_consequence_node": {
+    "label": "HazardConsequence",
+    "name": "Toxicity dispersion",
+    "node_id": "H1",
+    "node_type": "HazardConsequence",
+    "evidence": "“On February 12, 2014, two employees ... suffered first and second degree chemical burns ... concentrated sulfuric acid sprayed two workers following a mechanical integrity failure ... This resulted in the release of approximately 84,000 pounds of sulfuric acid.”",
+    "explanation": "The incident centers on a large loss of containment of sulfuric acid that sprayed workers and released hazardous acid to the environment for over two hours. No ignition, fire, explosion, or oxygen-deficient atmosphere occurred. Among the allowed categories, Toxicity dispersion is the best fit for this harmful chemical release mechanism.",
+    "source": "incident_description"
+  },
+  "explanation": {
+    "reasoning": "The main accident mechanism analyzed is a mechanical integrity failure that caused a sulfuric acid release and worker exposure injury. Since the report focuses on the release, spray, and hazardous chemical exposure effects rather than combustion or explosion, the primary hazard consequence is Toxicity dispersion.",
+    "excluded_alternatives": [
+      {
+        "label": "VCE",
+        "reason": "No vapor cloud explosion occurred; the released sulfuric acid was not reported to ignite or explode."
+      },
+      {
+        "label": "BLEVE",
+        "reason": "There was no boiling liquid expanding vapor explosion involving a pressurized vessel exposed to fire."
+      },
+      {
+        "label": "Dust explosion",
+        "reason": "The incident did not involve combustible dust."
+      },
+      {
+        "label": "Confined explosion",
+        "reason": "No explosion in a confined space was described."
+      },
+      {
+        "label": "Pool fire",
+        "reason": "Although acid was released, it did not ignite and no pool fire occurred."
+      },
+      {
+        "label": "Jet fire",
+        "reason": "The release was an acid spray, not an ignited pressurized flammable release."
+      },
+      {
+        "label": "Fire ball",
+        "reason": "No fireball event occurred."
+      },
+      {
+        "label": "Flash fire",
+        "reason": "There was no ignited flammable vapor cloud or transient flame propagation."
+      },
+      {
+        "label": "Asphyxiation",
+        "reason": "The injuries were chemical burns from sulfuric acid exposure, not oxygen displacement or suffocation."
+      }
+    ]
+  }
+}

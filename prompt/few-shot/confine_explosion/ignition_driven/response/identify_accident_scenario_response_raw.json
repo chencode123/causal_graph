@@ -1,0 +1,77 @@
+{
+  "id": "resp_07ad1adbc64803a40069b73f12a490819484cef63e6425cd2a",
+  "object": "response",
+  "created_at": 1773616914,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1773616981,
+  "error": null,
+  "frequency_penalty": 0.0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": 128000,
+  "max_tool_calls": null,
+  "model": "gpt-5.4-2026-03-05",
+  "output": [
+    {
+      "id": "rs_07ad1adbc64803a40069b73f1340d88194aad473fcec227713",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_07ad1adbc64803a40069b73f49a5848194a8b5211742caead3",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "{\n  \"hazard_consequence_node\": [\n    {\n      \"label\": \"HazardConsequence\",\n      \"name\": \"Confined explosion\",\n      \"node_id\": \"H1\",\n      \"node_type\": \"HazardConsequence\",\n      \"evidence\": \"The report states that \\\"the initial explosion occurred inside a vertical above-ground storage tank that was being filled with VM&P naphtha\\\" and that the tank head space likely contained an ignitable vapor-air mixture that was ignited by a likely static spark during filling.\",\n      \"explanation\": \"The incident analysis is centered on an internal tank explosion during filling. The report mainly examines how an ignitable vapor-air mixture formed in the tank headspace and how static accumulation and a likely spark from the gauging float linkage ignited it. The later fireball, tank ruptures, and tank farm fire were escalation effects following the primary internal explosion.\",\n      \"source\": \"incident_description\"\n    }\n  ],\n  \"entity_nodes\": [\n    {\n      \"label\": \"Material\",\n      \"name\": \"VM&P naphtha\",\n      \"node_id\": \"En1\",\n      \"node_type\": \"Entity\",\n      \"evidence\": \"being filled with VM&P naphtha\",\n      \"explanation\": \"VM&P naphtha was the flammable liquid being transferred into the tank and generated the ignitable headspace vapor-air mixture involved in the explosion.\",\n      \"source\": \"incident_description\"\n    },\n    {\n      \"label\": \"Location\",\n      \"name\": \"15,000 gallon above-ground storage tank\",\n      \"node_id\": \"En2\",\n      \"node_type\": \"Entity\",\n      \"evidence\": \"into a 15,000 gallon above-ground storage tank\",\n      \"explanation\": \"The initial explosion occurred in the storage tank that was receiving the final compartment of the tanker-trailer.\",\n      \"source\": \"incident_description\"\n    }\n  ],\n  \"condition_nodes\": [\n    {\n      \"label\": \"Phase\",\n      \"name\": \"Vapor\",\n      \"node_id\": \"C1\",\n      \"node_type\": \"Condition\",\n      \"evidence\": \"The tank contained an ignitable vapor-air mixture in its head space.\",\n      \"explanation\": \"The confined explosion involved the vapor phase in the tank headspace.\",\n      \"source\": \"incident_description\"\n    },\n    {\n      \"label\": \"Pressure\",\n      \"name\": \"Not specified\",\n      \"node_id\": \"C2\",\n      \"node_type\": \"Condition\",\n      \"evidence\": \"N/A\",\n      \"explanation\": \"The report does not explicitly state the operating pressure of the storage tank.\",\n      \"source\": \"Not specified\"\n    },\n    {\n      \"label\": \"Temperature\",\n      \"name\": \"Atmospheric temperature\",\n      \"node_id\": \"C3\",\n      \"node_type\": \"Condition\",\n      \"evidence\": \"at approximately 77˚F (25˚C) (the handling temperature of the VM&P naphtha at the time of the incident)\",\n      \"explanation\": \"The material was handled at ambient conditions when the ignitable vapor-air mixture was present.\",\n      \"source\": \"incident_description\"\n    },\n    {\n      \"label\": \"Volatility\",\n      \"name\": \"High volatility\",\n      \"node_id\": \"C4\",\n      \"node_type\": \"Condition\",\n      \"evidence\": \"can produce ignitable vapor-air mixtures inside tanks\",\n      \"explanation\": \"The material readily generated ignitable vapors in the tank at the incident temperature.\",\n      \"source\": \"incident_description\"\n    },\n    {\n      \"label\": \"Combustibility\",\n      \"name\": \"Combustible\",\n      \"node_id\": \"C5\",\n      \"node_type\": \"Condition\",\n      \"evidence\": \"VM&P naphtha is a National Fire Protection Association (NFPA) Class IB flammable liquid\",\n      \"explanation\": \"The substance was a flammable liquid capable of burning and exploding when mixed with air and ignited.\",\n      \"source\": \"incident_description\"\n    },\n    {\n      \"label\": \"ToxicSubstance\",\n      \"name\": \"Not specified\",\n      \"node_id\": \"C6\",\n      \"node_type\": \"Condition\",\n      \"evidence\": \"N/A\",\n      \"explanation\": \"The report focuses on flammability and static ignition hazards, not toxic effects.\",\n      \"source\": \"Not specified\"\n    },\n    {\n      \"label\": \"Asphyxiant\",\n      \"name\": \"Not specified\",\n      \"node_id\": \"C7\",\n      \"node_type\": \"Condition\",\n      \"evidence\": \"N/A\",\n      \"explanation\": \"The report does not identify an asphyxiation hazard for the material.\",\n      \"source\": \"Not specified\"\n    },\n    {\n      \"label\": \"Conductivity\",\n      \"name\": \"Low conductivity\",\n      \"node_id\": \"C8\",\n      \"node_type\": \"Condition\",\n      \"evidence\": \"because of its low electrical conductivity, can accumulate dangerous levels of static electricity.\",\n      \"explanation\": \"Low conductivity allowed static charge to accumulate during transfer operations.\",\n      \"source\": \"incident_description\"\n    },\n    {\n      \"label\": \"ReleaseType\",\n      \"name\": \"Not specified\",\n      \"node_id\": \"C9\",\n      \"node_type\": \"Condition\",\n      \"evidence\": \"N/A\",\n      \"explanation\": \"The selected scenario is an internal tank explosion; the report does not define a distinct pre-ignition external release type for the primary event.\",\n      \"source\": \"Not specified\"\n    },\n    {\n      \"label\": \"Confinement\",\n      \"name\": \"High confinement\",\n      \"node_id\": \"C10\",\n      \"node_type\": \"Condition\",\n      \"evidence\": \"the initial explosion occurred inside a vertical above-ground storage tank\",\n      \"explanation\": \"The flammable vapor-air mixture was enclosed within the storage tank, creating a highly confined explosion environment.\",\n      \"source\": \"incident_description\"\n    },\n    {\n      \"label\": \"Dispersion\",\n      \"name\": \"Not dispersed\",\n      \"node_id\": \"C11\",\n      \"node_type\": \"Condition\",\n      \"evidence\": \"inside the tank at the time of the explosion\",\n      \"explanation\": \"The ignitable mixture remained within the tank headspace rather than dispersing externally before ignition.\",\n      \"source\": \"incident_description\"\n    }\n  ],\n  \"event_nodes\": [\n    {\n      \"label\": \"InitiatingEvent\",\n      \"name\": \"Rapid static charge accumulation during stop-start filling\",\n      \"node_id\": \"Ev1\",\n      \"node_type\": \"Event\",\n      \"evidence\": \"Stop-start filling, air in the transfer piping, and sediment and water (likely present in the tank) caused a rapid static charge accumulation inside the VM&P naphtha tank.\",\n      \"explanation\": \"This was the earliest abnormal process condition identified as initiating the sequence that led to ignition of the headspace vapor-air mixture.\",\n      \"source\": \"incident_description\"\n    },\n    {\n      \"label\": \"MechanicalFailure\",\n      \"name\": \"Loose linkage in tank liquid level gauging float separated\",\n      \"node_id\": \"Ev2\",\n      \"node_type\": \"Event\",\n      \"evidence\": \"The design of the tank liquid level gauging system float used by Barton incorporates a loose linkage at the float/tape junction that can separate slightly\",\n      \"explanation\": \"The gauging float linkage design created a mechanical malfunction potential that likely separated during filling and enabled spark generation.\",\n      \"source\": \"incident_description\"\n    },\n    {\n      \"label\": \"IgnitionSource\",\n      \"name\": \"Spark from separated gauging float linkage\",\n      \"node_id\": \"Ev3\",\n      \"node_type\": \"Event\",\n      \"evidence\": \"The tank had a liquid level gauging system float with a loose linkage that likely separated and created a spark during filling.\",\n      \"explanation\": \"The likely ignition source was a spark generated by the gauging float linkage during filling, which ignited the headspace vapor-air mixture.\",\n      \"source\": \"incident_description\"\n    }\n  ]\n}"
+        }
+      ],
+      "phase": "final_answer",
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0.0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": null,
+  "reasoning": {
+    "effort": "high",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1.0,
+  "text": {
+    "format": {
+      "type": "json_object"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 0.98,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 5631,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 7320,
+    "output_tokens_details": {
+      "reasoning_tokens": 5600
+    },
+    "total_tokens": 12951
+  },
+  "user": null,
+  "metadata": {}
+}

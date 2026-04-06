@@ -1,0 +1,204 @@
+{
+  "hazard_consequence_node": [
+    {
+      "label": "HazardConsequence",
+      "name": "Dust explosion",
+      "node_id": "H1",
+      "node_type": "hazardconsequence",
+      "evidence": "\"A February 20, 2003, dust explosion at the CTA Acoustics, Inc. facility in Corbin, Kentucky, killed seven and injured 37 workers.\" and/or \"combustible phenolic resin dust that had accumulated throughout the facility fueled the explosion.\"",
+      "explanation": "The report’s main analysis centers on combustible phenolic resin dust accumulation, dispersion during cleaning, ignition near line 405, and propagation into secondary dust explosions across the facility. This makes dust explosion the primary hazard consequence, while fires, fireballs, and confined effects are escalation phenomena within the same dust-explosion event sequence.",
+      "source": "updated_graph"
+    }
+  ],
+  "entity_nodes": [
+    {
+      "label": "Material",
+      "name": "Phenolic resin dust",
+      "node_id": "En1",
+      "node_type": "entity",
+      "evidence": "a combustible phenolic resin dust fueled the fire and explosions.",
+      "explanation": "Phenolic resin dust was the combustible material that accumulated, dispersed, and ignited, driving the dust explosion sequence.",
+      "source": "updated_graph"
+    },
+    {
+      "label": "Location",
+      "name": "line 405 oven",
+      "node_id": "En2",
+      "node_type": "entity",
+      "evidence": "the initial explosion’s point of origin was likely in the aisle on the east side of the line 405 oven, near the south end.",
+      "explanation": "The fire and initial explosion originated at the line 405 oven area.",
+      "source": "updated_graph"
+    },
+    {
+      "label": "Location",
+      "name": "line 405 baghouse",
+      "node_id": "En3",
+      "node_type": "entity",
+      "evidence": "the transition leading to the baghouse was plugged.",
+      "explanation": "The line 405 baghouse and its transition were involved in the dust-release conditions during cleaning.",
+      "source": "updated_graph"
+    }
+  ],
+  "condition_nodes": [
+    {
+      "label": "Phase",
+      "name": "Solid",
+      "node_id": "C1",
+      "node_type": "condition",
+      "evidence": "combustible phenolic resin dust",
+      "explanation": "The hazardous material was present as solid particulate dust.",
+      "source": "updated_graph"
+    },
+    {
+      "label": "Combustibility",
+      "name": "Combustible",
+      "node_id": "C3",
+      "node_type": "condition",
+      "evidence": "combustible phenolic resin dust that had accumulated throughout the facility fueled the explosion.",
+      "explanation": "The phenolic resin dust was capable of burning and exploding when dispersed and ignited.",
+      "source": "updated_graph"
+    },
+    {
+      "label": "ReleaseType",
+      "name": "Continuous release",
+      "node_id": "C4",
+      "node_type": "condition",
+      "evidence": "the poor functioning of the baghouse and resulting lack of suction in the mat-former caused excessive release of dust from the production line.",
+      "explanation": "Dust was released over the course of cleaning and poor dust-collection performance rather than by a single vessel rupture.",
+      "source": "updated_graph"
+    },
+    {
+      "label": "Confinement",
+      "name": "High confinement",
+      "node_id": "C5",
+      "node_type": "condition",
+      "evidence": "Explosion overpressure originated in area between oven and wall and in partially enclosed area above blend room and below ceiling",
+      "explanation": "The dust ignited inside the building in partially enclosed areas that increased explosion overpressure.",
+      "source": "updated_graph"
+    },
+    {
+      "label": "Dispersion",
+      "name": "Dispersed",
+      "node_id": "C6",
+      "node_type": "condition",
+      "evidence": "generated a cloud of combustible dust around line 405.",
+      "explanation": "Cleaning and blowdown activities suspended settled dust into the air before ignition.",
+      "source": "updated_graph"
+    }
+  ],
+  "event_nodes": [
+    {
+      "label": "InitiatingEvent",
+      "name": "Compressed-air cleaning dispersed combustible dust into the production area",
+      "node_id": "Ev1",
+      "node_type": "event",
+      "evidence": "Those operators used a compressed air lance to blow the remaining material out of the transition. That material fell back through a chute into the production area.",
+      "explanation": "During routine cleaning with the oven operating, compressed-air blowdown and related cleaning activities dispersed combustible dust and initiated the accident sequence.",
+      "source": "updated_graph"
+    },
+    {
+      "label": "MechanicalFailure",
+      "name": "Line 405 baghouse/transition blockage and loss of suction",
+      "node_id": "Ev2",
+      "node_type": "event",
+      "evidence": "the poor functioning of the baghouse and resulting lack of suction in the mat-former caused excessive release of dust from the production line.",
+      "explanation": "The baghouse malfunction reduced dust collection effectiveness and contributed directly to excessive dust release around line 405.",
+      "source": "updated_graph"
+    },
+    {
+      "label": "IgnitionSource",
+      "name": "fire in the oven",
+      "node_id": "Ev3",
+      "node_type": "event",
+      "evidence": "Flames may have escaped through an open oven door, or the dust cloud may have entered the oven and ignited.",
+      "explanation": "Ignition clearly occurred near the operating line 405 oven, but the exact ignition source could not be determined from the investigation.",
+      "source": "updated_graph"
+    },
+    {
+      "label": "MechanicalFailure",
+      "name": "Line 405 oven temperature controller malfunction",
+      "node_id": "Ev4",
+      "node_type": "event",
+      "evidence": "\"the temperature controller was no longer regulating the oven temperature so controls were switched to manual by the line operators.\" and \"The oven temperature was then controlled by opening and closing the access doors on the east and west sides of the oven.\"",
+      "explanation": "A key pre-ignition step is missing. The report documents a temperature-controller malfunction that forced manual operation with oven access doors being opened and closed. This abnormal oven condition is directly relevant to the ignition pathway and is explicitly identified as a contributing cause.",
+      "source": "updated_graph"
+    }
+  ],
+  "edges": [
+    {
+      "source": "En1",
+      "target": "C1",
+      "relation": "has"
+    },
+    {
+      "source": "En1",
+      "target": "C3",
+      "relation": "has"
+    },
+    {
+      "source": "En3",
+      "target": "Ev2",
+      "relation": "has"
+    },
+    {
+      "source": "Ev2",
+      "target": "C4",
+      "relation": "enables"
+    },
+    {
+      "source": "Ev2",
+      "target": "Ev1",
+      "relation": "enables"
+    },
+    {
+      "source": "C4",
+      "target": "C6",
+      "relation": "enables"
+    },
+    {
+      "source": "Ev1",
+      "target": "C6",
+      "relation": "enables"
+    },
+    {
+      "source": "C3",
+      "target": "H1",
+      "relation": "enables"
+    },
+    {
+      "source": "C6",
+      "target": "H1",
+      "relation": "enables"
+    },
+    {
+      "source": "C5",
+      "target": "H1",
+      "relation": "enables"
+    },
+    {
+      "source": "Ev3",
+      "target": "H1",
+      "relation": "enables"
+    },
+    {
+      "source": "En2",
+      "target": "Ev4",
+      "relation": "has"
+    },
+    {
+      "source": "Ev4",
+      "target": "Ev3",
+      "relation": "enables"
+    },
+    {
+      "source": "C1",
+      "target": "H1",
+      "relation": "enables"
+    },
+    {
+      "source": "En3",
+      "target": "C5",
+      "relation": "has"
+    }
+  ]
+}

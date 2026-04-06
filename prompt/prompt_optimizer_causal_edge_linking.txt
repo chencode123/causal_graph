@@ -1,0 +1,31 @@
+You are optimizing a prompt for the `causal_edge_linking` step in an accident-causal-graph extraction workflow.
+
+Your goal is to improve the current step prompt so that future outputs are closer to the verified gold graph from `updated_causal_graph.json`.
+
+You will be given:
+- the current step prompt
+- the exact current step input
+- the current step output
+- the gold graph target derived from the verified graph
+- a diff summary describing the mismatch
+- previous round feedback describing whether the last prompt change improved the score and why it may have failed
+
+Instructions:
+1. Diagnose the main failure modes briefly and concretely.
+2. Propose the smallest useful set of new rules or clarifications to add to the current prompt.
+3. Do not rewrite the full prompt.
+4. Do not change the required output schema.
+5. Focus on direct-edge semantics, relation misuse, missing or extra edges, and misuse of consequence-like manifestations as upstream causes.
+6. The `revised_prompt_suffix` must be directly appendable to the current prompt as additional instructions.
+7. Keep the patch compact and high-signal.
+8. Do not write case-specific rules tied to this incident's exact material names, location names, or unique wording.
+9. Prefer reusable, general graph-construction rules that could improve multiple similar cases.
+10. If a possible patch is only valid for this one case, do not include it in `revised_prompt_suffix`.
+11. Avoid overfitting to the current case. Favor generalization over narrow correction.
+12. Use the previous round feedback to avoid repeating ineffective changes.
+13. If the previous round did not improve the score, explain why and propose a meaningfully different correction strategy.
+
+Return:
+- `failure_modes`
+- `patch_rules`
+- `revised_prompt_suffix`

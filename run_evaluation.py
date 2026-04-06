@@ -25,9 +25,13 @@ from pathlib import Path
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent
+SCRIPTS_DIR = PROJECT_ROOT / "scripts"
 STRUCTURE_EVAL_PATH = PROJECT_ROOT / "scripts" / "evaluation_structure_similarity.py"
 PLOT_EVAL_PATH = PROJECT_ROOT / "scripts" / "plot_evaluation_results.py"
-DEFAULT_FOLDER = Path("runs/temproal_result")
+DEFAULT_FOLDER = Path("runs/temproal_result_5_step/batch_1")  # Default base folder for evaluation; can be overridden by --folder argument.
+
+if str(SCRIPTS_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPTS_DIR))
 
 def parse_args() -> argparse.Namespace:
     """Parse arguments for the root evaluation runner."""
@@ -66,6 +70,15 @@ def parse_args() -> argparse.Namespace:
             "If omitted, results are written to <folder>/results."
         ),
     )
+    parser.add_argument(
+        "--workers",
+        type=int,
+        default=None,
+        help=(
+            "Number of worker processes for parallel case evaluation. "
+            "If omitted, the evaluation script chooses a sensible default."
+        ),
+    )
     return parser.parse_args()
 
 
@@ -79,6 +92,7 @@ def load_structure_eval_module():
         raise RuntimeError(f"Unable to load evaluation module from {STRUCTURE_EVAL_PATH}")
 
     module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
     spec.loader.exec_module(module)
     return module
 
@@ -93,6 +107,7 @@ def load_plot_eval_module():
         raise RuntimeError(f"Unable to load plotting module from {PLOT_EVAL_PATH}")
 
     module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
     spec.loader.exec_module(module)
     return module
 
@@ -114,6 +129,8 @@ def main() -> None:
             "--output-dir",
             str(output_dir),
         ]
+        if args.workers is not None:
+            sys.argv.extend(["--workers", str(args.workers)])
         results_dir = eval_module.main()
         figures_dir = plot_module.generate_all_figures(results_dir)
         print(f"Saved evaluation figures to {figures_dir}.")

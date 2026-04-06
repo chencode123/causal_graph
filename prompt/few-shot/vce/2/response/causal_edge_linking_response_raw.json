@@ -1,0 +1,77 @@
+{
+  "id": "resp_0611c608f804407e0069b73fcc9e9c8195b05da0c2f4f887fe",
+  "object": "response",
+  "created_at": 1773617100,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1773617153,
+  "error": null,
+  "frequency_penalty": 0.0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": 128000,
+  "max_tool_calls": null,
+  "model": "gpt-5.4-2026-03-05",
+  "output": [
+    {
+      "id": "rs_0611c608f804407e0069b73fce149c8195b927c992f8135dcf",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_0611c608f804407e0069b73fff1db08195b8304c13b95d653a",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "{\n  \"edges\": [\n    {\n      \"source\": \"En1\",\n      \"target\": \"C3\",\n      \"relation\": \"has\"\n    },\n    {\n      \"source\": \"En1\",\n      \"target\": \"C4\",\n      \"relation\": \"has\"\n    },\n    {\n      \"source\": \"En1\",\n      \"target\": \"C5\",\n      \"relation\": \"has\"\n    },\n    {\n      \"source\": \"En2\",\n      \"target\": \"Ev1\",\n      \"relation\": \"enables\"\n    },\n    {\n      \"source\": \"Ev2\",\n      \"target\": \"Ev1\",\n      \"relation\": \"enables\"\n    },\n    {\n      \"source\": \"Ev1\",\n      \"target\": \"C9\",\n      \"relation\": \"enables\"\n    },\n    {\n      \"source\": \"C9\",\n      \"target\": \"C1\",\n      \"relation\": \"enables\"\n    },\n    {\n      \"source\": \"C3\",\n      \"target\": \"C1\",\n      \"relation\": \"enables\"\n    },\n    {\n      \"source\": \"C4\",\n      \"target\": \"C1\",\n      \"relation\": \"enables\"\n    },\n    {\n      \"source\": \"C1\",\n      \"target\": \"C11\",\n      \"relation\": \"enables\"\n    },\n    {\n      \"source\": \"C10\",\n      \"target\": \"C11\",\n      \"relation\": \"enables\"\n    },\n    {\n      \"source\": \"C11\",\n      \"target\": \"H1\",\n      \"relation\": \"enables\"\n    },\n    {\n      \"source\": \"C5\",\n      \"target\": \"H1\",\n      \"relation\": \"enables\"\n    },\n    {\n      \"source\": \"En3\",\n      \"target\": \"H1\",\n      \"relation\": \"enables\"\n    }\n  ]\n}"
+        }
+      ],
+      "phase": "final_answer",
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0.0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": null,
+  "reasoning": {
+    "effort": "high",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1.0,
+  "text": {
+    "format": {
+      "type": "json_object"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 0.98,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 7981,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 5067,
+    "output_tokens_details": {
+      "reasoning_tokens": 4660
+    },
+    "total_tokens": 13048
+  },
+  "user": null,
+  "metadata": {}
+}

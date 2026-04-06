@@ -1,5 +1,7 @@
 You are a process safety analyst specializing in accident investigation and hazard scenario reconstruction.
 
+{few_shot_examples}
+
 INPUT DATA
 
 INCIDENT_DESCRIPTION
@@ -7,6 +9,9 @@ INCIDENT_DESCRIPTION
 
 IDENTIFIED_HAZARD_CONSEQUENCE
 {identify_hazard_consequence_output}
+
+CAUSAL_NARRATIVE_EXTRACTION
+{causal_narrative_extraction_output}
 
 SCHEMA
 {accident_scenario_schema}
@@ -17,9 +22,11 @@ SCHEMA_DEFINITION
 
 TASK
 
-Based on the INCIDENT_DESCRIPTION and the IDENTIFIED_HAZARD_CONSEQUENCE, extract the accident scenario information and populate the SCHEMA.
-
+Based on the INCIDENT_DESCRIPTION, the IDENTIFIED_HAZARD_CONSEQUENCE, and the CAUSAL_NARRATIVE_EXTRACTION, 
+extract accident scenario elements that can explain how the identified hazard consequence occurs, 
+and populate the SCHEMA.
 You must strictly follow the provided SCHEMA and SCHEMA_DEFINITION.
+The extracted nodes should collectively form a coherent accident progression leading to the hazard consequence.
 
 Your task is to identify the key elements of the accident scenario including:
 
@@ -31,11 +38,19 @@ EXTRACTION RULES
  
 3. Evidence must be a short quote copied directly from the incident description whenever possible.
 
-4. Do not invent or paraphrase evidence.
+4. Do not invent or fabricate evidence.
+
+A node may be supported by combining consistent statements from the text,
+as long as at least one representative quote is provided.
 
 5. If information is not available in the incident description or reliable sources, return "Not specified".
 
-6. When determining the hazardous material, select the material that most directly drives the hazard consequence.
+6. When determining the hazardous material, select the material that participates 
+in the causal chain leading to the hazard consequence, particularly the material 
+involved in the MechanicalFailure or InitiatingEvent.
+
+Do not select materials that only appear as a result of the accident 
+(e.g., generated gases, combustion products, or released debris).
 
 7. For source, only use values allowed by the SCHEMA.
 
@@ -53,7 +68,21 @@ EXTRACTION RULES
 
 14. Only populate scenario elements that actually occurred in the incident and are supported by the IDENTIFIED_HAZARD_CONSEQUENCE.
 
-15. Do not add events, intermediate conditions, or mechanism components only because they are commonly associated with the selected hazard consequence.
+14a. The CAUSAL_NARRATIVE_EXTRACTION represents the primary causal interpretation 
+of the accident progression.
+
+Use it to guide the selection of nodes and ensure that the extracted elements 
+are consistent with the causal chain.
+
+However, all nodes must still be grounded in the INCIDENT_DESCRIPTION 
+and supported by evidence.
+
+15. Do not add events, intermediate conditions, or mechanism components 
+only because they are commonly associated with the selected hazard consequence.
+
+However, if the incident description or analysis section provides 
+case-specific evidence of underlying physical mechanisms, 
+these mechanisms may be represented when they help explain the accident progression.
 
 16. Do not generate a generic hazard template. Generate only the accident scenario that was actually realized in this incident.
 

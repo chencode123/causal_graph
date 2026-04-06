@@ -13,6 +13,7 @@ import utils.incident_card_to_word as incident_card_to_word
 import utils.prompt_manager as prompt_manager
 from utils.causal_graph_interactive_pkg.causal_graph_interactive import (
     draw_causal_graph_interactive_from_json,
+    draw_updated_causal_graph_interactive_from_json,
 )
 from utils.prompt_validator import assert_prompt_step_configuration_valid
 
@@ -90,6 +91,55 @@ def _build_causal_graph_json(
     ]
 
     write_text(output_path, json.dumps(graph_data, ensure_ascii=False, indent=2))
+
+
+def _format_causal_narrative_markdown(payload: Dict[str, Any], case_id: str) -> str:
+    """Render causal_narrative_extraction JSON into a readable Markdown file."""
+    steps = payload.get("causal_steps", [])
+    lines: List[str] = [
+        "# Causal Narrative Extraction",
+        "",
+        f"- Case: `{case_id}`",
+        f"- Step count: `{len(steps) if isinstance(steps, list) else 0}`",
+        "",
+    ]
+
+    if not isinstance(steps, list) or not steps:
+        lines.extend(
+            [
+                "## Narrative",
+                "",
+                "_No causal steps found in `causal_narrative_extraction_output.json`._",
+                "",
+            ]
+        )
+        return "\n".join(lines)
+
+    lines.extend(["## Narrative", ""])
+    for index, step in enumerate(steps, start=1):
+        if not isinstance(step, dict):
+            lines.append(f"{index}. {str(step).strip()}")
+            continue
+        step_number = step.get("step_number", index)
+        description = str(step.get("description") or "").strip()
+        lines.append(
+            f"{step_number}. {description}" if description else f"{step_number}. _No description provided._"
+        )
+    lines.append("")
+    return "\n".join(lines)
+
+
+def write_causal_narrative_markdown(folder: Path) -> None:
+    """Create a Markdown companion file for causal_narrative_extraction output."""
+    json_path = folder / "causal_narrative_extraction_output.json"
+    if not json_path.exists():
+        return
+    with json_path.open("r", encoding="utf-8") as fp:
+        payload = json.load(fp)
+    write_text(
+        folder / "causal_narrative_extraction_output.md",
+        _format_causal_narrative_markdown(payload, folder.name),
+    )
 
 
 def ensure_causal_graph_json(folder: Path) -> None:
@@ -213,6 +263,7 @@ def run_local_postprocess(
 ) -> None:
     identify_accident_scenario_path = folder / "identify_accident_scenario_output.json"
     causal_edge_linking_path = folder / "causal_edge_linking_output.json"
+    write_causal_narrative_markdown(folder)
     ensure_causal_graph_json(folder)
 
     draw_causal_graph_interactive_from_json(
@@ -228,6 +279,25 @@ def run_local_postprocess(
         revision_decisions=None,
         case_id=folder.name,
     )
+
+    updated_graph_path = folder / "updated_causal_graph.json"
+    if updated_graph_path.exists():
+        draw_updated_causal_graph_interactive_from_json(
+            updated_causal_graph=updated_graph_path,
+            save_path=folder / "updated_causal_graph.html",
+            accident_scenario_schema=accident_scenario_schema_path,
+            review_causal_graph=(
+                folder / "review_causal_graph_output.json"
+                if (folder / "review_causal_graph_output.json").exists()
+                else None
+            ),
+            revision_decisions=(
+                folder / "updated_causal_graph_review_state.json"
+                if (folder / "updated_causal_graph_review_state.json").exists()
+                else None
+            ),
+            case_id=folder.name,
+        )
 
     incident_card_to_word.incident_card_to_word(
         identify_incident_prompt=all_prompts.get("identify_incident", ""),
@@ -253,11 +323,15 @@ def run_batch_pipeline(config: Any) -> None:
     print("[RUNTIME] client base_url =", getattr(client, "base_url", None))
 
     all_prompts = prompt_manager.prompts.load_all()
-    folders = [
-        folder
-        for folder in config.base_dir.iterdir()
-        if folder.is_dir() and not folder.name.startswith("_")
-    ]
+    configured_folders = getattr(config, "target_folders", None)
+    if configured_folders is not None:
+        folders = list(configured_folders)
+    else:
+        folders = [
+            folder
+            for folder in config.base_dir.iterdir()
+            if folder.is_dir() and not folder.name.startswith("_")
+        ]
     print(f"Found {len(folders)} folders under {config.base_dir}")
 
     for folder in folders:
@@ -266,6 +340,8 @@ def run_batch_pipeline(config: Any) -> None:
     pipeline = build_pipeline(
         hazards_json=config.hazards_json_path,
         conditions_json=config.conditions_json_path,
+        use_few_shot=getattr(config, "use_few_shot", False),
+        few_shot_cases_by_step=getattr(config, "few_shot_cases_by_step", None),
     )
     for step in tqdm(pipeline, desc="Steps (sync)", unit="step"):
         if not step.enabled:

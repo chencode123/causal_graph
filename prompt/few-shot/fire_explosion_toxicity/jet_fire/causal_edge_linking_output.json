@@ -1,0 +1,81 @@
+{
+  "edges": [
+    {
+      "source": "En1",
+      "target": "C4",
+      "relation": "has",
+      "evidence": "venting propylene",
+      "explanation": "Propylene is a flammable gas, corresponding to the combustible condition."
+    },
+    {
+      "source": "En2",
+      "target": "C6",
+      "relation": "enables",
+      "evidence": "outside storage area",
+      "explanation": "The outdoor storage environment corresponds to low confinement conditions."
+    },
+    {
+      "source": "Ev1",
+      "target": "C3",
+      "relation": "enables",
+      "evidence": "Direct sunlight and radiant heat from asphalt paving heated returned propylene cylinders",
+      "explanation": "Exposure to sunlight and radiant heat directly caused high temperature conditions."
+    },
+    {
+      "source": "C3",
+      "target": "C2",
+      "relation": "enables",
+      "evidence": "as the cylinder wall temperatures rose, the internal pressures increased",
+      "explanation": "High temperature increases internal pressure in the cylinders."
+    },
+    {
+      "source": "C2",
+      "target": "C1",
+      "relation": "enables",
+      "evidence": "causing the relief device on a cylinder valve to open and vent propylene",
+      "explanation": "High pressure leads to venting of propylene gas."
+    },
+    {
+      "source": "C2",
+      "target": "C5",
+      "relation": "enables",
+      "evidence": "internal pressures increased",
+      "explanation": "Elevated pressure contributes to continuous release conditions."
+    },
+    {
+      "source": "C1",
+      "target": "H1",
+      "relation": "enables",
+      "evidence": "release and ignition of gas from a cylinder",
+      "explanation": "The release of flammable gas enables ignition and jet fire formation."
+    },
+    {
+      "source": "C5",
+      "target": "H1",
+      "relation": "enables",
+      "evidence": "the venting propylene ignited",
+      "explanation": "Continuous release sustains the burning jet flame."
+    },
+    {
+      "source": "C4",
+      "target": "H1",
+      "relation": "enables",
+      "evidence": "venting propylene, which when ignited",
+      "explanation": "The combustible nature of propylene allows it to ignite and form a jet fire."
+    },
+    {
+      "source": "C6",
+      "target": "H1",
+      "relation": "enables",
+      "evidence": "the fire spread to others",
+      "explanation": "Low confinement allows the fire to propagate between cylinders."
+    },
+    {
+      "source": "Ev2",
+      "target": "H1",
+      "relation": "enables",
+      "evidence": "the venting propylene ignited (most likely from a static discharge)",
+      "explanation": "The ignition event directly triggered the jet fire."
+    }
+  ]
+}

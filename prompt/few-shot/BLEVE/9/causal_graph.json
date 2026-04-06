@@ -1,0 +1,157 @@
+{
+  "hazard_consequence_node": [
+    {
+      "label": "HazardConsequence",
+      "name": "BLEVE",
+      "node_id": "H1",
+      "node_type": "HazardConsequence",
+      "evidence": "The Executive Summary states that 'the pressure vessel failure caused a boiling liquid expanding vapor explosion (BLEVE).' Section 2.1.2 further concludes that 'the catastrophic failure of the SCR meets the definition of a BLEVE' because pressurized water above its atmospheric boiling point was suddenly released, causing rapid boiling, blast effects, and vessel rocketing.",
+      "explanation": "The incident analysis is centered on catastrophic rupture of the Semi-Closed Receiver containing hot pressurized water, followed by sudden flashing and vapor expansion. The report explicitly names this mechanism as a BLEVE and analyzes corrosion, thinning, rupture, and rapid depressurization as the main accident phenomenon.",
+      "source": "Not specified"
+    }
+  ],
+  "entity_nodes": [
+    {
+      "label": "Material",
+      "name": "Water",
+      "node_id": "En1",
+      "node_type": "Entity",
+      "evidence": "The SCR typically contained water held at around 100 psig and 330℉",
+      "explanation": "Hot pressurized water in the SCR was the material that suddenly depressurized, flashed, and produced the BLEVE.",
+      "source": "incident_description"
+    },
+    {
+      "label": "Location",
+      "name": "Semi-Closed Receiver (SCR)",
+      "node_id": "En2",
+      "node_type": "Entity",
+      "evidence": "the bottom head of a pressure vessel called a Semi-Closed Receiver",
+      "explanation": "The failed equipment was the Semi-Closed Receiver pressure vessel in Loy-Lange's steam system.",
+      "source": "incident_description"
+    }
+  ],
+  "condition_nodes": [
+    {
+      "label": "Phase",
+      "name": "Liquid",
+      "node_id": "C1",
+      "node_type": "Condition",
+      "evidence": "the water in the SCR was contained at a temperature greater than its atmospheric boiling point and at a pressure sufficiently high to suppress boiling.",
+      "explanation": "Before rupture, the hazardous material was contained as liquid water under pressure; it flashed after the vessel failed.",
+      "source": "incident_description"
+    },
+    {
+      "label": "Pressure",
+      "name": "High pressure",
+      "node_id": "C2",
+      "node_type": "Condition",
+      "evidence": "The SCR typically contained water held at around 100 psig",
+      "explanation": "The water was stored under elevated pressure in the SCR, enabling rapid depressurization on failure.",
+      "source": "incident_description"
+    },
+    {
+      "label": "Temperature",
+      "name": "High temperature",
+      "node_id": "C3",
+      "node_type": "Condition",
+      "evidence": "The SCR typically contained water held at around 100 psig and 330℉",
+      "explanation": "The water temperature was above its atmospheric boiling point, so sudden pressure loss caused flashing and vapor expansion.",
+      "source": "incident_description"
+    },
+    {
+      "label": "ReleaseType",
+      "name": "Instant release",
+      "node_id": "C4",
+      "node_type": "Condition",
+      "evidence": "resulted in a sudden loss of containment",
+      "explanation": "The bottom head rupture abruptly released the vessel contents and caused immediate depressurization.",
+      "source": "incident_description"
+    },
+    {
+      "label": "Confinement",
+      "name": "High confinement",
+      "node_id": "C5",
+      "node_type": "Condition",
+      "evidence": "containment that causes the pressure on the liquid to be sufficiently high to suppress boiling",
+      "explanation": "The water was enclosed within a pressure vessel, providing the confinement needed to maintain it as hot pressurized liquid until rupture.",
+      "source": "incident_description"
+    }
+  ],
+  "event_nodes": [
+    {
+      "label": "InitiatingEvent",
+      "name": "Leak from underneath the SCR",
+      "node_id": "Ev1",
+      "node_type": "Event",
+      "evidence": "observed a leak that appeared to be coming from underneath the SCR.",
+      "explanation": "The leak was the first abnormal event immediately preceding the final failure sequence and indicated loss of vessel integrity before continued operation and restart.",
+      "source": "incident_description"
+    },
+    {
+      "label": "MechanicalFailure",
+      "name": "Catastrophic failure of the SCR bottom head",
+      "node_id": "Ev2",
+      "node_type": "Event",
+      "evidence": "the SCR bottom head catastrophically failed.",
+      "explanation": "The corroded and thinned bottom head ruptured, causing sudden loss of containment and initiating the BLEVE.",
+      "source": "incident_description"
+    }
+  ],
+  "edges": [
+    {
+      "source": "En1",
+      "target": "C1",
+      "relation": "has"
+    },
+    {
+      "source": "En1",
+      "target": "C2",
+      "relation": "has"
+    },
+    {
+      "source": "En1",
+      "target": "C3",
+      "relation": "has"
+    },
+    {
+      "source": "En2",
+      "target": "C5",
+      "relation": "enables"
+    },
+    {
+      "source": "C5",
+      "target": "C2",
+      "relation": "enables"
+    },
+    {
+      "source": "Ev1",
+      "target": "Ev2",
+      "relation": "enables"
+    },
+    {
+      "source": "Ev2",
+      "target": "C4",
+      "relation": "enables"
+    },
+    {
+      "source": "C1",
+      "target": "H1",
+      "relation": "enables"
+    },
+    {
+      "source": "C2",
+      "target": "H1",
+      "relation": "enables"
+    },
+    {
+      "source": "C3",
+      "target": "H1",
+      "relation": "enables"
+    },
+    {
+      "source": "C4",
+      "target": "H1",
+      "relation": "enables"
+    }
+  ]
+}

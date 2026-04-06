@@ -1,0 +1,52 @@
+{
+  "hazard_consequence_node": {
+    "label": "Jet fire",
+    "name": "Jet fire",
+    "node_id": "H1",
+    "node_type": "HazardConsequence",
+    "evidence": "The summary states: \"When exposed to high temperatures and direct sunlight, propylene cylinders can spontaneously vent through their relief devices, in turn releasing propylene, which when ignited, can heat surrounding cylinders and cause them to vent, creating a domino effect that spreads the fire.\" The incident description says a technician saw \"a ten-foot high flame coming from a cylinder,\" and the incident scenario states that the relief device opened, vented propylene, and \"the venting propylene ignited.\"",
+    "explanation": "The report mainly analyzes ignition of pressurized propylene venting from cylinder relief devices and the resulting torch-like flame that heated nearby cylinders and propagated the event. That mechanism is best classified as a jet fire. Later cylinder ruptures/explosions were important escalation effects, but they were secondary to the central analyzed phenomenon of ignited gaseous release from cylinders.",
+    "source": "incident_description"
+  },
+  "explanation": {
+    "reasoning": "The central accident mechanism discussed is thermal heating of returned propylene cylinders, opening of relief devices, release of pressurized propylene, and ignition of that release into a sustained flame that spread by heating adjacent cylinders. This aligns most directly with a jet fire rather than an explosion-centered consequence.",
+    "excluded_alternatives": [
+      {
+        "label": "VCE",
+        "reason": "No unconfined vapor cloud explosion is described as the primary analyzed event; the main mechanism is localized ignition of venting gas at cylinders."
+      },
+      {
+        "label": "BLEVE",
+        "reason": "Some cylinders later ruptured from fire exposure, but the report's main analysis focuses on venting-and-ignition through relief devices, not a single boiling liquid expanding vapor explosion as the core event."
+      },
+      {
+        "label": "Dust explosion",
+        "reason": "No combustible dust involvement is described anywhere in the incident."
+      },
+      {
+        "label": "Confined explosion",
+        "reason": "The event occurred in an outdoor storage area, and the main phenomenon was external cylinder fire escalation, not an explosion in confinement."
+      },
+      {
+        "label": "Pool fire",
+        "reason": "There is no flammable liquid pool burning; the fuel was primarily pressurized gas venting from cylinders."
+      },
+      {
+        "label": "Fire ball",
+        "reason": "Although cylinders exploded and ruptured, the report does not center on a transient fireball as the main hazardous consequence."
+      },
+      {
+        "label": "Flash fire",
+        "reason": "The event was not primarily a short-duration flash through a vapor cloud; it was a sustained flame from ignited pressurized releases."
+      },
+      {
+        "label": "Toxicity dispersion",
+        "reason": "Smoke and asbestos plume impacts are mentioned, but toxic dispersion is not the primary hazard mechanism analyzed in the incident narrative."
+      },
+      {
+        "label": "Asphyxiation",
+        "reason": "No oxygen-deficient atmosphere or asphyxiation mechanism is identified as the main consequence."
+      }
+    ]
+  }
+}

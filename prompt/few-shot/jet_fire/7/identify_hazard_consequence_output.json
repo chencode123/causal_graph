@@ -1,0 +1,52 @@
+{
+  "hazard_consequence_node": {
+    "label": "Jet fire",
+    "name": "Jet fire",
+    "node_id": "H1",
+    "node_type": "HazardConsequence",
+    "evidence": "The report describes a blowout followed by immediate ignition of a pressurized hydrocarbon release: \"Very quickly after the mud started spraying out of the well, the diesel oil-based mud and gas escaping the well caught on fire.\" It further states the event was a \"blowout and rig fire,\" and that the fire was \"massive and intense, engulfing much of the rig floor and the driller's cabin.\"",
+    "explanation": "Within the provided consequence categories, the main hazardous phenomenon is a sustained fire from a pressurized gas/mud release at the well after loss of well control. The report's central analysis is the blowout development, missed influx indications, and failure to shut in the well before ignition, which most closely corresponds to a jet fire rather than an explosion or a brief flash event.",
+    "source": "incident_description"
+  },
+  "explanation": {
+    "reasoning": "The incident analysis focuses on loss of well control leading to a blowout, followed by rapid ignition of escaping gas and oil-based mud from the well. Because the ignition involved a continuous pressurized release from the well and produced a sustained rig fire, the best-fit primary hazard consequence is Jet fire.",
+    "excluded_alternatives": [
+      {
+        "label": "VCE",
+        "reason": "The report does not describe a delayed ignition of a dispersed vapor cloud causing a vapor cloud explosion; it describes immediate ignition and fire after the blowout."
+      },
+      {
+        "label": "BLEVE",
+        "reason": "No boiling liquid expanding vapor explosion of a pressurized vessel occurred; the event involved a well blowout, not vessel rupture."
+      },
+      {
+        "label": "Dust explosion",
+        "reason": "No combustible dust release or dust deflagration is described anywhere in the incident."
+      },
+      {
+        "label": "Confined explosion",
+        "reason": "The primary event was not an explosion in an enclosed or confined space; it was an open well blowout and external rig fire."
+      },
+      {
+        "label": "Pool fire",
+        "reason": "Although burning oil-based mud may have been present on surfaces, the report centers on ignition of a flowing pressurized release from the well rather than a fire sustained mainly by a liquid pool."
+      },
+      {
+        "label": "Fire ball",
+        "reason": "The fire was not described as a transient spherical fireball; it was a sustained blowout fire engulfing the rig area."
+      },
+      {
+        "label": "Flash fire",
+        "reason": "Ignition occurred quickly, but the consequence analyzed was not a brief flame front through a vapor cloud; it was a continuing fire fed by ongoing well flow."
+      },
+      {
+        "label": "Toxicity dispersion",
+        "reason": "The released material was treated as a flammable blowout hazard, not as a toxic dispersion event, and toxic effects were not the main focus of the analysis."
+      },
+      {
+        "label": "Asphyxiation",
+        "reason": "Smoke and soot inhalation contributed to fatalities, but this was a secondary injury mechanism within the fire, not the primary hazard consequence analyzed in the report."
+      }
+    ]
+  }
+}

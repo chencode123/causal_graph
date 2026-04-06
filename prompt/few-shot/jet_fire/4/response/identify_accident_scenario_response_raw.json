@@ -1,0 +1,77 @@
+{
+  "id": "resp_0345a8c27f90c2c60069b8ccd679808197ab5107336c8ba44c",
+  "object": "response",
+  "created_at": 1773718742,
+  "status": "completed",
+  "background": false,
+  "billing": {
+    "payer": "developer"
+  },
+  "completed_at": 1773718792,
+  "error": null,
+  "frequency_penalty": 0.0,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": 128000,
+  "max_tool_calls": null,
+  "model": "gpt-5.4-2026-03-05",
+  "output": [
+    {
+      "id": "rs_0345a8c27f90c2c60069b8ccd6e2a081978c9a57f7bd2da54d",
+      "type": "reasoning",
+      "summary": []
+    },
+    {
+      "id": "msg_0345a8c27f90c2c60069b8cd006b68819797820de0909db54f",
+      "type": "message",
+      "status": "completed",
+      "content": [
+        {
+          "type": "output_text",
+          "annotations": [],
+          "logprobs": [],
+          "text": "{\n  \"hazard_consequence_node\": [\n    {\n      \"label\": \"Jet fire\",\n      \"name\": \"Jet fire\",\n      \"node_id\": \"H1\",\n      \"node_type\": \"HazardConsequence\",\n      \"evidence\": \"The summary states: \\\"When exposed to high temperatures and direct sunlight, propylene cylinders can spontaneously vent through their relief devices, in turn releasing propylene, which when ignited, can heat surrounding cylinders and cause them to vent, creating a domino effect that spreads the fire.\\\" The incident description says a technician saw \\\"a ten-foot high flame coming from a cylinder,\\\" and the incident scenario states that the relief device opened, vented propylene, and \\\"the venting propylene ignited.\\\"\",\n      \"explanation\": \"The report mainly analyzes ignition of pressurized propylene venting from cylinder relief devices and the resulting torch-like flame that heated nearby cylinders and propagated the event. That mechanism is best classified as a jet fire. Later cylinder ruptures/explosions were important escalation effects, but they were secondary to the central analyzed phenomenon of ignited gaseous release from cylinders.\",\n      \"source\": \"incident_description\"\n    }\n  ],\n  \"entity_nodes\": [\n    {\n      \"label\": \"Material\",\n      \"name\": \"propylene\",\n      \"node_id\": \"En1\",\n      \"node_type\": \"Entity\",\n      \"evidence\": \"returned propylene cylinders\",\n      \"explanation\": \"Propylene in returned cylinders was the material that vented and ignited, directly driving the jet fire scenario.\",\n      \"source\": \"incident_description\"\n    },\n    {\n      \"label\": \"Location\",\n      \"name\": \"propylene return area\",\n      \"node_id\": \"En2\",\n      \"node_type\": \"Entity\",\n      \"evidence\": \"release and ignition of gas from a cylinder in the propylene return area\",\n      \"explanation\": \"The fire originated in the outdoor returned-cylinder storage section identified as the propylene return area.\",\n      \"source\": \"incident_description\"\n    }\n  ],\n  \"condition_nodes\": [\n    {\n      \"label\": \"Phase\",\n      \"name\": \"Vapor\",\n      \"node_id\": \"C1\",\n      \"node_type\": \"Condition\",\n      \"evidence\": \"release and ignition of gas from a cylinder\",\n      \"explanation\": \"The propylene was in gaseous form when it was released and ignited.\",\n      \"source\": \"incident_description\"\n    },\n    {\n      \"label\": \"Pressure\",\n      \"name\": \"High pressure\",\n      \"node_id\": \"C2\",\n      \"node_type\": \"Condition\",\n      \"evidence\": \"internal pressures increased causing the relief device on a cylinder valve to open and vent propylene\",\n      \"explanation\": \"The cylinder contents were under elevated pressure, which increased further with heating until the relief device opened.\",\n      \"source\": \"incident_description\"\n    },\n    {\n      \"label\": \"Temperature\",\n      \"name\": \"High temperature\",\n      \"node_id\": \"C3\",\n      \"node_type\": \"Condition\",\n      \"evidence\": \"Direct sunlight and radiant heat from asphalt paving heated returned propylene cylinders\",\n      \"explanation\": \"High ambient temperature and solar/radiant heating created the thermal conditions that initiated cylinder venting.\",\n      \"source\": \"incident_description\"\n    },\n    {\n      \"label\": \"Combustibility\",\n      \"name\": \"Combustible\",\n      \"node_id\": \"C4\",\n      \"node_type\": \"Condition\",\n      \"evidence\": \"the venting propylene ignited\",\n      \"explanation\": \"The released propylene was capable of burning and did ignite.\",\n      \"source\": \"incident_description\"\n    },\n    {\n      \"label\": \"ReleaseType\",\n      \"name\": \"Continuous release\",\n      \"node_id\": \"C5\",\n      \"node_type\": \"Condition\",\n      \"evidence\": \"a ten-foot high flame coming from a cylinder\",\n      \"explanation\": \"The relief-device discharge produced a sustained burning release rather than a single instantaneous release.\",\n      \"source\": \"incident_description\"\n    },\n    {\n      \"label\": \"Confinement\",\n      \"name\": \"Low confinement\",\n      \"node_id\": \"C6\",\n      \"node_type\": \"Condition\",\n      \"evidence\": \"outside storage area\",\n      \"explanation\": \"The release and ignition occurred outdoors, indicating low confinement.\",\n      \"source\": \"incident_description\"\n    },\n    {\n      \"label\": \"Dispersion\",\n      \"name\": \"Not dispersed\",\n      \"node_id\": \"C7\",\n      \"node_type\": \"Condition\",\n      \"evidence\": \"the venting propylene ignited\",\n      \"explanation\": \"The gas ignited while venting from the cylinder, indicating no significant unignited vapor cloud formed before ignition.\",\n      \"source\": \"incident_description\"\n    }\n  ],\n  \"event_nodes\": [\n    {\n      \"label\": \"InitiatingEvent\",\n      \"name\": \"Heating of returned propylene cylinders by direct sunlight and radiant heat\",\n      \"node_id\": \"Ev1\",\n      \"node_type\": \"Event\",\n      \"evidence\": \"Direct sunlight and radiant heat from asphalt paving heated returned propylene cylinders\",\n      \"explanation\": \"Environmental heating of returned cylinders was the earliest abnormal event that started the accident sequence.\",\n      \"source\": \"incident_description\"\n    },\n    {\n      \"label\": \"IgnitionSource\",\n      \"name\": \"Unknown ignition source\",\n      \"node_id\": \"Ev2\",\n      \"node_type\": \"Event\",\n      \"evidence\": \"most likely from a static discharge\",\n      \"explanation\": \"Ignition clearly occurred, but the report identifies only a probable static discharge rather than a confirmed ignition source.\",\n      \"source\": \"incident_description\"\n    }\n  ]\n}"
+        }
+      ],
+      "phase": "final_answer",
+      "role": "assistant"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "presence_penalty": 0.0,
+  "previous_response_id": null,
+  "prompt_cache_key": null,
+  "prompt_cache_retention": null,
+  "reasoning": {
+    "effort": "high",
+    "summary": null
+  },
+  "safety_identifier": null,
+  "service_tier": "default",
+  "store": true,
+  "temperature": 1.0,
+  "text": {
+    "format": {
+      "type": "json_object"
+    },
+    "verbosity": "medium"
+  },
+  "tool_choice": "auto",
+  "tools": [],
+  "top_logprobs": 0,
+  "top_p": 0.98,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 5508,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 5862,
+    "output_tokens_details": {
+      "reasoning_tokens": 4641
+    },
+    "total_tokens": 11370
+  },
+  "user": null,
+  "metadata": {}
+}
