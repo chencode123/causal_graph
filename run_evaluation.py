@@ -20,6 +20,7 @@ By default:
 
 import argparse
 import importlib.util
+import os
 import sys
 from pathlib import Path
 
@@ -28,7 +29,10 @@ PROJECT_ROOT = Path(__file__).resolve().parent
 SCRIPTS_DIR = PROJECT_ROOT / "scripts"
 STRUCTURE_EVAL_PATH = PROJECT_ROOT / "scripts" / "evaluation_structure_similarity.py"
 PLOT_EVAL_PATH = PROJECT_ROOT / "scripts" / "plot_evaluation_results.py"
-DEFAULT_FOLDER = Path("runs/temproal_result_5_step/batch_1")  # Default base folder for evaluation; can be overridden by --folder argument.
+DEFAULT_FOLDER = Path("runs/temproal_result_5_step_batch_4_stability_test_123")  # Default base folder for evaluation; can be overridden by --folder argument.
+SHOW_PROGRESS = True  # Default progress-bar visibility; can still be overridden by --show-progress/--hide-progress.
+COMPUTE_GED_OPERATION_COUNTS = False  # Whether to run the expensive node/edge edit-operation counting step by default.
+DEFAULT_WORKERS = 2  # Safer default on Windows to avoid process-pool crashes from heavy native imports.
 
 if str(SCRIPTS_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPTS_DIR))
@@ -73,12 +77,38 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--workers",
         type=int,
-        default=None,
+        default=DEFAULT_WORKERS,
         help=(
             "Number of worker processes for parallel case evaluation. "
             "If omitted, the evaluation script chooses a sensible default."
         ),
     )
+    parser.add_argument(
+        "--compute-ged-operation-counts",
+        dest="compute_ged_operation_counts",
+        action="store_true",
+        help="Compute per-case node/edge insertion, deletion, and substitution counts.",
+    )
+    parser.add_argument(
+        "--skip-ged-operation-counts",
+        dest="compute_ged_operation_counts",
+        action="store_false",
+        help="Skip the expensive GED operation-count calculation.",
+    )
+    parser.add_argument(
+        "--show-progress",
+        dest="show_progress",
+        action="store_true",
+        help="Show the live tqdm progress bar during evaluation.",
+    )
+    parser.add_argument(
+        "--hide-progress",
+        dest="show_progress",
+        action="store_false",
+        help="Hide the live tqdm progress bar and only print summary output.",
+    )
+    parser.set_defaults(compute_ged_operation_counts=COMPUTE_GED_OPERATION_COUNTS)
+    parser.set_defaults(show_progress=SHOW_PROGRESS)
     return parser.parse_args()
 
 
@@ -114,6 +144,11 @@ def load_plot_eval_module():
 
 def main() -> None:
     """Delegate execution to the structure evaluation script."""
+    # Keep native BLAS thread pools small to avoid memory pressure on Windows.
+    os.environ.setdefault("OMP_NUM_THREADS", "1")
+    os.environ.setdefault("OPENBLAS_NUM_THREADS", "1")
+    os.environ.setdefault("MKL_NUM_THREADS", "1")
+
     args = parse_args()
     eval_module = load_structure_eval_module()
     plot_module = load_plot_eval_module()
@@ -131,6 +166,10 @@ def main() -> None:
         ]
         if args.workers is not None:
             sys.argv.extend(["--workers", str(args.workers)])
+        if not args.compute_ged_operation_counts:
+            sys.argv.append("--skip-ged-operation-counts")
+        if not args.show_progress:
+            sys.argv.append("--hide-progress")
         results_dir = eval_module.main()
         figures_dir = plot_module.generate_all_figures(results_dir)
         print(f"Saved evaluation figures to {figures_dir}.")

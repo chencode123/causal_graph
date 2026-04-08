@@ -10,9 +10,8 @@ ACTIVE_STEP_KEYS: List[str] = [
     # "identify_hazard_consequence",
     # "causal_narrative_extraction",
     # "identify_accident_scenario",
-    "joint_accident_graph_extraction",
-    # "causal_edge_linking",
-    # "review_causal_graph",
+    "causal_edge_linking",
+    "review_causal_graph",
 ]
 
 

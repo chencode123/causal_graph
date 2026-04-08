@@ -11,6 +11,10 @@ from scipy.stats import gaussian_kde
 
 
 CASE_SCORE_FILENAME = "case_scores.csv"
+WL_COL = "structural_similarity"
+EXACT_COL = "normalized_graph_edit_distance"
+WL_ACCEPT_COL = "structural_similarity_accept_all_vs_updated"
+EXACT_ACCEPT_COL = "normalized_graph_edit_distance_accept_all_vs_updated"
 
 FONT_FAMILY = ["Arial", "Times New Roman", "DejaVu Sans"]
 BASE_FONT_SIZE = 10
@@ -62,6 +66,11 @@ def to_float(value: str) -> float | None:
 def filter_ok_case_rows(rows: Iterable[Dict[str, str]]) -> List[Dict[str, str]]:
     """Keep only successful case rows with numeric metrics."""
     return [row for row in rows if str(row.get("status", "")).strip().lower() == "ok"]
+
+
+def has_numeric_metric(rows: Iterable[Dict[str, str]], key: str) -> bool:
+    """Return True when at least one row contains a numeric value for key."""
+    return any(to_float(row.get(key, "")) is not None for row in rows)
 
 
 def ensure_output_dir(output_dir: Path) -> Path:
@@ -225,7 +234,9 @@ def annotate_regression_stats(
     )
 
 
-def metric_arrays(case_rows: List[Dict[str, str]]) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+def metric_arrays(
+    case_rows: List[Dict[str, str]],
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """Extract core numeric arrays used across figures."""
     selected = select_complete_rows(
         case_rows,
@@ -233,15 +244,15 @@ def metric_arrays(case_rows: List[Dict[str, str]]) -> tuple[np.ndarray, np.ndarr
             "generated_node_count",
             "generated_edge_count",
             "verified_construction_steps",
-            "normalized_graph_edit_distance",
-            "structural_similarity",
+            EXACT_COL,
+            WL_COL,
         ],
     )
     node_count = np.asarray([row["generated_node_count"] for row in selected], dtype=float)
     edge_count = np.asarray([row["generated_edge_count"] for row in selected], dtype=float)
     construction_steps = np.asarray([row["verified_construction_steps"] for row in selected], dtype=float)
-    normalized_ged = np.asarray([row["normalized_graph_edit_distance"] for row in selected], dtype=float)
-    wl_similarity = np.asarray([row["structural_similarity"] for row in selected], dtype=float)
+    normalized_ged = np.asarray([row[EXACT_COL] for row in selected], dtype=float)
+    wl_similarity = np.asarray([row[WL_COL] for row in selected], dtype=float)
     return node_count, edge_count, construction_steps, normalized_ged, wl_similarity
 
 
@@ -298,13 +309,24 @@ def plot_performance_trends(case_rows: List[Dict[str, str]], output_dir: Path) -
     exact_steps, exact_medians, exact_q1, exact_q3 = grouped_summary_by_step(
         case_rows,
         "verified_construction_steps",
-        "normalized_graph_edit_distance",
+        EXACT_COL,
         y_transform=lambda value: 1.0 - value,
     )
     wl_steps, wl_medians, wl_q1, wl_q3 = grouped_summary_by_step(
         case_rows,
         "verified_construction_steps",
-        "structural_similarity",
+        WL_COL,
+    )
+    exact_accept_steps, exact_accept_medians, _, _ = grouped_summary_by_step(
+        case_rows,
+        "verified_construction_steps",
+        EXACT_ACCEPT_COL,
+        y_transform=lambda value: 1.0 - value,
+    )
+    wl_accept_steps, wl_accept_medians, _, _ = grouped_summary_by_step(
+        case_rows,
+        "verified_construction_steps",
+        WL_ACCEPT_COL,
     )
     frequency_rows = select_complete_rows(case_rows, ["verified_construction_steps"])
     if frequency_rows:
@@ -348,6 +370,27 @@ def plot_performance_trends(case_rows: List[Dict[str, str]], output_dir: Path) -
             markersize=3.2,
             label="WL Kernel Similarity",
         )
+    if exact_accept_steps.size > 0:
+        ax.plot(
+            exact_accept_steps,
+            exact_accept_medians,
+            color="#DD8452",
+            linewidth=1.5,
+            marker="^",
+            markersize=3.0,
+            label="1 - Normalized GED (Accept-all vs Updated)",
+        )
+    if wl_accept_steps.size > 0:
+        ax.plot(
+            wl_accept_steps,
+            wl_accept_medians,
+            color="#55A868",
+            linewidth=1.5,
+            linestyle=":",
+            marker="d",
+            markersize=3.0,
+            label="WL Similarity (Accept-all vs Updated)",
+        )
 
     ax.set_xlabel("Construction Steps")
     ax.set_ylabel("Similarity Score")
@@ -355,21 +398,38 @@ def plot_performance_trends(case_rows: List[Dict[str, str]], output_dir: Path) -
     ax.set_ylim(0.0, 1.05)
     ax.set_zorder(2)
     ax.patch.set_alpha(0.0)
-    ax.legend(loc="best")
+    handles, labels = ax.get_legend_handles_labels()
+    if handles:
+        ax.legend(loc="best")
     save_figure(fig, output_dir, "figure_2_performance_trends")
 
 
 def plot_similarity_density(case_rows: List[Dict[str, str]], output_dir: Path) -> None:
     """Create a dual-density plot for two structural similarity metrics."""
-    selected = select_complete_rows(case_rows, ["normalized_graph_edit_distance", "structural_similarity"])
+    selected = select_complete_rows(case_rows, [EXACT_COL, WL_COL])
+    selected_accept = select_complete_rows(case_rows, [EXACT_ACCEPT_COL, WL_ACCEPT_COL])
     fig, ax = plt.subplots(figsize=(6.8, 5.2))
     style_axes(ax)
 
     if selected:
-        exact_similarity = 1.0 - np.asarray([row["normalized_graph_edit_distance"] for row in selected], dtype=float)
-        wl_similarity = np.asarray([row["structural_similarity"] for row in selected], dtype=float)
-        lower_bound = max(0.0, min(exact_similarity.min(), wl_similarity.min()) - 0.05)
-        upper_bound = min(1.0, max(exact_similarity.max(), wl_similarity.max()) + 0.05)
+        exact_similarity = 1.0 - np.asarray([row[EXACT_COL] for row in selected], dtype=float)
+        wl_similarity = np.asarray([row[WL_COL] for row in selected], dtype=float)
+        all_series = [exact_similarity, wl_similarity]
+        if selected_accept:
+            exact_similarity_accept = 1.0 - np.asarray(
+                [row[EXACT_ACCEPT_COL] for row in selected_accept],
+                dtype=float,
+            )
+            wl_similarity_accept = np.asarray(
+                [row[WL_ACCEPT_COL] for row in selected_accept],
+                dtype=float,
+            )
+            all_series.extend([exact_similarity_accept, wl_similarity_accept])
+        else:
+            exact_similarity_accept = np.asarray([], dtype=float)
+            wl_similarity_accept = np.asarray([], dtype=float)
+        lower_bound = max(0.0, min(series.min() for series in all_series if series.size > 0) - 0.05)
+        upper_bound = min(1.0, max(series.max() for series in all_series if series.size > 0) + 0.05)
         x_grid = np.linspace(lower_bound, upper_bound, 400)
 
         if exact_similarity.size >= 2 and not np.allclose(exact_similarity.min(), exact_similarity.max()):
@@ -383,37 +443,67 @@ def plot_similarity_density(case_rows: List[Dict[str, str]], output_dir: Path) -
             wl_density = wl_kde(x_grid)
             ax.plot(x_grid, wl_density, color="#4C72B0", linewidth=1.6, label="WL Kernel Similarity")
             ax.fill_between(x_grid, wl_density, color="#4C72B0", alpha=0.18)
+        if exact_similarity_accept.size >= 2 and not np.allclose(
+            exact_similarity_accept.min(),
+            exact_similarity_accept.max(),
+        ):
+            exact_accept_kde = gaussian_kde(exact_similarity_accept)
+            exact_accept_density = exact_accept_kde(x_grid)
+            ax.plot(
+                x_grid,
+                exact_accept_density,
+                color="#DD8452",
+                linewidth=1.4,
+                linestyle="--",
+                label="1 - Normalized GED (Accept-all vs Updated)",
+            )
+        if wl_similarity_accept.size >= 2 and not np.allclose(
+            wl_similarity_accept.min(),
+            wl_similarity_accept.max(),
+        ):
+            wl_accept_kde = gaussian_kde(wl_similarity_accept)
+            wl_accept_density = wl_accept_kde(x_grid)
+            ax.plot(
+                x_grid,
+                wl_accept_density,
+                color="#55A868",
+                linewidth=1.4,
+                linestyle="--",
+                label="WL Similarity (Accept-all vs Updated)",
+            )
 
         ax.set_xlim(lower_bound, upper_bound)
 
     ax.set_xlabel("Similarity Score")
     ax.set_ylabel("Density")
     ax.set_title("Distribution of Structural Performance Metrics")
-    ax.legend(loc="best")
+    handles, labels = ax.get_legend_handles_labels()
+    if handles:
+        ax.legend(loc="best")
     save_figure(fig, output_dir, "figure_3_similarity_density")
 
 
 def plot_ged_vs_wl(case_rows: List[Dict[str, str]], output_dir: Path) -> None:
-    """Create a scatter plot for GED-based similarity versus WL kernel similarity."""
-    selected_rows = [
-        row
-        for row in case_rows
-        if to_float(row.get("normalized_graph_edit_distance", "")) is not None
-        and to_float(row.get("structural_similarity", "")) is not None
-    ]
-    fig, ax = plt.subplots(figsize=(6.8, 5.2))
-    style_axes(ax)
+    """Create side-by-side GED-vs-WL scatter plots for both comparison modes."""
+    fig, axes = plt.subplots(1, 2, figsize=(12.2, 5.2), sharey=True)
 
-    if selected_rows:
-        normalized_ged = np.asarray(
-            [to_float(row.get("normalized_graph_edit_distance", "")) for row in selected_rows],
-            dtype=float,
-        )
+    def draw_panel(ax: plt.Axes, x_col: str, y_col: str, title: str) -> None:
+        style_axes(ax)
+        selected_rows = [
+            row
+            for row in case_rows
+            if to_float(row.get(x_col, "")) is not None
+            and to_float(row.get(y_col, "")) is not None
+        ]
+        if not selected_rows:
+            ax.text(0.5, 0.5, "No data", ha="center", va="center", transform=ax.transAxes)
+            ax.set_title(title)
+            ax.set_xlabel("1 - Normalized GED")
+            return
+
+        normalized_ged = np.asarray([to_float(row.get(x_col, "")) for row in selected_rows], dtype=float)
         x = 1.0 - normalized_ged
-        y = np.asarray(
-            [to_float(row.get("structural_similarity", "")) for row in selected_rows],
-            dtype=float,
-        )
+        y = np.asarray([to_float(row.get(y_col, "")) for row in selected_rows], dtype=float)
         outlier_mask = y <= np.quantile(y, 0.1)
         regular_mask = ~outlier_mask
 
@@ -427,10 +517,15 @@ def plot_ged_vs_wl(case_rows: List[Dict[str, str]], output_dir: Path) -> None:
         if params is not None:
             annotate_regression_stats(ax, params[0], params[1], r_squared)
 
-    ax.set_xlabel("1 - Normalized GED")
-    ax.set_ylabel("WL Kernel Similarity")
-    ax.set_title("Relationship Between GED-Based and WL Similarity")
-    ax.set_ylim(0.0, 1.05)
+        ax.set_title(title)
+        ax.set_xlabel("1 - Normalized GED")
+
+    draw_panel(axes[0], EXACT_COL, WL_COL, "Generated vs Updated")
+    draw_panel(axes[1], EXACT_ACCEPT_COL, WL_ACCEPT_COL, "Accept-all vs Updated")
+    axes[0].set_ylabel("WL Kernel Similarity")
+    axes[0].set_ylim(0.0, 1.05)
+    axes[1].set_ylim(0.0, 1.05)
+    fig.suptitle("Relationship Between GED-Based and WL Similarity", y=1.02)
     save_figure(fig, output_dir, "figure_4_ged_vs_wl")
 
 
@@ -561,68 +656,107 @@ def grouped_boxplot_by_label(
 
 
 def plot_max_path_vs_wl(case_rows: List[Dict[str, str]], output_dir: Path) -> None:
-    """Plot WL similarity grouped by maximum path length."""
-    fig, ax = plt.subplots(figsize=(6.8, 5.2))
-    style_axes(ax)
+    """Plot WL similarity grouped by maximum path length for both comparison modes."""
+    fig, axes = plt.subplots(2, 1, figsize=(7.2, 7.0), sharex=True)
 
-    labels, series = grouped_boxplot_data(case_rows, "max_path_length", "structural_similarity")
-    styled_boxplot(ax, labels, series, color="#4C72B0")
+    labels, series = grouped_boxplot_data(case_rows, "max_path_length", WL_COL)
+    style_axes(axes[0])
+    styled_boxplot(axes[0], labels, series, color="#4C72B0")
+    axes[0].set_ylabel("WL Kernel Similarity")
+    axes[0].set_title("Generated vs Updated")
+    axes[0].set_ylim(0.0, 1.05)
 
-    ax.set_xlabel("Max Path Length")
-    ax.set_ylabel("WL Kernel Similarity")
-    ax.set_title("WL Similarity Across Maximum Causal Chain Depth")
-    ax.set_ylim(0.0, 1.05)
+    labels_accept, series_accept = grouped_boxplot_data(case_rows, "max_path_length", WL_ACCEPT_COL)
+    style_axes(axes[1])
+    styled_boxplot(axes[1], labels_accept, series_accept, color="#55A868")
+    axes[1].set_ylabel("WL Kernel Similarity")
+    axes[1].set_title("Accept-all vs Updated")
+    axes[1].set_xlabel("Max Path Length")
+    axes[1].set_ylim(0.0, 1.05)
+
+    fig.suptitle("WL Similarity Across Maximum Causal Chain Depth", y=1.02)
     save_figure(fig, output_dir, "figure_7_max_path_vs_wl")
 
 
 def plot_max_path_vs_exact_similarity(case_rows: List[Dict[str, str]], output_dir: Path) -> None:
-    """Plot GED-based similarity grouped by maximum path length."""
-    fig, ax = plt.subplots(figsize=(6.8, 5.2))
-    style_axes(ax)
+    """Plot GED-based similarity grouped by maximum path length for both comparison modes."""
+    fig, axes = plt.subplots(2, 1, figsize=(7.2, 7.0), sharex=True)
 
     labels, series = grouped_boxplot_data(
         case_rows,
         "max_path_length",
-        "normalized_graph_edit_distance",
+        EXACT_COL,
         y_transform=lambda value: 1.0 - value,
     )
-    styled_boxplot(ax, labels, series, color="#C44E52")
+    style_axes(axes[0])
+    styled_boxplot(axes[0], labels, series, color="#C44E52")
+    axes[0].set_ylabel("1 - Normalized GED")
+    axes[0].set_title("Generated vs Updated")
+    axes[0].set_ylim(0.0, 1.05)
 
-    ax.set_xlabel("Max Path Length")
-    ax.set_ylabel("1 - Normalized GED")
-    ax.set_title("GED-Based Similarity Across Maximum Causal Chain Depth")
-    ax.set_ylim(0.0, 1.05)
+    labels_accept, series_accept = grouped_boxplot_data(
+        case_rows,
+        "max_path_length",
+        EXACT_ACCEPT_COL,
+        y_transform=lambda value: 1.0 - value,
+    )
+    style_axes(axes[1])
+    styled_boxplot(axes[1], labels_accept, series_accept, color="#DD8452")
+    axes[1].set_ylabel("1 - Normalized GED")
+    axes[1].set_title("Accept-all vs Updated")
+    axes[1].set_xlabel("Max Path Length")
+    axes[1].set_ylim(0.0, 1.05)
+
+    fig.suptitle("GED-Based Similarity Across Maximum Causal Chain Depth", y=1.02)
     save_figure(fig, output_dir, "figure_8_max_path_vs_exact_similarity")
 
 
 def plot_similarity_by_hazard_consequence(case_rows: List[Dict[str, str]], output_dir: Path) -> None:
     """Plot structural similarity metrics grouped by hazard consequence type."""
-    fig, axes = plt.subplots(2, 1, figsize=(9.0, 7.8), sharex=True)
+    fig, axes = plt.subplots(2, 2, figsize=(12.0, 8.2), sharex="col")
 
-    wl_labels, wl_series = grouped_boxplot_by_label(
-        case_rows,
-        "hazard_consequence_type",
-        "structural_similarity",
+    wl_labels, wl_series = grouped_boxplot_by_label(case_rows, "hazard_consequence_type", WL_COL)
+    wl_accept_labels, wl_accept_series = grouped_boxplot_by_label(
+        case_rows, "hazard_consequence_type", WL_ACCEPT_COL
     )
     exact_labels, exact_series = grouped_boxplot_by_label(
         case_rows,
         "hazard_consequence_type",
-        "normalized_graph_edit_distance",
+        EXACT_COL,
+        y_transform=lambda value: 1.0 - value,
+    )
+    exact_accept_labels, exact_accept_series = grouped_boxplot_by_label(
+        case_rows,
+        "hazard_consequence_type",
+        EXACT_ACCEPT_COL,
         y_transform=lambda value: 1.0 - value,
     )
 
-    style_axes(axes[0])
-    styled_boxplot(axes[0], wl_labels, wl_series, color="#4C72B0")
-    axes[0].set_ylabel("WL Kernel Similarity")
-    axes[0].set_title("Similarity Score by Hazard Consequence Type")
-    axes[0].set_ylim(0.0, 1.05)
+    style_axes(axes[0, 0])
+    styled_boxplot(axes[0, 0], wl_labels, wl_series, color="#4C72B0")
+    axes[0, 0].set_ylabel("WL Kernel Similarity")
+    axes[0, 0].set_title("Generated vs Updated")
+    axes[0, 0].set_ylim(0.0, 1.05)
 
-    style_axes(axes[1])
-    styled_boxplot(axes[1], exact_labels, exact_series, color="#C44E52")
-    axes[1].set_ylabel("1 - Normalized GED")
-    axes[1].set_xlabel("Hazard Consequence Type")
-    axes[1].set_ylim(0.0, 1.05)
-    axes[1].tick_params(axis="x", rotation=25)
+    style_axes(axes[0, 1])
+    styled_boxplot(axes[0, 1], wl_accept_labels, wl_accept_series, color="#55A868")
+    axes[0, 1].set_title("Accept-all vs Updated")
+    axes[0, 1].set_ylim(0.0, 1.05)
+
+    style_axes(axes[1, 0])
+    styled_boxplot(axes[1, 0], exact_labels, exact_series, color="#C44E52")
+    axes[1, 0].set_ylabel("1 - Normalized GED")
+    axes[1, 0].set_xlabel("Hazard Consequence Type")
+    axes[1, 0].set_ylim(0.0, 1.05)
+    axes[1, 0].tick_params(axis="x", rotation=25)
+
+    style_axes(axes[1, 1])
+    styled_boxplot(axes[1, 1], exact_accept_labels, exact_accept_series, color="#DD8452")
+    axes[1, 1].set_xlabel("Hazard Consequence Type")
+    axes[1, 1].set_ylim(0.0, 1.05)
+    axes[1, 1].tick_params(axis="x", rotation=25)
+
+    fig.suptitle("Similarity Score by Hazard Consequence Type", y=1.02)
 
     save_figure(fig, output_dir, "figure_9_similarity_by_hazard_consequence")
 

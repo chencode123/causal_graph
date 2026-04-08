@@ -24,22 +24,34 @@ NODE_GROUP_KEYS = (
 )
 
 CASE_SCORE_COLUMNS = [
-    "case_id",
     "batch_id",
+    "case_id",
     "hazard_consequence_type",
     "structural_similarity",
     "graph_edit_distance",
     "normalized_graph_edit_distance",
     "graph_edit_similarity",
+    "structural_similarity_accept_all_vs_updated",
+    "graph_edit_distance_accept_all_vs_updated",
+    "normalized_graph_edit_distance_accept_all_vs_updated",
+    "graph_edit_similarity_accept_all_vs_updated",
     "ged_node_insertion_count",
     "ged_node_deletion_count",
     "ged_node_substitution_count",
     "ged_edge_insertion_count",
     "ged_edge_deletion_count",
     "ged_edge_substitution_count",
+    "ged_node_insertion_count_accept_all_vs_updated",
+    "ged_node_deletion_count_accept_all_vs_updated",
+    "ged_node_substitution_count_accept_all_vs_updated",
+    "ged_edge_insertion_count_accept_all_vs_updated",
+    "ged_edge_deletion_count_accept_all_vs_updated",
+    "ged_edge_substitution_count_accept_all_vs_updated",
     "generated_node_count",
+    "accept_all_node_count",
     "updated_node_count",
     "generated_edge_count",
+    "accept_all_edge_count",
     "updated_edge_count",
     "verified_construction_steps",
     "max_path_length",
@@ -57,9 +69,15 @@ BATCH_SCORE_COLUMNS = [
     "mean_graph_edit_distance",
     "mean_normalized_graph_edit_distance",
     "mean_graph_edit_similarity",
+    "mean_structural_similarity_accept_all_vs_updated",
+    "mean_graph_edit_distance_accept_all_vs_updated",
+    "mean_normalized_graph_edit_distance_accept_all_vs_updated",
+    "mean_graph_edit_similarity_accept_all_vs_updated",
     "mean_generated_node_count",
+    "mean_accept_all_node_count",
     "mean_updated_node_count",
     "mean_generated_edge_count",
+    "mean_accept_all_edge_count",
     "mean_updated_edge_count",
     "mean_verified_construction_steps",
     "mean_max_path_length",
@@ -69,12 +87,24 @@ BATCH_SCORE_COLUMNS = [
     "total_ged_edge_insertion_count",
     "total_ged_edge_deletion_count",
     "total_ged_edge_substitution_count",
+    "total_ged_node_insertion_count_accept_all_vs_updated",
+    "total_ged_node_deletion_count_accept_all_vs_updated",
+    "total_ged_node_substitution_count_accept_all_vs_updated",
+    "total_ged_edge_insertion_count_accept_all_vs_updated",
+    "total_ged_edge_deletion_count_accept_all_vs_updated",
+    "total_ged_edge_substitution_count_accept_all_vs_updated",
     "mean_ged_node_insertion_count",
     "mean_ged_node_deletion_count",
     "mean_ged_node_substitution_count",
     "mean_ged_edge_insertion_count",
     "mean_ged_edge_deletion_count",
     "mean_ged_edge_substitution_count",
+    "mean_ged_node_insertion_count_accept_all_vs_updated",
+    "mean_ged_node_deletion_count_accept_all_vs_updated",
+    "mean_ged_node_substitution_count_accept_all_vs_updated",
+    "mean_ged_edge_insertion_count_accept_all_vs_updated",
+    "mean_ged_edge_deletion_count_accept_all_vs_updated",
+    "mean_ged_edge_substitution_count_accept_all_vs_updated",
 ]
 
 OVERALL_SUMMARY_COLUMNS = [
@@ -86,9 +116,15 @@ OVERALL_SUMMARY_COLUMNS = [
     "overall_mean_graph_edit_distance",
     "overall_mean_normalized_graph_edit_distance",
     "overall_mean_graph_edit_similarity",
+    "overall_mean_structural_similarity_accept_all_vs_updated",
+    "overall_mean_graph_edit_distance_accept_all_vs_updated",
+    "overall_mean_normalized_graph_edit_distance_accept_all_vs_updated",
+    "overall_mean_graph_edit_similarity_accept_all_vs_updated",
     "overall_mean_generated_node_count",
+    "overall_mean_accept_all_node_count",
     "overall_mean_updated_node_count",
     "overall_mean_generated_edge_count",
+    "overall_mean_accept_all_edge_count",
     "overall_mean_updated_edge_count",
     "overall_mean_verified_construction_steps",
     "overall_mean_max_path_length",
@@ -98,12 +134,24 @@ OVERALL_SUMMARY_COLUMNS = [
     "overall_total_ged_edge_insertion_count",
     "overall_total_ged_edge_deletion_count",
     "overall_total_ged_edge_substitution_count",
+    "overall_total_ged_node_insertion_count_accept_all_vs_updated",
+    "overall_total_ged_node_deletion_count_accept_all_vs_updated",
+    "overall_total_ged_node_substitution_count_accept_all_vs_updated",
+    "overall_total_ged_edge_insertion_count_accept_all_vs_updated",
+    "overall_total_ged_edge_deletion_count_accept_all_vs_updated",
+    "overall_total_ged_edge_substitution_count_accept_all_vs_updated",
     "overall_mean_ged_node_insertion_count",
     "overall_mean_ged_node_deletion_count",
     "overall_mean_ged_node_substitution_count",
     "overall_mean_ged_edge_insertion_count",
     "overall_mean_ged_edge_deletion_count",
     "overall_mean_ged_edge_substitution_count",
+    "overall_mean_ged_node_insertion_count_accept_all_vs_updated",
+    "overall_mean_ged_node_deletion_count_accept_all_vs_updated",
+    "overall_mean_ged_node_substitution_count_accept_all_vs_updated",
+    "overall_mean_ged_edge_insertion_count_accept_all_vs_updated",
+    "overall_mean_ged_edge_deletion_count_accept_all_vs_updated",
+    "overall_mean_ged_edge_substitution_count_accept_all_vs_updated",
 ]
 
 
@@ -136,6 +184,32 @@ def parse_args() -> argparse.Namespace:
             "Defaults to min(CPU count, number of cases). Use 1 to disable parallelism."
         ),
     )
+    parser.add_argument(
+        "--compute-ged-operation-counts",
+        dest="compute_ged_operation_counts",
+        action="store_true",
+        help="Compute per-case node/edge insertion, deletion, and substitution counts.",
+    )
+    parser.add_argument(
+        "--skip-ged-operation-counts",
+        dest="compute_ged_operation_counts",
+        action="store_false",
+        help="Skip the expensive GED operation-count calculation.",
+    )
+    parser.add_argument(
+        "--show-progress",
+        dest="show_progress",
+        action="store_true",
+        help="Show the live tqdm progress bar during evaluation.",
+    )
+    parser.add_argument(
+        "--hide-progress",
+        dest="show_progress",
+        action="store_false",
+        help="Hide the live tqdm progress bar and only print summary output.",
+    )
+    parser.set_defaults(compute_ged_operation_counts=True)
+    parser.set_defaults(show_progress=True)
     return parser.parse_args()
 
 
@@ -146,6 +220,15 @@ def resolve_updated_graph_path(case_folder: Path) -> Path | None:
         return exact_path
 
     fallback_candidates = sorted(case_folder.glob("updated_causal_graph*.json"))
+    return fallback_candidates[0] if fallback_candidates else None
+
+
+def resolve_accept_all_graph_path(case_folder: Path) -> Path | None:
+    """Resolve the accept-all updated graph file with strict priority."""
+    exact_path = case_folder / "updated_causal_graph_accept_all.json"
+    if exact_path.exists():
+        return exact_path
+    fallback_candidates = sorted(case_folder.glob("updated_causal_graph_accept_all*.json"))
     return fallback_candidates[0] if fallback_candidates else None
 
 
@@ -164,6 +247,17 @@ def load_json(path: Path) -> Dict[str, Any]:
     """Load a JSON file into a dictionary."""
     with path.open("r", encoding="utf-8") as fp:
         return json.load(fp)
+
+
+def to_float(value: str) -> float | None:
+    """Convert a string value to float when possible."""
+    text = str(value).strip()
+    if not text:
+        return None
+    try:
+        return float(text)
+    except ValueError:
+        return None
 
 
 def flatten_nodes(data: Dict[str, Any]) -> List[Dict[str, Any]]:
@@ -402,7 +496,33 @@ def load_hazard_consequence_type(case_folder: Path) -> str:
     return str(node.get("name") or "").strip()
 
 
-def evaluate_case(case_folder: Path, parent_dir: Path) -> Dict[str, Any]:
+def empty_operation_counts(suffix: str = "") -> Dict[str, str]:
+    """Return blank GED operation counts when the expensive computation is skipped."""
+    return {
+        f"ged_node_insertion_count{suffix}": "",
+        f"ged_node_deletion_count{suffix}": "",
+        f"ged_node_substitution_count{suffix}": "",
+        f"ged_edge_insertion_count{suffix}": "",
+        f"ged_edge_deletion_count{suffix}": "",
+        f"ged_edge_substitution_count{suffix}": "",
+    }
+
+
+def collect_numeric_values(rows: Iterable[Dict[str, Any]], key: str) -> List[float]:
+    """Collect numeric values from rows while skipping blanks and invalid cells."""
+    values: List[float] = []
+    for row in rows:
+        value = to_float(str(row.get(key, "")))
+        if value is not None:
+            values.append(value)
+    return values
+
+
+def evaluate_case(
+    case_folder: Path,
+    parent_dir: Path,
+    compute_ged_operation_counts: bool = True,
+) -> Dict[str, Any]:
     """Evaluate one case folder and return a CSV-ready row."""
     case_id = case_folder.name
     batch_id = infer_batch_id(case_folder, parent_dir)
@@ -416,15 +536,27 @@ def evaluate_case(case_folder: Path, parent_dir: Path) -> Dict[str, Any]:
         "graph_edit_distance": "",
         "normalized_graph_edit_distance": "",
         "graph_edit_similarity": "",
+        "structural_similarity_accept_all_vs_updated": "",
+        "graph_edit_distance_accept_all_vs_updated": "",
+        "normalized_graph_edit_distance_accept_all_vs_updated": "",
+        "graph_edit_similarity_accept_all_vs_updated": "",
         "ged_node_insertion_count": "",
         "ged_node_deletion_count": "",
         "ged_node_substitution_count": "",
         "ged_edge_insertion_count": "",
         "ged_edge_deletion_count": "",
         "ged_edge_substitution_count": "",
+        "ged_node_insertion_count_accept_all_vs_updated": "",
+        "ged_node_deletion_count_accept_all_vs_updated": "",
+        "ged_node_substitution_count_accept_all_vs_updated": "",
+        "ged_edge_insertion_count_accept_all_vs_updated": "",
+        "ged_edge_deletion_count_accept_all_vs_updated": "",
+        "ged_edge_substitution_count_accept_all_vs_updated": "",
         "generated_node_count": "",
+        "accept_all_node_count": "",
         "updated_node_count": "",
         "generated_edge_count": "",
+        "accept_all_edge_count": "",
         "updated_edge_count": "",
         "verified_construction_steps": "",
         "max_path_length": "",
@@ -439,6 +571,7 @@ def evaluate_case(case_folder: Path, parent_dir: Path) -> Dict[str, Any]:
         if updated_graph_path is None:
             raise FileNotFoundError("No updated_causal_graph*.json file found.")
         updated_data = load_json(updated_graph_path)
+        accept_all_graph_path = resolve_accept_all_graph_path(case_folder)
 
         generated_nodes = flatten_nodes(generated_data)
         updated_nodes = flatten_nodes(updated_data)
@@ -454,7 +587,61 @@ def evaluate_case(case_folder: Path, parent_dir: Path) -> Dict[str, Any]:
             normalized_graph_edit_distance,
             graph_edit_similarity,
         ) = compute_graph_edit_metrics(generated_graph, updated_graph)
-        operation_counts = compute_graph_edit_operation_counts(generated_graph, updated_graph)
+        if compute_ged_operation_counts:
+            operation_counts = compute_graph_edit_operation_counts(generated_graph, updated_graph)
+        else:
+            operation_counts = empty_operation_counts()
+
+        accept_all_warnings: List[str] = []
+        accept_all_metrics: Dict[str, Any] = {
+            "structural_similarity_accept_all_vs_updated": "",
+            "graph_edit_distance_accept_all_vs_updated": "",
+            "normalized_graph_edit_distance_accept_all_vs_updated": "",
+            "graph_edit_similarity_accept_all_vs_updated": "",
+            "accept_all_node_count": "",
+            "accept_all_edge_count": "",
+            **empty_operation_counts("_accept_all_vs_updated"),
+        }
+        if accept_all_graph_path is None:
+            accept_all_warnings.append("Missing updated_causal_graph_accept_all.json.")
+        else:
+            accept_all_data = load_json(accept_all_graph_path)
+            accept_all_nodes = flatten_nodes(accept_all_data)
+            accept_all_edges = read_edges(accept_all_data)
+            accept_all_graph, accept_all_graph_warnings = build_directed_graph(accept_all_nodes, accept_all_edges)
+            accept_all_warnings.extend(accept_all_graph_warnings)
+            accept_all_similarity = compute_structural_similarity(accept_all_graph, updated_graph)
+            (
+                accept_all_graph_edit_distance,
+                accept_all_normalized_graph_edit_distance,
+                accept_all_graph_edit_similarity,
+            ) = compute_graph_edit_metrics(accept_all_graph, updated_graph)
+            if compute_ged_operation_counts:
+                raw_accept_all_operation_counts = compute_graph_edit_operation_counts(
+                    accept_all_graph,
+                    updated_graph,
+                )
+                accept_all_operation_counts = {
+                    f"{key}_accept_all_vs_updated": value
+                    for key, value in raw_accept_all_operation_counts.items()
+                }
+            else:
+                accept_all_operation_counts = empty_operation_counts("_accept_all_vs_updated")
+            accept_all_metrics.update(
+                {
+                    "structural_similarity_accept_all_vs_updated": f"{accept_all_similarity:.6f}",
+                    "graph_edit_distance_accept_all_vs_updated": f"{accept_all_graph_edit_distance:.6f}",
+                    "normalized_graph_edit_distance_accept_all_vs_updated": f"{accept_all_normalized_graph_edit_distance:.6f}",
+                    "graph_edit_similarity_accept_all_vs_updated": f"{accept_all_graph_edit_similarity:.6f}",
+                    "accept_all_node_count": accept_all_graph.number_of_nodes(),
+                    "accept_all_edge_count": accept_all_graph.number_of_edges(),
+                    **accept_all_operation_counts,
+                }
+            )
+            if accept_all_graph_path.name != "updated_causal_graph_accept_all.json":
+                accept_all_warnings.append(
+                    f"Used fallback accept-all graph file: {accept_all_graph_path.name}."
+                )
         verified_construction_steps = compute_verified_construction_steps(updated_graph)
         topology_metrics = compute_topology_metrics(updated_graph)
         hazard_consequence_type = load_hazard_consequence_type(case_folder)
@@ -466,6 +653,7 @@ def evaluate_case(case_folder: Path, parent_dir: Path) -> Dict[str, Any]:
                 "normalized_graph_edit_distance": f"{normalized_graph_edit_distance:.6f}",
                 "graph_edit_similarity": f"{graph_edit_similarity:.6f}",
                 **operation_counts,
+                **accept_all_metrics,
                 "generated_node_count": generated_graph.number_of_nodes(),
                 "updated_node_count": updated_graph.number_of_nodes(),
                 "generated_edge_count": generated_graph.number_of_edges(),
@@ -476,6 +664,7 @@ def evaluate_case(case_folder: Path, parent_dir: Path) -> Dict[str, Any]:
                 "warnings": " | ".join(
                     generated_warnings
                     + updated_warnings
+                    + accept_all_warnings
                     + (
                         []
                         if updated_graph_path.name == "updated_causal_graph.json"
@@ -490,10 +679,14 @@ def evaluate_case(case_folder: Path, parent_dir: Path) -> Dict[str, Any]:
     return row
 
 
-def evaluate_case_with_timing(case_folder: Path, parent_dir: Path) -> Tuple[Dict[str, Any], float]:
+def evaluate_case_with_timing(
+    case_folder: Path,
+    parent_dir: Path,
+    compute_ged_operation_counts: bool = True,
+) -> Tuple[Dict[str, Any], float]:
     """Evaluate one case and return both the row and elapsed seconds."""
     started_at = time.perf_counter()
-    row = evaluate_case(case_folder, parent_dir)
+    row = evaluate_case(case_folder, parent_dir, compute_ged_operation_counts)
     elapsed_seconds = time.perf_counter() - started_at
     return row, elapsed_seconds
 
@@ -525,12 +718,30 @@ def build_batch_rows(case_rows: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     for batch_id in sorted(grouped):
         rows = grouped[batch_id]
         success_rows = [row for row in rows if row["status"] == "ok"]
-        ged_node_insertion_values = [float(row["ged_node_insertion_count"]) for row in success_rows]
-        ged_node_deletion_values = [float(row["ged_node_deletion_count"]) for row in success_rows]
-        ged_node_substitution_values = [float(row["ged_node_substitution_count"]) for row in success_rows]
-        ged_edge_insertion_values = [float(row["ged_edge_insertion_count"]) for row in success_rows]
-        ged_edge_deletion_values = [float(row["ged_edge_deletion_count"]) for row in success_rows]
-        ged_edge_substitution_values = [float(row["ged_edge_substitution_count"]) for row in success_rows]
+        ged_node_insertion_values = collect_numeric_values(success_rows, "ged_node_insertion_count")
+        ged_node_deletion_values = collect_numeric_values(success_rows, "ged_node_deletion_count")
+        ged_node_substitution_values = collect_numeric_values(success_rows, "ged_node_substitution_count")
+        ged_edge_insertion_values = collect_numeric_values(success_rows, "ged_edge_insertion_count")
+        ged_edge_deletion_values = collect_numeric_values(success_rows, "ged_edge_deletion_count")
+        ged_edge_substitution_values = collect_numeric_values(success_rows, "ged_edge_substitution_count")
+        ged_node_insertion_values_accept_all = collect_numeric_values(
+            success_rows, "ged_node_insertion_count_accept_all_vs_updated"
+        )
+        ged_node_deletion_values_accept_all = collect_numeric_values(
+            success_rows, "ged_node_deletion_count_accept_all_vs_updated"
+        )
+        ged_node_substitution_values_accept_all = collect_numeric_values(
+            success_rows, "ged_node_substitution_count_accept_all_vs_updated"
+        )
+        ged_edge_insertion_values_accept_all = collect_numeric_values(
+            success_rows, "ged_edge_insertion_count_accept_all_vs_updated"
+        )
+        ged_edge_deletion_values_accept_all = collect_numeric_values(
+            success_rows, "ged_edge_deletion_count_accept_all_vs_updated"
+        )
+        ged_edge_substitution_values_accept_all = collect_numeric_values(
+            success_rows, "ged_edge_substitution_count_accept_all_vs_updated"
+        )
 
         batch_rows.append(
             {
@@ -550,14 +761,32 @@ def build_batch_rows(case_rows: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
                 "mean_graph_edit_similarity": mean_or_blank(
                     [float(row["graph_edit_similarity"]) for row in success_rows]
                 ),
+                "mean_structural_similarity_accept_all_vs_updated": mean_or_blank(
+                    collect_numeric_values(success_rows, "structural_similarity_accept_all_vs_updated")
+                ),
+                "mean_graph_edit_distance_accept_all_vs_updated": mean_or_blank(
+                    collect_numeric_values(success_rows, "graph_edit_distance_accept_all_vs_updated")
+                ),
+                "mean_normalized_graph_edit_distance_accept_all_vs_updated": mean_or_blank(
+                    collect_numeric_values(success_rows, "normalized_graph_edit_distance_accept_all_vs_updated")
+                ),
+                "mean_graph_edit_similarity_accept_all_vs_updated": mean_or_blank(
+                    collect_numeric_values(success_rows, "graph_edit_similarity_accept_all_vs_updated")
+                ),
                 "mean_generated_node_count": mean_or_blank(
                     [float(row["generated_node_count"]) for row in success_rows]
+                ),
+                "mean_accept_all_node_count": mean_or_blank(
+                    collect_numeric_values(success_rows, "accept_all_node_count")
                 ),
                 "mean_updated_node_count": mean_or_blank(
                     [float(row["updated_node_count"]) for row in success_rows]
                 ),
                 "mean_generated_edge_count": mean_or_blank(
                     [float(row["generated_edge_count"]) for row in success_rows]
+                ),
+                "mean_accept_all_edge_count": mean_or_blank(
+                    collect_numeric_values(success_rows, "accept_all_edge_count")
                 ),
                 "mean_updated_edge_count": mean_or_blank(
                     [float(row["updated_edge_count"]) for row in success_rows]
@@ -574,12 +803,48 @@ def build_batch_rows(case_rows: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
                 "total_ged_edge_insertion_count": sum_or_zero(ged_edge_insertion_values),
                 "total_ged_edge_deletion_count": sum_or_zero(ged_edge_deletion_values),
                 "total_ged_edge_substitution_count": sum_or_zero(ged_edge_substitution_values),
+                "total_ged_node_insertion_count_accept_all_vs_updated": sum_or_zero(
+                    ged_node_insertion_values_accept_all
+                ),
+                "total_ged_node_deletion_count_accept_all_vs_updated": sum_or_zero(
+                    ged_node_deletion_values_accept_all
+                ),
+                "total_ged_node_substitution_count_accept_all_vs_updated": sum_or_zero(
+                    ged_node_substitution_values_accept_all
+                ),
+                "total_ged_edge_insertion_count_accept_all_vs_updated": sum_or_zero(
+                    ged_edge_insertion_values_accept_all
+                ),
+                "total_ged_edge_deletion_count_accept_all_vs_updated": sum_or_zero(
+                    ged_edge_deletion_values_accept_all
+                ),
+                "total_ged_edge_substitution_count_accept_all_vs_updated": sum_or_zero(
+                    ged_edge_substitution_values_accept_all
+                ),
                 "mean_ged_node_insertion_count": mean_or_blank(ged_node_insertion_values),
                 "mean_ged_node_deletion_count": mean_or_blank(ged_node_deletion_values),
                 "mean_ged_node_substitution_count": mean_or_blank(ged_node_substitution_values),
                 "mean_ged_edge_insertion_count": mean_or_blank(ged_edge_insertion_values),
                 "mean_ged_edge_deletion_count": mean_or_blank(ged_edge_deletion_values),
                 "mean_ged_edge_substitution_count": mean_or_blank(ged_edge_substitution_values),
+                "mean_ged_node_insertion_count_accept_all_vs_updated": mean_or_blank(
+                    ged_node_insertion_values_accept_all
+                ),
+                "mean_ged_node_deletion_count_accept_all_vs_updated": mean_or_blank(
+                    ged_node_deletion_values_accept_all
+                ),
+                "mean_ged_node_substitution_count_accept_all_vs_updated": mean_or_blank(
+                    ged_node_substitution_values_accept_all
+                ),
+                "mean_ged_edge_insertion_count_accept_all_vs_updated": mean_or_blank(
+                    ged_edge_insertion_values_accept_all
+                ),
+                "mean_ged_edge_deletion_count_accept_all_vs_updated": mean_or_blank(
+                    ged_edge_deletion_values_accept_all
+                ),
+                "mean_ged_edge_substitution_count_accept_all_vs_updated": mean_or_blank(
+                    ged_edge_substitution_values_accept_all
+                ),
             }
         )
 
@@ -589,12 +854,30 @@ def build_batch_rows(case_rows: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
 def build_overall_summary(case_rows: List[Dict[str, Any]], batch_rows: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     """Build a single-row overall summary table."""
     success_rows = [row for row in case_rows if row["status"] == "ok"]
-    ged_node_insertion_values = [float(row["ged_node_insertion_count"]) for row in success_rows]
-    ged_node_deletion_values = [float(row["ged_node_deletion_count"]) for row in success_rows]
-    ged_node_substitution_values = [float(row["ged_node_substitution_count"]) for row in success_rows]
-    ged_edge_insertion_values = [float(row["ged_edge_insertion_count"]) for row in success_rows]
-    ged_edge_deletion_values = [float(row["ged_edge_deletion_count"]) for row in success_rows]
-    ged_edge_substitution_values = [float(row["ged_edge_substitution_count"]) for row in success_rows]
+    ged_node_insertion_values = collect_numeric_values(success_rows, "ged_node_insertion_count")
+    ged_node_deletion_values = collect_numeric_values(success_rows, "ged_node_deletion_count")
+    ged_node_substitution_values = collect_numeric_values(success_rows, "ged_node_substitution_count")
+    ged_edge_insertion_values = collect_numeric_values(success_rows, "ged_edge_insertion_count")
+    ged_edge_deletion_values = collect_numeric_values(success_rows, "ged_edge_deletion_count")
+    ged_edge_substitution_values = collect_numeric_values(success_rows, "ged_edge_substitution_count")
+    ged_node_insertion_values_accept_all = collect_numeric_values(
+        success_rows, "ged_node_insertion_count_accept_all_vs_updated"
+    )
+    ged_node_deletion_values_accept_all = collect_numeric_values(
+        success_rows, "ged_node_deletion_count_accept_all_vs_updated"
+    )
+    ged_node_substitution_values_accept_all = collect_numeric_values(
+        success_rows, "ged_node_substitution_count_accept_all_vs_updated"
+    )
+    ged_edge_insertion_values_accept_all = collect_numeric_values(
+        success_rows, "ged_edge_insertion_count_accept_all_vs_updated"
+    )
+    ged_edge_deletion_values_accept_all = collect_numeric_values(
+        success_rows, "ged_edge_deletion_count_accept_all_vs_updated"
+    )
+    ged_edge_substitution_values_accept_all = collect_numeric_values(
+        success_rows, "ged_edge_substitution_count_accept_all_vs_updated"
+    )
     return [
         {
             "total_batch_count": len(batch_rows),
@@ -613,14 +896,32 @@ def build_overall_summary(case_rows: List[Dict[str, Any]], batch_rows: List[Dict
             "overall_mean_graph_edit_similarity": mean_or_blank(
                 [float(row["graph_edit_similarity"]) for row in success_rows]
             ),
+            "overall_mean_structural_similarity_accept_all_vs_updated": mean_or_blank(
+                collect_numeric_values(success_rows, "structural_similarity_accept_all_vs_updated")
+            ),
+            "overall_mean_graph_edit_distance_accept_all_vs_updated": mean_or_blank(
+                collect_numeric_values(success_rows, "graph_edit_distance_accept_all_vs_updated")
+            ),
+            "overall_mean_normalized_graph_edit_distance_accept_all_vs_updated": mean_or_blank(
+                collect_numeric_values(success_rows, "normalized_graph_edit_distance_accept_all_vs_updated")
+            ),
+            "overall_mean_graph_edit_similarity_accept_all_vs_updated": mean_or_blank(
+                collect_numeric_values(success_rows, "graph_edit_similarity_accept_all_vs_updated")
+            ),
             "overall_mean_generated_node_count": mean_or_blank(
                 [float(row["generated_node_count"]) for row in success_rows]
+            ),
+            "overall_mean_accept_all_node_count": mean_or_blank(
+                collect_numeric_values(success_rows, "accept_all_node_count")
             ),
             "overall_mean_updated_node_count": mean_or_blank(
                 [float(row["updated_node_count"]) for row in success_rows]
             ),
             "overall_mean_generated_edge_count": mean_or_blank(
                 [float(row["generated_edge_count"]) for row in success_rows]
+            ),
+            "overall_mean_accept_all_edge_count": mean_or_blank(
+                collect_numeric_values(success_rows, "accept_all_edge_count")
             ),
             "overall_mean_updated_edge_count": mean_or_blank(
                 [float(row["updated_edge_count"]) for row in success_rows]
@@ -637,12 +938,48 @@ def build_overall_summary(case_rows: List[Dict[str, Any]], batch_rows: List[Dict
             "overall_total_ged_edge_insertion_count": sum_or_zero(ged_edge_insertion_values),
             "overall_total_ged_edge_deletion_count": sum_or_zero(ged_edge_deletion_values),
             "overall_total_ged_edge_substitution_count": sum_or_zero(ged_edge_substitution_values),
+            "overall_total_ged_node_insertion_count_accept_all_vs_updated": sum_or_zero(
+                ged_node_insertion_values_accept_all
+            ),
+            "overall_total_ged_node_deletion_count_accept_all_vs_updated": sum_or_zero(
+                ged_node_deletion_values_accept_all
+            ),
+            "overall_total_ged_node_substitution_count_accept_all_vs_updated": sum_or_zero(
+                ged_node_substitution_values_accept_all
+            ),
+            "overall_total_ged_edge_insertion_count_accept_all_vs_updated": sum_or_zero(
+                ged_edge_insertion_values_accept_all
+            ),
+            "overall_total_ged_edge_deletion_count_accept_all_vs_updated": sum_or_zero(
+                ged_edge_deletion_values_accept_all
+            ),
+            "overall_total_ged_edge_substitution_count_accept_all_vs_updated": sum_or_zero(
+                ged_edge_substitution_values_accept_all
+            ),
             "overall_mean_ged_node_insertion_count": mean_or_blank(ged_node_insertion_values),
             "overall_mean_ged_node_deletion_count": mean_or_blank(ged_node_deletion_values),
             "overall_mean_ged_node_substitution_count": mean_or_blank(ged_node_substitution_values),
             "overall_mean_ged_edge_insertion_count": mean_or_blank(ged_edge_insertion_values),
             "overall_mean_ged_edge_deletion_count": mean_or_blank(ged_edge_deletion_values),
             "overall_mean_ged_edge_substitution_count": mean_or_blank(ged_edge_substitution_values),
+            "overall_mean_ged_node_insertion_count_accept_all_vs_updated": mean_or_blank(
+                ged_node_insertion_values_accept_all
+            ),
+            "overall_mean_ged_node_deletion_count_accept_all_vs_updated": mean_or_blank(
+                ged_node_deletion_values_accept_all
+            ),
+            "overall_mean_ged_node_substitution_count_accept_all_vs_updated": mean_or_blank(
+                ged_node_substitution_values_accept_all
+            ),
+            "overall_mean_ged_edge_insertion_count_accept_all_vs_updated": mean_or_blank(
+                ged_edge_insertion_values_accept_all
+            ),
+            "overall_mean_ged_edge_deletion_count_accept_all_vs_updated": mean_or_blank(
+                ged_edge_deletion_values_accept_all
+            ),
+            "overall_mean_ged_edge_substitution_count_accept_all_vs_updated": mean_or_blank(
+                ged_edge_substitution_values_accept_all
+            ),
         }
     ]
 
@@ -654,6 +991,10 @@ def resolve_worker_count(requested_workers: int | None, total_cases: int) -> int
     if requested_workers is not None:
         return max(1, min(requested_workers, total_cases))
     cpu_count = os.cpu_count() or 1
+    # On Windows, importing scipy/sklearn/grakel in too many processes can
+    # exhaust virtual memory/page file and crash the process pool.
+    if os.name == "nt":
+        cpu_count = min(cpu_count, 4)
     return max(1, min(cpu_count, total_cases))
 
 
@@ -690,6 +1031,8 @@ def evaluate_cases_with_progress(
     case_folders: List[Path],
     parent_dir: Path,
     workers: int | None = None,
+    compute_ged_operation_counts: bool = True,
+    show_progress: bool = True,
 ) -> List[Dict[str, Any]]:
     """Evaluate all cases with a progress bar and runtime summary."""
     case_rows: List[Dict[str, Any]] = []
@@ -699,10 +1042,20 @@ def evaluate_cases_with_progress(
     worker_count = resolve_worker_count(workers, total_cases)
     print(f"Evaluating {total_cases} case(s) with {worker_count} worker(s).")
 
-    progress_bar = tqdm(total=total_cases, desc="Evaluating cases", unit="case", dynamic_ncols=True)
+    progress_bar = tqdm(
+        total=total_cases,
+        desc="Evaluating cases",
+        unit="case",
+        dynamic_ncols=True,
+        disable=not show_progress,
+    )
     if worker_count == 1:
         for index, folder in enumerate(case_folders, start=1):
-            row, elapsed_seconds = evaluate_case_with_timing(folder, parent_dir)
+            row, elapsed_seconds = evaluate_case_with_timing(
+                folder,
+                parent_dir,
+                compute_ged_operation_counts,
+            )
             case_rows.append(row)
             case_timings.append(
                 (
@@ -731,7 +1084,12 @@ def evaluate_cases_with_progress(
             futures = {}
             future_meta: Dict[Any, Tuple[int, Path, float]] = {}
             for index, folder in enumerate(case_folders):
-                future = executor.submit(evaluate_case_with_timing, folder, parent_dir)
+                future = executor.submit(
+                    evaluate_case_with_timing,
+                    folder,
+                    parent_dir,
+                    compute_ged_operation_counts,
+                )
                 futures[future] = index
                 future_meta[future] = (index, folder, time.perf_counter())
             completed_count = 0
@@ -813,7 +1171,13 @@ def main() -> Path:
     output_dir = make_run_output_dir(args.output_dir)
 
     case_folders = find_case_folders(parent_dir)
-    case_rows = evaluate_cases_with_progress(case_folders, parent_dir, args.workers)
+    case_rows = evaluate_cases_with_progress(
+        case_folders,
+        parent_dir,
+        args.workers,
+        compute_ged_operation_counts=args.compute_ged_operation_counts,
+        show_progress=args.show_progress,
+    )
     batch_rows = build_batch_rows(case_rows)
     overall_rows = build_overall_summary(case_rows, batch_rows)
 

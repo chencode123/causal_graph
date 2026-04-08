@@ -62,6 +62,7 @@
       "incident_description",
       "accident_scenario_schema",
       "accident_scenario_schema_definition",
+      "causal_narrative_extraction_output",
       "identify_accident_scenario_output",
       "causal_edge_linking_output",
       "causal_graph_json"

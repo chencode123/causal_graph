@@ -82,6 +82,11 @@ If a node label indicates that the condition did not occur (e.g., "Not dispersed
 
 Such nodes must not appear in the node list and must not be connected by any edges.
 
+11. Release–dispersion priority rule (soft constraint):
+In most accident mechanisms, hazardous dispersion is downstream of a hazardous release.
+If both ReleaseType and Dispersion nodes are present and supported by the incident description, prefer adding a direct edge from ReleaseType to Dispersion (typically relation: enables).
+If this edge is not added, explain briefly in the edge explanations why another mechanism/path is more direct in this specific case.
+
 Output requirements:
 Generate only edges between existing node IDs.
 

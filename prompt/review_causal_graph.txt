@@ -88,6 +88,14 @@ If there is already a more direct causal chain A -> B -> C, do not recommend an 
 
 19. If a node or edge is weak but still acceptable, classify the issue severity as low instead of recommending unnecessary deletion.
 
+20. Except HazardConsequence nodes, every node must have at least one outgoing edge to another node. A non-HazardConsequence node with only incoming edges (or no edges) is invalid; recommend adding evidence-supported downstream links, or deleting the node if no supported downstream role exists.
+
+21. Every Condition node must have both at least one incoming edge and at least one outgoing edge. A Condition node missing either direction is invalid; recommend adding evidence-supported links to satisfy both directions, or deleting the node if that is not supported by the incident evidence.
+
+22. For any disconnected or weakly connected node, follow this decision order: first explain the root cause of the missing/invalid connectivity, then try to connect it to existing nodes with evidence-supported edges, and only then consider adding a new node or deleting the node. Prefer the smallest valid change that restores causal continuity.
+
+23. For each suggested link inside node_additions (both suggested_upstream_links and suggested_downstream_links), provide a link-specific explanation and evidence explaining why that exact edge should exist. Do not rely on or reuse only the node-level reason/evidence for link justification.
+
 SEVERITY GUIDANCE
 
 - high:
@@ -114,7 +122,7 @@ Return one JSON object with the following structure:
   "node_updates": [
     {{
       "target_id": "node_id",
-      "change_type": "rename | relabel | retype | clarify_role | update_evidence | update_explanation",
+      "change_type": "rename | relabel | retype",
       "current_state": "string",
       "suggested_state": "string",
       "reason": "string",
@@ -131,13 +139,17 @@ Return one JSON object with the following structure:
       "suggested_upstream_links": [
         {{
           "source": "node_id",
-          "relation": "has | enables"
+          "relation": "has | enables",
+          "explanation": "string",
+          "evidence": "string"
         }}
       ],
       "suggested_downstream_links": [
         {{
           "target": "node_id",
-          "relation": "has | enables"
+          "relation": "has | enables",
+          "explanation": "string",
+          "evidence": "string"
         }}
       ],
       "reason": "string",
@@ -191,7 +203,7 @@ Return one JSON object with the following structure:
   ],
   "issues_summary": [
     {{
-      "issue_type": "missing_step | duplicate_node | weak_edge | wrong_direction | wrong_relation | unsupported_node | unsupported_edge | schema_mismatch | other",
+      "issue_type": "missing_step | duplicate_node | weak_edge | wrong_direction | wrong_relation | unsupported_node | unsupported_edge | disconnected_node | schema_mismatch | other",
       "description": "string",
       "severity": "high | medium | low"
     }}
