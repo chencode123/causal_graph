@@ -323,14 +323,25 @@ def _apply_review_accept_all(
     return updated, review_state
 
 
+def resolve_review_output_path(folder: Path) -> Path | None:
+    candidates = (
+        folder / "graph_revision_planning_output.json",
+        folder / "review_causal_graph_output.json",
+    )
+    for candidate in candidates:
+        if candidate.exists():
+            return candidate
+    return None
+
+
 def generate_accept_all_review_outputs(
     *,
     folder: Path,
     accident_scenario_schema_path: Path,
 ) -> None:
     causal_graph_path = folder / "causal_graph.json"
-    review_path = folder / "review_causal_graph_output.json"
-    if not causal_graph_path.exists() or not review_path.exists():
+    review_path = resolve_review_output_path(folder)
+    if not causal_graph_path.exists() or review_path is None:
         return
 
     with causal_graph_path.open("r", encoding="utf-8") as fp:
@@ -495,7 +506,7 @@ def run_step_sync(
     config: Any,
     call_sleep_seconds: float = 0.0,
 ) -> None:
-    if step.key == "review_causal_graph":
+    if step.key in {"review_causal_graph", "graph_diagnosis", "graph_revision_planning"}:
         prep_ok = 0
         prep_fail = 0
         for folder in folders:
@@ -597,11 +608,7 @@ def run_local_postprocess(
         causal_edge_linking=causal_edge_linking_path,
         save_path=folder / "causal_graph.html",
         accident_scenario_schema=accident_scenario_schema_path,
-        review_causal_graph=(
-            folder / "review_causal_graph_output.json"
-            if (folder / "review_causal_graph_output.json").exists()
-            else None
-        ),
+        review_causal_graph=resolve_review_output_path(folder),
         revision_decisions=None,
         case_id=folder.name,
     )
@@ -654,6 +661,7 @@ def run_batch_pipeline(config: Any) -> None:
         conditions_json=config.conditions_json_path,
         use_few_shot=getattr(config, "use_few_shot", False),
         few_shot_cases_by_step=getattr(config, "few_shot_cases_by_step", None),
+        active_step_keys=getattr(config, "active_step_keys", None),
     )
     for step in tqdm(pipeline, desc="Steps (sync)", unit="step"):
         if not step.enabled:

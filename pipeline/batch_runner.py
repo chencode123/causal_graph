@@ -41,6 +41,8 @@ def _load_required_prompts() -> Dict[str, str]:
         "identify_accident_scenario": Path("prompt/identify_accident_scenario.txt"),
         "causal_edge_linking": Path("prompt/causal_edge_linking.txt"),
         "review_causal_graph": Path("prompt/review_causal_graph.txt"),
+        "graph_diagnosis": Path("prompt/graph_diagnosis.txt"),
+        "graph_revision_planning": Path("prompt/graph_revision_planning.txt"),
         "identify_incident": Path("prompt/identify_incident.txt"),
     }
     loaded: Dict[str, str] = {}
@@ -89,7 +91,7 @@ def run_step_as_batch(
     batch_workdir: Path,
 ) -> None:
     """Run one pipeline step as a single OpenAI Batch job across all folders."""
-    if step.key == "review_causal_graph":
+    if step.key in {"review_causal_graph", "graph_diagnosis", "graph_revision_planning"}:
         prep_ok = 0
         prep_fail = 0
         for folder in folders:
@@ -270,6 +272,7 @@ def run_batch_pipeline(config: Any) -> None:
         conditions_json=config.conditions_json_path,
         use_few_shot=getattr(config, "use_few_shot", False),
         few_shot_cases_by_step=getattr(config, "few_shot_cases_by_step", None),
+        active_step_keys=getattr(config, "active_step_keys", None),
     )
     batch_workdir = getattr(config, "batch_workdir", None) or (config.base_dir / "_batch_pipeline")
     batch_workdir.mkdir(parents=True, exist_ok=True)

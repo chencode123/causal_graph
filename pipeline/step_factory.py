@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable, Dict, List
 
-from pipeline.step_var_resolver import ACTIVE_STEP_KEYS, get_step_var_builder
+from pipeline.step_var_resolver import get_active_step_keys, get_step_var_builder
 from pipeline.step_registry import STEP_REGISTRY
 
 
@@ -45,9 +45,12 @@ def build_pipeline(
     *,
     use_few_shot: bool = False,
     few_shot_cases_by_step: dict[str, tuple[Path, ...]] | None = None,
+    active_step_keys: tuple[str, ...] | None = None,
 ) -> List[Step]:
     steps: List[Step] = []
-    for key in ACTIVE_STEP_KEYS:
+    if active_step_keys is None:
+        raise ValueError("active_step_keys must be provided by the entrypoint config.")
+    for key in get_active_step_keys(active_step_keys):
         steps.append(
             _build_step(
                 key=key,

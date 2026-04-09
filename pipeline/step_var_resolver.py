@@ -6,13 +6,18 @@ from typing import Any, Callable, Dict, Iterable, List
 from pipeline.step_registry import STEP_REGISTRY
 
 
-ACTIVE_STEP_KEYS: List[str] = [
-    # "identify_hazard_consequence",
-    # "causal_narrative_extraction",
-    # "identify_accident_scenario",
-    "causal_edge_linking",
-    "review_causal_graph",
-]
+def get_active_step_keys(
+    base_step_keys: Iterable[str],
+) -> List[str]:
+    keys = list(base_step_keys)
+    if "review_causal_graph" not in keys:
+        return keys
+    review_index = keys.index("review_causal_graph")
+    return (
+        keys[:review_index]
+        + ["graph_diagnosis", "graph_revision_planning"]
+        + keys[review_index + 1 :]
+    )
 
 
 def _extract_incident_text_from_json(path: Path) -> str:

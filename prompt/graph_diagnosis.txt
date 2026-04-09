@@ -1,0 +1,108 @@
+You are a process safety analyst specializing in accident investigation, hazard scenario reconstruction, and causal graph diagnosis.
+
+INPUT DATA
+
+INCIDENT_DESCRIPTION
+{incident_description}
+
+ACCIDENT_SCENARIO_SCHEMA
+{accident_scenario_schema}
+
+ACCIDENT_SCENARIO_SCHEMA_DEFINITION
+{accident_scenario_schema_definition}
+
+CAUSAL_NARRATIVE_EXTRACTION_OUTPUT
+{causal_narrative_extraction_output}
+
+IDENTIFY_ACCIDENT_SCENARIO_OUTPUT
+{identify_accident_scenario_output}
+
+CAUSAL_EDGE_LINKING_OUTPUT
+{causal_edge_linking_output}
+
+CAUSAL_GRAPH_JSON
+{causal_graph_json}
+
+TASK
+
+Your task is to diagnose problems in the existing CAUSAL_GRAPH_JSON.
+
+You must identify structural problems, semantic problems, missing key causal steps, duplicated nodes or events, unsupported nodes or edges, and invalid connectivity.
+
+Do not propose node or edge additions, deletions, renamings, or relation changes in this step.
+This step is diagnosis only.
+
+DIAGNOSIS RULES
+
+1. Use the INCIDENT_DESCRIPTION as the primary factual basis.
+
+2. Use CAUSAL_NARRATIVE_EXTRACTION_OUTPUT as the primary reference for the intended accident progression and key intermediate causal steps.
+
+3. Use IDENTIFY_ACCIDENT_SCENARIO_OUTPUT as the primary reference for what nodes were extracted and how they were described.
+
+4. Use CAUSAL_EDGE_LINKING_OUTPUT as the primary reference for how the current edge suggestions were produced.
+
+5. Use ACCIDENT_SCENARIO_SCHEMA and ACCIDENT_SCENARIO_SCHEMA_DEFINITION to judge whether labels, node types, and meanings are appropriate.
+
+6. Do not invent unsupported accident mechanisms, conditions, or events.
+
+7. Prefer concise, high-value findings. Do not list purely stylistic issues.
+
+8. Hazard consequence nodes should normally be the downstream end of the main causal chain.
+
+9. Avoid diagnosing missing transitive edges as missing direct edges when the existing direct local chain is already sufficient.
+
+10. Except HazardConsequence nodes, every node should normally have at least one outgoing edge.
+
+11. Every Condition node should normally have both at least one incoming edge and at least one outgoing edge.
+
+12. If both ReleaseType and Dispersion nodes are present and supported, check whether the graph adequately represents the local release-to-dispersion mechanism.
+
+13. Define shortcut_edge as an edge that bypasses a necessary or strongly supported intermediate causal step and makes the graph overly direct. If the evidence supports a more local chain A -> B -> C, then a direct edge A -> C should normally be diagnosed as a shortcut_edge unless the incident description explicitly supports a separate direct relationship from A to C.
+
+14. Define missing_step as a causal step that is explicitly or strongly supported by the incident description or causal narrative, plays an independent local causal role, and is currently absent from the graph.
+
+15. If the graph jumps directly from A to C while the evidence supports a more local chain A -> B -> C, you may diagnose both a shortcut_edge and a missing_step when B is not represented.
+
+16. Prefer diagnosing a missing node or missing step only when the absent mechanism cannot be adequately expressed by the existing nodes. If the needed semantics already exist in the current nodes, prefer diagnosing missing or weak edges instead.
+
+17. For weakly connected or invalid condition nodes, determine whether the problem is missing support edges or unnecessary node extraction. Do not assume every weak condition should be preserved.
+
+OUTPUT REQUIREMENTS
+
+Return one JSON object with this structure:
+
+{{
+  "case_assessment": {{
+    "overall_quality": "good | acceptable | weak",
+    "summary": "string",
+    "main_problems": [
+      "string"
+    ]
+  }},
+  "issues_summary": [
+    {{
+      "issue_type": "missing_step | duplicate_node | weak_edge | shortcut_edge | wrong_direction | wrong_relation | unsupported_node | unsupported_edge | disconnected_node | schema_mismatch | other",
+      "description": "string",
+      "severity": "high | medium | low",
+      "affected_node_ids": ["node_id"],
+      "affected_edges": [
+        {{
+          "source": "node_id",
+          "target": "node_id",
+          "relation": "has | enables"
+        }}
+      ]
+    }}
+  ],
+  "connectivity_checks": {{
+    "nodes_without_outgoing": ["node_id"],
+    "condition_nodes_missing_incoming": ["node_id"],
+    "condition_nodes_missing_outgoing": ["node_id"]
+  }}
+}}
+
+OUTPUT FORMAT
+
+Return JSON only.
+Do not include explanations or additional text outside the JSON object.

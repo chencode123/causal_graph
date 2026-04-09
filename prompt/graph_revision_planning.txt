@@ -1,0 +1,183 @@
+You are a process safety analyst specializing in accident investigation, hazard scenario reconstruction, and causal graph revision planning.
+
+INPUT DATA
+
+INCIDENT_DESCRIPTION
+{incident_description}
+
+ACCIDENT_SCENARIO_SCHEMA
+{accident_scenario_schema}
+
+ACCIDENT_SCENARIO_SCHEMA_DEFINITION
+{accident_scenario_schema_definition}
+
+CAUSAL_NARRATIVE_EXTRACTION_OUTPUT
+{causal_narrative_extraction_output}
+
+IDENTIFY_ACCIDENT_SCENARIO_OUTPUT
+{identify_accident_scenario_output}
+
+CAUSAL_EDGE_LINKING_OUTPUT
+{causal_edge_linking_output}
+
+CAUSAL_GRAPH_JSON
+{causal_graph_json}
+
+GRAPH_DIAGNOSIS_OUTPUT
+{graph_diagnosis_output}
+
+TASK
+
+Your task is to convert GRAPH_DIAGNOSIS_OUTPUT into a minimal, evidence-grounded revision plan for the current CAUSAL_GRAPH_JSON.
+
+You must use GRAPH_DIAGNOSIS_OUTPUT as the primary problem list.
+Do not re-diagnose the graph from scratch unless a diagnosis item is clearly inconsistent with the provided evidence.
+
+PLANNING RULES
+
+1. Use the INCIDENT_DESCRIPTION as the primary factual basis.
+
+2. Use GRAPH_DIAGNOSIS_OUTPUT as the primary reference for what should be fixed.
+
+3. Prefer the smallest necessary set of changes that materially improves the causal graph.
+
+4. Prefer renaming or updating an existing node over deleting and re-adding it, unless the current node is fundamentally incorrect.
+
+5. Prefer connecting a weakly connected node to existing nodes before recommending a new node.
+
+6. Only recommend a new node when the missing causal role cannot be adequately represented by the existing nodes.
+
+7. Delete a node only when it is unsupported, redundant, or cannot be validly connected with evidence support.
+
+8. Avoid recommending transitive edges.
+If there is already a more direct causal chain A -> B -> C, do not recommend an additional edge A -> C unless the incident description explicitly supports a separate direct causal relationship.
+
+9. Except HazardConsequence nodes, every retained node should have at least one outgoing edge.
+
+10. Every retained Condition node should have both at least one incoming edge and at least one outgoing edge.
+
+11. For each link inside node_additions, provide link-specific explanation and evidence for that exact edge.
+
+12. If no material changes are needed, return empty change lists.
+
+13. Treat shortcut_edge as an edge that bypasses a necessary or strongly supported intermediate causal step and makes the graph overly direct. If the evidence supports a more local chain A -> B -> C, then a direct edge A -> C should normally be removed or replaced with the more local chain unless the incident description explicitly supports a separate direct relationship from A to C.
+
+14. Add a new node only when the missing causal role is explicitly or strongly supported by the evidence and cannot be adequately represented by any existing node.
+
+15. If the necessary causal semantics are already present in existing nodes, prefer adding, deleting, or updating edges rather than creating a new node.
+
+16. If an edge is diagnosed as a shortcut_edge and a more local supported chain can be represented using existing or newly justified nodes, prefer deleting that shortcut edge.
+
+17. Delete a node only when it is unsupported, redundant, or cannot be repaired into a valid causal role with evidence-supported connections.
+
+18. Prefer this intervention order when several options are plausible: edge update or edge add or edge delete, then node update, then node addition, then node deletion.
+
+19. Any newly added node should have a clear upstream and/or downstream causal role justified by the evidence. Do not create a new node that remains weakly connected or structurally invalid after the proposed revision.
+
+OUTPUT REQUIREMENTS
+
+Return one JSON object with the following structure:
+
+{{
+  "case_assessment": {{
+    "overall_quality": "good | acceptable | weak",
+    "summary": "string",
+    "main_problems": [
+      "string"
+    ]
+  }},
+  "node_updates": [
+    {{
+      "target_id": "node_id",
+      "change_type": "rename | relabel | retype",
+      "current_state": "string",
+      "suggested_state": "string",
+      "reason": "string",
+      "evidence": "string",
+      "severity": "high | medium | low",
+      "confidence": "high | medium | low"
+    }}
+  ],
+  "node_additions": [
+    {{
+      "suggested_label": "string",
+      "suggested_name": "string",
+      "suggested_node_type": "Entity | Condition | Event | HazardConsequence",
+      "suggested_upstream_links": [
+        {{
+          "source": "node_id",
+          "relation": "has | enables",
+          "explanation": "string",
+          "evidence": "string"
+        }}
+      ],
+      "suggested_downstream_links": [
+        {{
+          "target": "node_id",
+          "relation": "has | enables",
+          "explanation": "string",
+          "evidence": "string"
+        }}
+      ],
+      "reason": "string",
+      "evidence": "string",
+      "severity": "high | medium | low",
+      "confidence": "high | medium | low"
+    }}
+  ],
+  "node_deletions": [
+    {{
+      "target_id": "node_id",
+      "reason": "string",
+      "evidence": "string",
+      "severity": "high | medium | low",
+      "confidence": "high | medium | low"
+    }}
+  ],
+  "edge_additions": [
+    {{
+      "source": "node_id",
+      "target": "node_id",
+      "relation": "has | enables",
+      "reason": "string",
+      "evidence": "string",
+      "severity": "high | medium | low",
+      "confidence": "high | medium | low"
+    }}
+  ],
+  "edge_deletions": [
+    {{
+      "source": "node_id",
+      "target": "node_id",
+      "relation": "has | enables",
+      "reason": "string",
+      "evidence": "string",
+      "severity": "high | medium | low",
+      "confidence": "high | medium | low"
+    }}
+  ],
+  "edge_updates": [
+    {{
+      "source": "node_id",
+      "target": "node_id",
+      "current_relation": "has | enables",
+      "suggested_relation": "has | enables",
+      "reason": "string",
+      "evidence": "string",
+      "severity": "high | medium | low",
+      "confidence": "high | medium | low"
+    }}
+  ],
+  "issues_summary": [
+    {{
+      "issue_type": "missing_step | duplicate_node | weak_edge | shortcut_edge | wrong_direction | wrong_relation | unsupported_node | unsupported_edge | disconnected_node | schema_mismatch | other",
+      "description": "string",
+      "severity": "high | medium | low"
+    }}
+  ]
+}}
+
+OUTPUT FORMAT
+
+Return JSON only.
+Do not include explanations or additional text outside the JSON object.

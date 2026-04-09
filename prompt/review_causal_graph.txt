@@ -96,6 +96,8 @@ If there is already a more direct causal chain A -> B -> C, do not recommend an 
 
 23. For each suggested link inside node_additions (both suggested_upstream_links and suggested_downstream_links), provide a link-specific explanation and evidence explaining why that exact edge should exist. Do not rely on or reuse only the node-level reason/evidence for link justification.
 
+24. Define shortcut_edge as an edge that bypasses a necessary or strongly supported intermediate causal step and makes the graph overly direct. If the evidence supports a more local chain A -> B -> C, then a direct edge A -> C should normally be treated as a shortcut_edge unless the incident description explicitly supports a separate direct relationship from A to C.
+
 SEVERITY GUIDANCE
 
 - high:
@@ -203,7 +205,7 @@ Return one JSON object with the following structure:
   ],
   "issues_summary": [
     {{
-      "issue_type": "missing_step | duplicate_node | weak_edge | wrong_direction | wrong_relation | unsupported_node | unsupported_edge | disconnected_node | schema_mismatch | other",
+      "issue_type": "missing_step | duplicate_node | weak_edge | shortcut_edge | wrong_direction | wrong_relation | unsupported_node | unsupported_edge | disconnected_node | schema_mismatch | other",
       "description": "string",
       "severity": "high | medium | low"
     }}
