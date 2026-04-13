@@ -35,44 +35,76 @@ Do not re-diagnose the graph from scratch unless a diagnosis item is clearly inc
 
 PLANNING RULES
 
-1. Use the INCIDENT_DESCRIPTION as the primary factual basis.
+  1. Use the INCIDENT_DESCRIPTION as the primary factual basis.
 
-2. Use GRAPH_DIAGNOSIS_OUTPUT as the primary reference for what should be fixed.
+  2. Use GRAPH_DIAGNOSIS_OUTPUT as the primary reference for what should be fixed.
 
-3. Prefer the smallest necessary set of changes that materially improves the causal graph.
+  3. Prefer the smallest necessary set of changes that materially improves the causal graph.
 
-4. Prefer renaming or updating an existing node over deleting and re-adding it, unless the current node is fundamentally incorrect.
+  4. Prefer renaming or updating an existing node over deleting and re-adding it, unless the
+     current node is fundamentally incorrect.
 
-5. Prefer connecting a weakly connected node to existing nodes before recommending a new node.
+  5. Prefer connecting a weakly connected node to existing nodes before recommending a new
+     node.
 
-6. Only recommend a new node when the missing causal role cannot be adequately represented by the existing nodes.
+  6. Only recommend a new node when the missing causal role cannot be adequately represented
+     by the existing nodes.
 
-7. Delete a node only when it is unsupported, redundant, or cannot be validly connected with evidence support.
+  7. Delete a node only when it is unsupported, redundant, or cannot be validly connected
+     with evidence support.
 
-8. Avoid recommending transitive edges.
-If there is already a more direct causal chain A -> B -> C, do not recommend an additional edge A -> C unless the incident description explicitly supports a separate direct causal relationship.
+  8. Avoid recommending transitive edges. If there is already a more direct causal chain A
+     -> B -> C, do not recommend an additional edge A -> C unless the incident description
+     explicitly supports a separate direct causal relationship.
 
-9. Except HazardConsequence nodes, every retained node should have at least one outgoing edge.
+  9. Except HazardConsequence nodes, every retained node should have at least one outgoing
+     edge.
 
-10. Every retained Condition node should have both at least one incoming edge and at least one outgoing edge.
+  10. Every retained Condition node should have both at least one incoming edge and at least
+      one outgoing edge.
 
-11. For each link inside node_additions, provide link-specific explanation and evidence for that exact edge.
+  11. For each link inside node_additions, provide link-specific explanation and evidence
+      for that exact edge.
 
-12. If no material changes are needed, return empty change lists.
+  12. If no material changes are needed, return empty change lists.
 
-13. Treat shortcut_edge as an edge that bypasses a necessary or strongly supported intermediate causal step and makes the graph overly direct. If the evidence supports a more local chain A -> B -> C, then a direct edge A -> C should normally be removed or replaced with the more local chain unless the incident description explicitly supports a separate direct relationship from A to C.
+  13. Treat shortcut_edge as an edge that bypasses a necessary or strongly supported
+      intermediate causal step and makes the graph overly direct. If the evidence supports a
+      more local chain A -> B -> C, then a direct edge A -> C should normally be removed or
+      replaced with the more local chain unless the incident description explicitly supports
+      a separate direct relationship from A to C.
 
-14. Add a new node only when the missing causal role is explicitly or strongly supported by the evidence and cannot be adequately represented by any existing node.
+  14. Add a new node only when the missing causal role is explicitly or strongly supported
+      by the evidence and cannot be adequately represented by any existing node.
 
-15. If the necessary causal semantics are already present in existing nodes, prefer adding, deleting, or updating edges rather than creating a new node.
+  15. If the necessary causal semantics are already present in existing nodes, prefer
+      adding, deleting, or updating edges rather than creating a new node.
 
-16. If an edge is diagnosed as a shortcut_edge and a more local supported chain can be represented using existing or newly justified nodes, prefer deleting that shortcut edge.
+  16. If an edge is diagnosed as a shortcut_edge and a more local supported chain can be
+      represented using existing or newly justified nodes, prefer deleting that shortcut
+      edge.
 
-17. Delete a node only when it is unsupported, redundant, or cannot be repaired into a valid causal role with evidence-supported connections.
+  17. Before recommending any edge addition, check whether the proposed new edge would
+      bypass a necessary or strongly supported intermediate local step. If it would create a
+      shortcut edge, do not recommend adding that edge. Prefer preserving, restoring, or
+      introducing the more local chain instead.
 
-18. Prefer this intervention order when several options are plausible: edge update or edge add or edge delete, then node update, then node addition, then node deletion.
+  18. Delete a node only when it is unsupported, redundant, or cannot be repaired into a
+      valid causal role with evidence-supported connections.
 
-19. Any newly added node should have a clear upstream and/or downstream causal role justified by the evidence. Do not create a new node that remains weakly connected or structurally invalid after the proposed revision.
+  19. Prefer this intervention order when several options are plausible: edge update or edge
+      add or edge delete, then node update, then node addition, then node deletion.
+
+  20. Any newly added node should have a clear upstream and/or downstream causal role
+      justified by the evidence. Do not create a new node that remains weakly connected or
+      structurally invalid after the proposed revision.
+
+  21. Do not add a new HazardConsequence node. Treat the hazard consequence inventory as
+      fixed by IDENTIFY_ACCIDENT_SCENARIO_OUTPUT and CAUSAL_GRAPH_JSON.
+
+  22. If GRAPH_DIAGNOSIS_OUTPUT appears to imply a missing or changed hazard consequence,
+      convert that into node updates, edge updates, edge additions, edge deletions, or no
+      change. Do not emit a HazardConsequence entry in node_additions.
 
 OUTPUT REQUIREMENTS
 

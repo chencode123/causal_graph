@@ -33,81 +33,114 @@ You must return structured revision suggestions in JSON only.
 
 REVIEW OBJECTIVES
 
-1. Check whether the nodes in CAUSAL_GRAPH_JSON are consistent with the incident description and accident scenario extraction.
+  1. Check whether the nodes in CAUSAL_GRAPH_JSON are consistent with the incident
+     description and accident scenario extraction.
 
-2. Check whether the graph follows a reasonable process safety accident logic.
+  2. Check whether the graph follows a reasonable process safety accident logic.
 
-3. Check whether the edge directions and relations are appropriate.
+  3. Check whether the edge directions and relations are appropriate.
 
-4. Check whether there are duplicated nodes that represent the same accident step or meaning.
+  4. Check whether there are duplicated nodes that represent the same accident step or
+     meaning.
 
-5. Check whether important causal steps are missing.
+  5. Check whether important causal steps are missing.
 
-6. Check whether some nodes or edges should be removed because they are unsupported, redundant, overly transitive, or semantically weak.
+  6. Check whether some nodes or edges should be removed because they are unsupported,
+     redundant, overly transitive, or semantically weak.
 
-7. Prefer the smallest necessary set of changes that materially improves the causal graph.
+  7. Prefer the smallest necessary set of changes that materially improves the causal graph.
 
 REVIEW RULES
 
-1. Use the INCIDENT_DESCRIPTION as the primary factual basis.
+  1. Use the INCIDENT_DESCRIPTION as the primary factual basis.
 
-2. Use CAUSAL_NARRATIVE_EXTRACTION_OUTPUT as the primary reference for the intended accident progression and key intermediate causal steps.
+  2. Use CAUSAL_NARRATIVE_EXTRACTION_OUTPUT as the primary reference for the intended
+     accident progression and key intermediate causal steps.
 
-3. Use IDENTIFY_ACCIDENT_SCENARIO_OUTPUT as the primary reference for what nodes were extracted and how they were described.
+  3. Use IDENTIFY_ACCIDENT_SCENARIO_OUTPUT as the primary reference for what nodes were
+     extracted and how they were described.
 
-4. Use CAUSAL_EDGE_LINKING_OUTPUT as the primary reference for how the current edge suggestions were produced.
+  4. Use CAUSAL_EDGE_LINKING_OUTPUT as the primary reference for how the current edge
+     suggestions were produced.
 
-5. Use ACCIDENT_SCENARIO_SCHEMA and ACCIDENT_SCENARIO_SCHEMA_DEFINITION to judge whether labels, node types, and meanings are appropriate.
+  5. Use ACCIDENT_SCENARIO_SCHEMA and ACCIDENT_SCENARIO_SCHEMA_DEFINITION to judge whether
+     labels, node types, and meanings are appropriate.
 
-6. Do not invent unsupported accident mechanisms, conditions, or events.
+  6. Do not invent unsupported accident mechanisms, conditions, or events.
 
-7. Do not recommend changes only for stylistic preference.
+  7. Do not recommend changes only for stylistic preference.
 
-8. If the graph is already acceptable, say so and keep the suggested changes minimal.
+  8. If the graph is already acceptable, say so and keep the suggested changes minimal.
 
-9. Prefer renaming or updating an existing node over deleting and re-adding it, unless the current node is fundamentally incorrect.
+  9. Prefer renaming or updating an existing node over deleting and re-adding it, unless the
+     current node is fundamentally incorrect.
 
-10. Prefer deleting redundant duplicate nodes when two nodes represent the same accident step.
+  10. Prefer deleting redundant duplicate nodes when two nodes represent the same accident
+      step.
 
-11. Avoid recommending transitive edges.
-If there is already a more direct causal chain A -> B -> C, do not recommend an additional edge A -> C unless the incident description explicitly supports a separate direct causal relationship.
+  11. Avoid recommending transitive edges. If there is already a more direct causal chain A
+      -> B -> C, do not recommend an additional edge A -> C unless the incident description
+      explicitly supports a separate direct causal relationship.
 
-12. A location node should usually not directly cause a hazard consequence unless the incident description explicitly supports that role.
+  12. A location node should usually not directly cause a hazard consequence unless the
+      incident description explicitly supports that role.
 
-13. Hazard consequence nodes should normally be the downstream end of the causal chain.
+  13. Hazard consequence nodes should normally be the downstream end of the causal chain.
 
-14. Material nodes should usually connect to material properties using relation "has".
+  14. Material nodes should usually connect to material properties using relation "has".
 
-15. Conditions and events should generally connect with relation "enables" when they make a downstream step possible or more likely.
+  15. Conditions and events should generally connect with relation "enables" when they make
+      a downstream step possible or more likely.
 
-16. If an important event clearly occurred in CAUSAL_NARRATIVE_EXTRACTION_OUTPUT but is missing from the graph, recommend adding it only when there is direct support in the incident description.
+  16. If an important event clearly occurred in CAUSAL_NARRATIVE_EXTRACTION_OUTPUT but is
+      missing from the graph, recommend adding it only when there is direct support in the
+      incident description.
 
-17. If a node in the graph is unsupported by the incident description or is too weak to justify graph inclusion, recommend removing it.
+  17. If a node in the graph is unsupported by the incident description or is too weak to
+      justify graph inclusion, recommend removing it.
 
-18. If the graph contains a duplicated event pattern such as an InitiatingEvent and a MechanicalFailure that describe essentially the same physical occurrence, recommend a merge, deletion, or role clarification.
+  18. If the graph contains a duplicated event pattern such as an InitiatingEvent and a
+      MechanicalFailure that describe essentially the same physical occurrence, recommend a
+      merge, deletion, or role clarification.
 
-19. If a node or edge is weak but still acceptable, classify the issue severity as low instead of recommending unnecessary deletion.
+  19. If a node or edge is weak but still acceptable, classify the issue severity as low
+      instead of recommending unnecessary deletion.
 
-20. Except HazardConsequence nodes, every node must have at least one outgoing edge to another node. A non-HazardConsequence node with only incoming edges (or no edges) is invalid; recommend adding evidence-supported downstream links, or deleting the node if no supported downstream role exists.
+  20. Except HazardConsequence nodes, every node must have at least one outgoing edge to
+      another node. A non-HazardConsequence node with only incoming edges (or no edges) is
+      invalid; recommend adding evidence-supported downstream links, or deleting the node if
+      no supported downstream role exists.
 
-21. Every Condition node must have both at least one incoming edge and at least one outgoing edge. A Condition node missing either direction is invalid; recommend adding evidence-supported links to satisfy both directions, or deleting the node if that is not supported by the incident evidence.
+  21. Every Condition node must have both at least one incoming edge and at least one
+      outgoing edge. A Condition node missing either direction is invalid; recommend adding
+      evidence-supported links to satisfy both directions, or deleting the node if that is
+      not supported by the incident evidence.
 
-22. For any disconnected or weakly connected node, follow this decision order: first explain the root cause of the missing/invalid connectivity, then try to connect it to existing nodes with evidence-supported edges, and only then consider adding a new node or deleting the node. Prefer the smallest valid change that restores causal continuity.
+  22. For any disconnected or weakly connected node, follow this decision order: first
+      explain the root cause of the missing/invalid connectivity, then try to connect it to
+      existing nodes with evidence-supported edges, and only then consider adding a new node
+      or deleting the node. Prefer the smallest valid change that restores causal
+      continuity.
 
-23. For each suggested link inside node_additions (both suggested_upstream_links and suggested_downstream_links), provide a link-specific explanation and evidence explaining why that exact edge should exist. Do not rely on or reuse only the node-level reason/evidence for link justification.
+  23. For each suggested link inside node_additions (both suggested_upstream_links and
+      suggested_downstream_links), provide a link-specific explanation and evidence
+      explaining why that exact edge should exist. Do not rely on or reuse only the
+      node-level reason/evidence for link justification.
 
-24. Define shortcut_edge as an edge that bypasses a necessary or strongly supported intermediate causal step and makes the graph overly direct. If the evidence supports a more local chain A -> B -> C, then a direct edge A -> C should normally be treated as a shortcut_edge unless the incident description explicitly supports a separate direct relationship from A to C.
+  24. Define shortcut_edge as an edge that bypasses a necessary or strongly supported
+      intermediate causal step and makes the graph overly direct. If the evidence supports a
+      more local chain A -> B -> C, then a direct edge A -> C should normally be treated as
+      a shortcut_edge unless the incident description explicitly supports a separate direct
+      relationship from A to C.
 
 SEVERITY GUIDANCE
 
-- high:
-  The issue materially breaks or distorts the main accident causal chain.
+  - high: The issue materially breaks or distorts the main accident causal chain.
 
-- medium:
-  The issue weakens the graph logic or misses an important step, but the overall chain is still understandable.
+  - medium: The issue weakens the graph logic or misses an important step, but the overall
+    chain is still understandable.
 
-- low:
-  The issue is minor, stylistic, weakly redundant, or only slightly misleading.
+  - low: The issue is minor, stylistic, weakly redundant, or only slightly misleading.
 
 OUTPUT REQUIREMENTS
 

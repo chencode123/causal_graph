@@ -66,6 +66,8 @@ def _flatten_graph_nodes(graph_data: Dict[str, Any]) -> List[Dict[str, Any]]:
     nodes: List[Dict[str, Any]] = []
     for key in ("hazard_consequence_node", "entity_nodes", "condition_nodes", "event_nodes"):
         group = graph_data.get(key, [])
+        if isinstance(group, dict):
+            group = [group]
         if isinstance(group, list):
             nodes.extend(group)
     return nodes
@@ -118,9 +120,59 @@ def _has_edge(edges: List[Dict[str, Any]], source: str, target: str, relation: s
     return False
 
 
+def _has_alternative_directed_path(
+    *,
+    source: str,
+    target: str,
+    edges: List[Dict[str, Any]],
+    skipped_index: int,
+) -> bool:
+    adjacency: Dict[str, List[str]] = {}
+    for index, edge in enumerate(edges):
+        if index == skipped_index:
+            continue
+        edge_source = str(edge.get("source") or "").strip()
+        edge_target = str(edge.get("target") or "").strip()
+        if not edge_source or not edge_target:
+            continue
+        adjacency.setdefault(edge_source, []).append(edge_target)
+
+    stack = list(adjacency.get(source, []))
+    visited = {source}
+    while stack:
+        current = stack.pop()
+        if current == target:
+            return True
+        if current in visited:
+            continue
+        visited.add(current)
+        stack.extend(adjacency.get(current, []))
+    return False
+
+
+def _remove_shortcut_edges(edges: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    pruned: List[Dict[str, Any]] = []
+    for index, edge in enumerate(edges):
+        source = str(edge.get("source") or "").strip()
+        target = str(edge.get("target") or "").strip()
+        if not source or not target:
+            continue
+        if _has_alternative_directed_path(
+            source=source,
+            target=target,
+            edges=edges,
+            skipped_index=index,
+        ):
+            continue
+        pruned.append(edge)
+    return pruned
+
+
 def _apply_review_accept_all(
     causal_graph_data: Dict[str, Any],
     review_data: Dict[str, Any],
+    *,
+    remove_shortcut_edges: bool = True,
 ) -> Tuple[Dict[str, Any], Dict[str, Any]]:
     updated = deepcopy(causal_graph_data)
     updated.setdefault("edges", [])
@@ -301,6 +353,8 @@ def _apply_review_accept_all(
         if (source, target, relation) in edge_delete_set:
             continue
         filtered_edges.append(edge)
+    if remove_shortcut_edges:
+        filtered_edges = _remove_shortcut_edges(filtered_edges)
 
     for group_key in ("hazard_consequence_node", "entity_nodes", "condition_nodes", "event_nodes"):
         group_nodes = updated.get(group_key, [])
@@ -338,6 +392,7 @@ def generate_accept_all_review_outputs(
     *,
     folder: Path,
     accident_scenario_schema_path: Path,
+    remove_shortcut_edges: bool = True,
 ) -> None:
     causal_graph_path = folder / "causal_graph.json"
     review_path = resolve_review_output_path(folder)
@@ -352,7 +407,11 @@ def generate_accept_all_review_outputs(
     if not isinstance(causal_graph_data, dict) or not isinstance(review_data, dict):
         return
 
-    updated_graph, review_state = _apply_review_accept_all(causal_graph_data, review_data)
+    updated_graph, review_state = _apply_review_accept_all(
+        causal_graph_data,
+        review_data,
+        remove_shortcut_edges=remove_shortcut_edges,
+    )
 
     updated_graph_path = folder / "updated_causal_graph_accept_all.json"
     review_state_path = folder / "updated_causal_graph_review_state_accept_all.json"
@@ -376,6 +435,7 @@ def _build_causal_graph_json(
     identify_accident_scenario_path: Path,
     causal_edge_linking_path: Path,
     output_path: Path,
+    remove_shortcut_edges: bool = True,
 ) -> None:
     with identify_accident_scenario_path.open("r", encoding="utf-8") as fp:
         scenario_data = json.load(fp)
@@ -404,10 +464,15 @@ def _build_causal_graph_json(
         "condition_nodes",
         "event_nodes",
     ):
+        group = scenario_data.get(key, [])
+        if isinstance(group, dict):
+            group = [group]
+        if not isinstance(group, list):
+            group = []
         graph_data[key] = [
             node
-            for node in scenario_data.get(key, [])
-            if node.get("node_id") in linked_node_ids
+            for node in group
+            if isinstance(node, dict) and node.get("node_id") in linked_node_ids
         ]
 
     valid_node_ids = {
@@ -426,6 +491,8 @@ def _build_causal_graph_json(
         for edge in edges
         if edge.get("source") in valid_node_ids and edge.get("target") in valid_node_ids
     ]
+    if remove_shortcut_edges:
+        graph_data["edges"] = _remove_shortcut_edges(graph_data["edges"])
 
     write_text(output_path, json.dumps(graph_data, ensure_ascii=False, indent=2))
 
@@ -466,6 +533,79 @@ def _format_causal_narrative_markdown(payload: Dict[str, Any], case_id: str) -> 
     return "\n".join(lines)
 
 
+def _format_review_feedback_analysis_markdown(payload: Dict[str, Any], case_id: str) -> str:
+    case_summary = payload.get("case_summary", {})
+    patterns = payload.get("decision_patterns", [])
+    coverage_notes = payload.get("coverage_notes", [])
+    unresolved = payload.get("unresolved_decisions", [])
+
+    lines: List[str] = [
+        "# Review Feedback Analysis",
+        "",
+        f"- Case: `{case_id}`",
+        f"- Accepted: `{case_summary.get('accepted_count', 0)}`",
+        f"- Rejected: `{case_summary.get('rejected_count', 0)}`",
+        f"- Unresolved: `{case_summary.get('unresolved_count', 0)}`",
+        "",
+    ]
+
+    summary_text = str(case_summary.get("summary") or "").strip()
+    if summary_text:
+        lines.extend(["## Summary", "", summary_text, ""])
+
+    lines.extend(["## Decision Patterns", ""])
+    if isinstance(patterns, list) and patterns:
+        for index, item in enumerate(patterns, start=1):
+            if not isinstance(item, dict):
+                continue
+            lines.extend(
+                [
+                    f"### {index}. `{item.get('decision_key', '')}`",
+                    "",
+                    f"Decision: `{item.get('decision', '')}`",
+                    "",
+                    f"Proposed change: {str(item.get('proposed_change') or '').strip()}",
+                    "",
+                ]
+            )
+            reviewer_reason = str(item.get("reviewer_reason") or "").strip()
+            matched_rule = str(item.get("matched_rule") or "").strip()
+            takeaway = str(item.get("few_shot_takeaway") or "").strip()
+            if reviewer_reason:
+                lines.extend(["Reviewer reason:", reviewer_reason, ""])
+            if matched_rule:
+                lines.extend(["Matched rule:", matched_rule, ""])
+            if takeaway:
+                lines.extend(["Few-shot takeaway:", takeaway, ""])
+    else:
+        lines.extend(["_No decision patterns._", ""])
+
+    lines.extend(["## Coverage Notes", ""])
+    if isinstance(coverage_notes, list) and coverage_notes:
+        for note in coverage_notes:
+            note_text = str(note).strip()
+            if note_text:
+                lines.append(f"- {note_text}")
+        lines.append("")
+    else:
+        lines.extend(["_No coverage notes._", ""])
+
+    lines.extend(["## Unresolved Decisions", ""])
+    if isinstance(unresolved, list) and unresolved:
+        for item in unresolved:
+            if not isinstance(item, dict):
+                continue
+            key = str(item.get("decision_key") or "").strip()
+            status = str(item.get("status") or "").strip()
+            note = str(item.get("note") or "").strip()
+            lines.append(f"- `{key}` [{status}] {note}".rstrip())
+        lines.append("")
+    else:
+        lines.extend(["_No unresolved decisions._", ""])
+
+    return "\n".join(lines)
+
+
 def write_causal_narrative_markdown(folder: Path) -> None:
     """Create a Markdown companion file for causal_narrative_extraction output."""
     json_path = folder / "causal_narrative_extraction_output.json"
@@ -479,7 +619,31 @@ def write_causal_narrative_markdown(folder: Path) -> None:
     )
 
 
-def ensure_causal_graph_json(folder: Path) -> None:
+def write_review_feedback_analysis_markdown(folder: Path) -> None:
+    json_path = folder / "review_feedback_analysis_output.json"
+    if not json_path.exists():
+        return
+    with json_path.open("r", encoding="utf-8") as fp:
+        payload = json.load(fp)
+    write_text(
+        folder / "review_feedback_analysis_output.md",
+        _format_review_feedback_analysis_markdown(payload, folder.name),
+    )
+
+
+def write_causal_narrative_markdown_from_source(*, source_folder: Path, output_folder: Path) -> None:
+    json_path = source_folder / "causal_narrative_extraction_output.json"
+    if not json_path.exists():
+        return
+    with json_path.open("r", encoding="utf-8") as fp:
+        payload = json.load(fp)
+    write_text(
+        output_folder / "causal_narrative_extraction_output.md",
+        _format_causal_narrative_markdown(payload, output_folder.name),
+    )
+
+
+def ensure_causal_graph_json(folder: Path, *, remove_shortcut_edges: bool = True) -> None:
     """Build causal_graph.json if the required upstream step outputs are present."""
     identify_accident_scenario_path = folder / "identify_accident_scenario_output.json"
     causal_edge_linking_path = folder / "causal_edge_linking_output.json"
@@ -495,6 +659,7 @@ def ensure_causal_graph_json(folder: Path) -> None:
         identify_accident_scenario_path=identify_accident_scenario_path,
         causal_edge_linking_path=causal_edge_linking_path,
         output_path=folder / "causal_graph.json",
+        remove_shortcut_edges=remove_shortcut_edges,
     )
 
 
@@ -511,7 +676,10 @@ def run_step_sync(
         prep_fail = 0
         for folder in folders:
             try:
-                ensure_causal_graph_json(folder)
+                ensure_causal_graph_json(
+                    folder,
+                    remove_shortcut_edges=getattr(config, "remove_shortcut_edges", True),
+                )
                 prep_ok += 1
             except Exception as exc:
                 prep_fail += 1
@@ -519,7 +687,6 @@ def run_step_sync(
         print(
             f"[{step.key}] Graph prep done. ok={prep_ok}, fail={prep_fail}"
         )
-
     template = all_prompts[step.key]
     ok, fail = 0, 0
 
@@ -575,6 +742,8 @@ def run_step_sync(
 
             write_text(step.output_path(folder), out_text)
             ok += 1
+            if step.key == "review_feedback_analysis":
+                write_review_feedback_analysis_markdown(folder)
 
             if config.save_raw_response:
                 response_dir = get_response_dir(folder)
@@ -597,15 +766,20 @@ def run_local_postprocess(
     folder: Path,
     hazards_json_path: Path,
     accident_scenario_schema_path: Path,
+    source_folder: Path | None = None,
+    remove_shortcut_edges: bool = True,
 ) -> None:
-    identify_accident_scenario_path = folder / "identify_accident_scenario_output.json"
-    causal_edge_linking_path = folder / "causal_edge_linking_output.json"
-    write_causal_narrative_markdown(folder)
-    ensure_causal_graph_json(folder)
+    source_folder = source_folder or folder
+    write_causal_narrative_markdown_from_source(source_folder=source_folder, output_folder=folder)
+    ensure_causal_graph_json(
+        folder,
+        remove_shortcut_edges=remove_shortcut_edges,
+    )
+    causal_graph_path = folder / "causal_graph.json"
 
     draw_causal_graph_interactive_from_json(
-        identify_accident_scenario=identify_accident_scenario_path,
-        causal_edge_linking=causal_edge_linking_path,
+        identify_accident_scenario=causal_graph_path,
+        causal_edge_linking=causal_graph_path,
         save_path=folder / "causal_graph.html",
         accident_scenario_schema=accident_scenario_schema_path,
         review_causal_graph=resolve_review_output_path(folder),
@@ -616,6 +790,7 @@ def run_local_postprocess(
     generate_accept_all_review_outputs(
         folder=folder,
         accident_scenario_schema_path=accident_scenario_schema_path,
+        remove_shortcut_edges=remove_shortcut_edges,
     )
 
     incident_card_to_word.incident_card_to_word(
@@ -623,8 +798,8 @@ def run_local_postprocess(
         identify_hazard_consequence_prompt=all_prompts.get("identify_hazard_consequence", ""),
         identify_accident_scenario_prompt=all_prompts.get("identify_accident_scenario", ""),
         causal_edge_linking_prompt=all_prompts.get("causal_edge_linking", ""),
-        identify_incident_output=folder / "identify_incident_output.json",
-        identify_hazard_consequence_output=folder / "identify_hazard_consequence_output.json",
+        identify_incident_output=source_folder / "identify_incident_output.json",
+        identify_hazard_consequence_output=source_folder / "identify_hazard_consequence_output.json",
         identify_accident_scenario_output=folder / "identify_accident_scenario_output.json",
         causal_edge_linking_output=folder / "causal_edge_linking_output.json",
         hazard_consequence_json=str(hazards_json_path),
@@ -662,6 +837,7 @@ def run_batch_pipeline(config: Any) -> None:
         use_few_shot=getattr(config, "use_few_shot", False),
         few_shot_cases_by_step=getattr(config, "few_shot_cases_by_step", None),
         active_step_keys=getattr(config, "active_step_keys", None),
+        source_folder_map=getattr(config, "source_folder_map", None),
     )
     for step in tqdm(pipeline, desc="Steps (sync)", unit="step"):
         if not step.enabled:
@@ -682,6 +858,8 @@ def run_batch_pipeline(config: Any) -> None:
                 folder=folder,
                 hazards_json_path=config.hazards_json_path,
                 accident_scenario_schema_path=Path("scheme/accident_scenario_schema.json"),
+                source_folder=(getattr(config, "source_folder_map", None) or {}).get(folder, folder),
+                remove_shortcut_edges=getattr(config, "remove_shortcut_edges", True),
             )
         except Exception as exc:
             print(f"Postprocess skipped for {folder.name}: {exc}")

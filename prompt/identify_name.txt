@@ -3,9 +3,9 @@ You are a professional process safety analyst.
 REPORT_TEXT: {report_text}
 
 TASK:
-- Identify the name of the report from REPORT_TEXT
+  - Identify the name of the report from REPORT_TEXT
 
 Example:
-- T2_Laboratories_Inc_Runaway_Reaction_Four_Killed_32_Injured
-- Hayes_Lemmerz_International_Huntington_Aluminum_Dust_Explosion_1_Killed_6_Injured
-- Chemical_Reaction_Hydrogen_Release_Explosion_and_Fire_at_AB_Specialty_Silicones
+  - T2_Laboratories_Inc_Runaway_Reaction_Four_Killed_32_Injured
+  - Hayes_Lemmerz_International_Huntington_Aluminum_Dust_Explosion_1_Killed_6_Injured
+  - Chemical_Reaction_Hydrogen_Release_Explosion_and_Fire_at_AB_Specialty_Silicones

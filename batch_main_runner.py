@@ -41,15 +41,16 @@ load_dotenv(dotenv_path=Path(__file__).with_name(".env_openai"), override=True)
 # CONFIG
 # ================================================================
 #############################################################################更新所有的update_html
-BASE_DIR = Path(r"runs\stability_test_batch_1_9")  # Can point to a single batch dir or a folder containing batch_* subdirs.
+BASE_DIR = Path(r"runs\stability_test\batch4_4_reruns")  # Can point to a single batch dir or a folder containing batch_* subdirs.
 EXECUTION_MODE = "responses"  # "batch" uses OpenAI Batch API; "responses" uses direct Responses API for faster iteration/debugging.
 UPLOAD_ALL_FILES_IN_ONE_BATCH = True  # Merge all discovered case folders into one large job per step when multiple batch_* dirs are present.
-# TARGET_CASES: tuple[str, ...] | None = None  # Example: ("1",) to run only case folder 1 under BASE_DIR.
-TARGET_CASES = ("batch_1_9_ignition",)
+# TARGET_CASES= None  # Example: ("1",) to run only case folder 1 under BASE_DIR.
+TARGET_CASES = ("round_1",)
 STABILITY_ROUNDS = 1  # Repeat count for stability runs. Use 1 to keep current single-run behavior.
 STABILITY_START_ROUND = 1  # Starting round index for resumable naming.
 STABILITY_RESUME = False  # Skip a round when its output folder already exists.
-STABILITY_OUTPUT_ROOT: Path | None = None  # Defaults to BASE_DIR.parent / f"{BASE_DIR.name}_stability".
+STABILITY_OUTPUT_ROOT = Path(r"runs\stability_test\batch4_4_reruns")
+  # Defaults to BASE_DIR.parent / f"{BASE_DIR.name}_stability".
 
 MODEL_NAME = "gpt-5.4-2026-03-05"
 REASONING_EFFORT = "high"
@@ -58,6 +59,7 @@ FORCE_JSON_OUTPUT = True
 SAVE_RAW_RESPONSE = True
 MAX_OUTPUT_TOKENS = 128000
 CALL_SLEEP_SECONDS = 0.0
+REMOVE_SHORTCUT_EDGES = True
 HAZARDS_JSON_PATH = Path("prompt/hazards_consequence.json")
 CONDITIONS_JSON_PATH = Path("prompt/conditions.json")
 USE_FEW_SHOT = False
@@ -67,10 +69,15 @@ FEW_SHOT_CASES = (
 ACTIVE_STEP_KEYS = (
     # "identify_hazard_consequence",
     # "causal_narrative_extraction",
-    "identify_accident_scenario",
-    "causal_edge_linking",
+    # "scenario_candidate_extraction",
+    # "scenario_structure_validation",
+    # "identify_accident_scenario",
+    # "edge_candidate_extraction",
+    # "edge_structure_validation",
+    # "causal_edge_linking",
     # "graph_diagnosis",
     # "graph_revision_planning",
+    "review_feedback_analysis", 
 )
 
 if __name__ == "__main__":
@@ -83,6 +90,7 @@ if __name__ == "__main__":
         save_raw_response=SAVE_RAW_RESPONSE,
         max_output_tokens=MAX_OUTPUT_TOKENS,
         call_sleep_seconds=CALL_SLEEP_SECONDS,
+        remove_shortcut_edges=REMOVE_SHORTCUT_EDGES,
         hazards_json_path=HAZARDS_JSON_PATH,
         conditions_json_path=CONDITIONS_JSON_PATH,
         use_few_shot=USE_FEW_SHOT,

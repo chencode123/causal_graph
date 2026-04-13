@@ -4024,6 +4024,34 @@ _JSON_GRAPH_HTML_TEMPLATE = r"""<!doctype html>
       return normalized;
     }
 
+    function normalizeRevisionDecisionEntry(value) {
+      if (value && typeof value === "object" && !Array.isArray(value)) {
+        return {
+          status: String(value.status || "").trim().toLowerCase(),
+          reviewReason: String(value.review_reason || "").trim(),
+        };
+      }
+      return {
+        status: String(value || "").trim().toLowerCase(),
+        reviewReason: "",
+      };
+    }
+
+    function getRevisionDecisionStatus(key) {
+      return normalizeRevisionDecisionEntry(revisionDecisions[key]).status;
+    }
+
+    function getRevisionDecisionReason(key) {
+      return normalizeRevisionDecisionEntry(revisionDecisions[key]).reviewReason;
+    }
+
+    function setRevisionDecision(key, status, reviewReason = "") {
+      revisionDecisions[key] = {
+        status: String(status || "").trim().toLowerCase(),
+        review_reason: String(reviewReason || "").trim(),
+      };
+    }
+
     function setDetailSummary(text) {
       if (!detailSummaryValue) return;
       detailSummaryValue.textContent = text || "Nothing selected.";
@@ -4279,7 +4307,7 @@ _JSON_GRAPH_HTML_TEMPLATE = r"""<!doctype html>
         const coveredByAcceptedNodeAddition = (
           coveredByKey &&
           coveredByKey.startsWith("node_addition_") &&
-          revisionDecisions[coveredByKey] === "accepted"
+          getRevisionDecisionStatus(coveredByKey) === "accepted"
         );
         cards.push({
           kind: "Edge Addition",
@@ -4408,7 +4436,8 @@ _JSON_GRAPH_HTML_TEMPLATE = r"""<!doctype html>
           `<span class="revision-badge ${severityBadgeClass(card.severity)}">Severity: ${escapeHtml(card.severity || "low")}</span>`,
           card.confidence ? `<span class="revision-badge ${confidenceBadgeClass(card.confidence)}">Confidence: ${escapeHtml(card.confidence)}</span>` : "",
         ].join("");
-        const decision = revisionDecisions[card.key] || card.impliedDecision || "";
+        const decision = getRevisionDecisionStatus(card.key) || card.impliedDecision || "";
+        const decisionReason = getRevisionDecisionReason(card.key);
         const stateHtml = decision
           ? `<div class="revision-state ${decision}">${
               card.impliedDecisionLabel
@@ -4416,6 +4445,10 @@ _JSON_GRAPH_HTML_TEMPLATE = r"""<!doctype html>
                 : decision === "accepted"
                   ? "Accepted and applied."
                   : "Rejected."
+            }${
+              decision === "rejected" && decisionReason
+                ? `<div class="revision-reason">${escapeHtml(decisionReason)}</div>`
+                : ""
             }</div>`
           : "";
         const actionsHtml = card.actionable ? `
@@ -4506,7 +4539,7 @@ _JSON_GRAPH_HTML_TEMPLATE = r"""<!doctype html>
 
     function applyStoredRevisionHighlights() {
       const acceptedKeys = Object.entries(revisionDecisions)
-        .filter(([_, decision]) => String(decision || "").toLowerCase() === "accepted")
+        .filter(([key]) => getRevisionDecisionStatus(key) === "accepted")
         .map(([key]) => key);
       if (!acceptedKeys.length) return;
 
@@ -4775,18 +4808,37 @@ _JSON_GRAPH_HTML_TEMPLATE = r"""<!doctype html>
       if (!card) return;
       const previousTab = activeRightPanelTab;
       if (action === "reject") {
-        pushUndoState();
-        revisionDecisions[key] = "rejected";
-        renderRevisionSuggestions(revisionFocus, { preserveScroll: true, anchorKey: key });
-        setRightPanelVisibility(true, previousTab);
-        setFormStatus(saveFormStatus, `Rejected suggestion: ${card.kind}.`, false);
+        openModal(
+          "Reject Suggestion",
+          "Record why this suggestion is being rejected.",
+          `
+            <label>
+              Review reason
+              <textarea id="review-reason-input" rows="5" placeholder="Explain why this suggestion is rejected."></textarea>
+            </label>
+          `,
+          ({ showModalError }) => {
+            const reasonInput = document.getElementById("review-reason-input");
+            const reviewReason = String(reasonInput?.value || "").trim();
+            if (!reviewReason) {
+              showModalError("A rejection reason is required.", ["review-reason-input"]);
+              return false;
+            }
+            pushUndoState();
+            setRevisionDecision(key, "rejected", reviewReason);
+            renderRevisionSuggestions(revisionFocus, { preserveScroll: true, anchorKey: key });
+            setRightPanelVisibility(true, previousTab);
+            setFormStatus(saveFormStatus, `Rejected suggestion: ${card.kind}.`, false);
+            return true;
+          },
+        );
         return;
       }
       if (action === "accept") {
         try {
           pushUndoState();
           applyRevisionCard(card);
-          revisionDecisions[key] = "accepted";
+          setRevisionDecision(key, "accepted");
           renderRevisionSuggestions(revisionFocus, { preserveScroll: true, anchorKey: key });
           setRightPanelVisibility(true, previousTab);
           setFormStatus(saveFormStatus, `Accepted suggestion: ${card.kind}.`, false);

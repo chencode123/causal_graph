@@ -1,0 +1,128 @@
+You are a process safety analyst summarizing human review decisions for causal graph revision suggestions.
+
+INPUT DATA
+
+CAUSAL_GRAPH_JSON
+{causal_graph_json}
+
+UPDATED_CAUSAL_GRAPH_JSON
+{updated_causal_graph_json}
+
+UPDATED_CAUSAL_GRAPH_REVIEW_STATE_JSON
+{updated_causal_graph_review_state_json}
+
+GRAPH_DIAGNOSIS_OUTPUT
+{graph_diagnosis_output}
+
+GRAPH_REVISION_PLANNING_OUTPUT
+{graph_revision_planning_output}
+
+TASK
+
+Compare the original CAUSAL_GRAPH_JSON with UPDATED_CAUSAL_GRAPH_REVIEW_STATE_JSON and convert the review outcomes into a compact, few-shot-ready set of decision patterns. Use GRAPH_DIAGNOSIS_OUTPUT and GRAPH_REVISION_PLANNING_OUTPUT as the rule references. Use UPDATED_CAUSAL_GRAPH_JSON only to confirm what was actually kept, removed, or changed.
+
+DECISION INTERPRETATION RULES
+
+  1. The review_decisions keys in UPDATED_CAUSAL_GRAPH_REVIEW_STATE_JSON correspond to the
+     indexed suggestion lists in GRAPH_REVISION_PLANNING_OUTPUT:
+     - node_updates -> node_update_{{index}}
+     - node_additions -> node_addition_{{index}}
+     - node_deletions -> node_deletion_{{index}}
+     - edge_additions -> edge_addition_{{index}}
+     - edge_deletions -> edge_deletion_{{index}}
+     - edge_updates -> edge_update_{{index}}
+
+  2. The values inside review_decisions may be either:
+     - a legacy string such as "accepted" or "rejected"
+     - an object such as:
+     {{
+       "status": "accepted | rejected",
+       "review_reason": "string"
+     }}
+
+  3. For every reviewed suggestion that can be matched to GRAPH_REVISION_PLANNING_OUTPUT,
+     create one compact decision pattern.
+
+  4. For each decision pattern:
+     - identify the original suggestion object from GRAPH_REVISION_PLANNING_OUTPUT
+     - keep the proposed change concise and concrete
+     - if UPDATED_CAUSAL_GRAPH_REVIEW_STATE_JSON provides review_reason, treat that as the
+       primary explanation of why the reviewer accepted or rejected the suggestion
+     - if review_reason is missing, infer the most likely reason from the original graph,
+       the updated graph, and nearby decisions
+     - match the decision to the single most relevant explicit rule from
+       GRAPH_DIAGNOSIS_OUTPUT or GRAPH_REVISION_PLANNING_OUTPUT
+     - distill the outcome into one short reusable few-shot takeaway that can teach future
+       diagnosis or planning behavior
+     - the matched_rule must justify the final review decision, not the original proposed
+       change
+     - if decision is rejected, do not output a matched_rule whose main effect is to support
+       the rejected proposal
+     - if decision is accepted, do not output a matched_rule whose main effect is to argue
+       against the accepted proposal
+     - if decision is rejected, matched_rule must describe the constraint, prohibition, or
+       limiting rule that supports rejection
+     - if decision is rejected, do not use a diagnosis statement or planning problem
+       statement as matched_rule unless that statement itself explicitly argues against the
+       proposed change
+
+  5. Prefer citing the most specific matching rule(s), especially rules about shortcut
+     edges, transitive edges, redundant nodes, duplicate semantics, unsupported changes, and
+     invalid connectivity.
+
+  6. If a decision key is missing from GRAPH_REVISION_PLANNING_OUTPUT, list it under
+     unresolved_decisions.
+
+  7. If a suggestion was implicitly covered by another accepted change, mention that under
+     coverage_notes.
+
+  8. For matched_rule:
+     - prefer the single best matching rule, not multiple overlapping rules
+     - prefer exact numbered rules from GRAPH_DIAGNOSIS_OUTPUT or
+       GRAPH_REVISION_PLANNING_OUTPUT prompts when possible
+     - keep the matched rule concise
+     - do not fabricate rule numbers that are not actually present in those prompts
+     - when GRAPH_REVISION_PLANNING_OUTPUT contains both a proposal-supporting rationale and
+       a proposal-limiting rule, prefer the rule that better explains the final accepted or
+       rejected decision
+     - for rejected decisions, prefer wording such as do not, avoid, must not, should not,
+       cannot, or an explicit shortcut / transitive / redundancy constraint when supported
+       by the prompts
+
+OUTPUT REQUIREMENTS
+
+Return one JSON object with this structure:
+
+{{
+  "case_summary": {{
+    "accepted_count": 0,
+    "rejected_count": 0,
+    "unresolved_count": 0,
+    "summary": "string"
+  }},
+  "decision_patterns": [
+    {{
+      "decision_key": "string",
+      "proposed_change": "string",
+      "decision": "accepted | rejected",
+      "reviewer_reason": "string",
+      "matched_rule": "string",
+      "few_shot_takeaway": "string"
+    }}
+  ],
+  "coverage_notes": [
+    "string"
+  ],
+  "unresolved_decisions": [
+    {{
+      "decision_key": "string",
+      "status": "accepted | rejected | unknown",
+      "note": "string"
+    }}
+  ]
+}}
+
+OUTPUT FORMAT
+
+Return JSON only.
+Do not include explanations or additional text outside the JSON object.

@@ -18,7 +18,7 @@ from .io_utils import (
     save_step_input_snapshot,
     write_text,
 )
-from .runner import ensure_causal_graph_json, run_local_postprocess
+from .runner import ensure_causal_graph_json, run_local_postprocess, write_review_feedback_analysis_markdown
 from .step_factory import Step, build_pipeline
 from .step_registry import STEP_REGISTRY
 
@@ -38,7 +38,11 @@ def _load_required_prompts() -> Dict[str, str]:
     prompt_paths = {
         "identify_hazard_consequence": Path("prompt/identify_hazard_consequence.txt"),
         "causal_narrative_extraction": Path("prompt/causal_narrative_extraction.txt"),
+        "scenario_candidate_extraction": Path("prompt/scenario_candidate_extraction.txt"),
+        "scenario_structure_validation": Path("prompt/scenario_structure_validation.txt"),
         "identify_accident_scenario": Path("prompt/identify_accident_scenario.txt"),
+        "edge_candidate_extraction": Path("prompt/edge_candidate_extraction.txt"),
+        "edge_structure_validation": Path("prompt/edge_structure_validation.txt"),
         "causal_edge_linking": Path("prompt/causal_edge_linking.txt"),
         "review_causal_graph": Path("prompt/review_causal_graph.txt"),
         "graph_diagnosis": Path("prompt/graph_diagnosis.txt"),
@@ -96,13 +100,15 @@ def run_step_as_batch(
         prep_fail = 0
         for folder in folders:
             try:
-                ensure_causal_graph_json(folder)
+                ensure_causal_graph_json(
+                    folder,
+                    remove_shortcut_edges=getattr(config, "remove_shortcut_edges", True),
+                )
                 prep_ok += 1
             except Exception as exc:
                 prep_fail += 1
                 write_text(folder / f"{step.key}_error.txt", f"Graph prep failed: {exc}\n")
         tqdm.write(f"[{step.key}] Graph prep done. ok={prep_ok}, fail={prep_fail}")
-
     template = all_prompts[step.key]
     batch_input_path = batch_workdir / f"{step.key}_batchinput.jsonl"
 
@@ -231,6 +237,8 @@ def run_step_as_batch(
 
         text = extract_text_from_responses_body(response.get("body", {}))
         write_text(step.output_path(folder), text)
+        if step.key == "review_feedback_analysis":
+            write_review_feedback_analysis_markdown(folder)
         ok += 1
 
         if config.save_raw_response:
@@ -273,6 +281,7 @@ def run_batch_pipeline(config: Any) -> None:
         use_few_shot=getattr(config, "use_few_shot", False),
         few_shot_cases_by_step=getattr(config, "few_shot_cases_by_step", None),
         active_step_keys=getattr(config, "active_step_keys", None),
+        source_folder_map=getattr(config, "source_folder_map", None),
     )
     batch_workdir = getattr(config, "batch_workdir", None) or (config.base_dir / "_batch_pipeline")
     batch_workdir.mkdir(parents=True, exist_ok=True)
@@ -296,6 +305,8 @@ def run_batch_pipeline(config: Any) -> None:
                 folder=folder,
                 hazards_json_path=config.hazards_json_path,
                 accident_scenario_schema_path=Path("scheme/accident_scenario_schema.json"),
+                source_folder=(getattr(config, "source_folder_map", None) or {}).get(folder, folder),
+                remove_shortcut_edges=getattr(config, "remove_shortcut_edges", True),
             )
         except Exception as exc:
             tqdm.write(f"Postprocess skipped for {folder.name}: {exc}")

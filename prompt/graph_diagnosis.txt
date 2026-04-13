@@ -34,39 +34,81 @@ This step is diagnosis only.
 
 DIAGNOSIS RULES
 
-1. Use the INCIDENT_DESCRIPTION as the primary factual basis.
+[Core grounding]
 
-2. Use CAUSAL_NARRATIVE_EXTRACTION_OUTPUT as the primary reference for the intended accident progression and key intermediate causal steps.
+    1. Use the INCIDENT_DESCRIPTION as the primary factual basis.
 
-3. Use IDENTIFY_ACCIDENT_SCENARIO_OUTPUT as the primary reference for what nodes were extracted and how they were described.
+    2. Use CAUSAL_NARRATIVE_EXTRACTION_OUTPUT as the primary reference for the intended
+       accident progression and key intermediate causal steps.
 
-4. Use CAUSAL_EDGE_LINKING_OUTPUT as the primary reference for how the current edge suggestions were produced.
+    3. Use IDENTIFY_ACCIDENT_SCENARIO_OUTPUT as the primary reference for what nodes were
+       extracted and how they were described.
 
-5. Use ACCIDENT_SCENARIO_SCHEMA and ACCIDENT_SCENARIO_SCHEMA_DEFINITION to judge whether labels, node types, and meanings are appropriate.
+    4. Use CAUSAL_EDGE_LINKING_OUTPUT as the primary reference for how the current edge
+       suggestions were produced.
 
-6. Do not invent unsupported accident mechanisms, conditions, or events.
+    5. Use ACCIDENT_SCENARIO_SCHEMA and ACCIDENT_SCENARIO_SCHEMA_DEFINITION to judge whether
+       labels, node types, and meanings are appropriate.
 
-7. Prefer concise, high-value findings. Do not list purely stylistic issues.
+    6. Do not invent unsupported accident mechanisms, conditions, or events.
 
-8. Hazard consequence nodes should normally be the downstream end of the main causal chain.
+    7. Prefer concise, high-value findings. Do not list purely stylistic issues.
 
-9. Avoid diagnosing missing transitive edges as missing direct edges when the existing direct local chain is already sufficient.
+[Connectivity expectations]
 
-10. Except HazardConsequence nodes, every node should normally have at least one outgoing edge.
+    1. Hazard consequence nodes should normally be the downstream end of the main causal
+       chain.
 
-11. Every Condition node should normally have both at least one incoming edge and at least one outgoing edge.
+    2. Avoid diagnosing missing transitive edges as missing direct edges when the existing
+       direct local chain is already sufficient.
 
-12. If both ReleaseType and Dispersion nodes are present and supported, check whether the graph adequately represents the local release-to-dispersion mechanism.
+    3. Except HazardConsequence nodes, every node should normally have at least one outgoing
+       edge.
 
-13. Define shortcut_edge as an edge that bypasses a necessary or strongly supported intermediate causal step and makes the graph overly direct. If the evidence supports a more local chain A -> B -> C, then a direct edge A -> C should normally be diagnosed as a shortcut_edge unless the incident description explicitly supports a separate direct relationship from A to C.
+    4. Every Condition node should normally have both at least one incoming edge and at
+       least one outgoing edge.
 
-14. Define missing_step as a causal step that is explicitly or strongly supported by the incident description or causal narrative, plays an independent local causal role, and is currently absent from the graph.
+    5. If both ReleaseType and Dispersion nodes are present and supported, check whether the
+       graph adequately represents the local release-to-dispersion mechanism.
 
-15. If the graph jumps directly from A to C while the evidence supports a more local chain A -> B -> C, you may diagnose both a shortcut_edge and a missing_step when B is not represented.
+[Issue definitions]
 
-16. Prefer diagnosing a missing node or missing step only when the absent mechanism cannot be adequately expressed by the existing nodes. If the needed semantics already exist in the current nodes, prefer diagnosing missing or weak edges instead.
+    1. Define shortcut_edge as an edge that bypasses a intermediate causal step and makes
+       the graph overly direct. If the evidence supports a more local chain A -> B -> C,
+       then a direct edge A -> C should normally be diagnosed as a shortcut_edge.
 
-17. For weakly connected or invalid condition nodes, determine whether the problem is missing support edges or unnecessary node extraction. Do not assume every weak condition should be preserved.
+    2. Define missing_step as a causal step that is explicitly or strongly supported by the
+       incident description or causal narrative, plays an independent local causal role, and
+       is currently absent from the graph.
+
+    3. If the graph jumps directly from A to C while the evidence supports a more local
+       chain A -> B -> C, you may diagnose both a shortcut_edge and a missing_step when B is
+       not represented.
+
+[Diagnostic decision rules]
+
+    1. Prefer diagnosing a missing node or missing step only when the absent mechanism
+       cannot be adequately expressed by the existing nodes. If the needed semantics already
+       exist in the current nodes, prefer diagnosing missing or weak edges instead.
+
+    2. When assessing missing or weak connectivity, do not imply that a direct edge should
+       be added if that added edge would create short cut. In such cases, diagnose the
+       problem as a shortcut_edge, missing_step, weak_edge, or another appropriate issue
+       instead of treating the direct edge as the preferred fix.
+
+    3. For weakly connected or invalid condition nodes, determine whether the problem is
+       missing support edges or unnecessary node extraction. Do not assume weak
+       condition should be preserved if the current causal graph can represent their meaning.
+
+[Hazard consequence constraints]
+
+    1. Do not diagnose a missing HazardConsequence node. Treat the hazard consequence
+       inventory as fixed by IDENTIFY_ACCIDENT_SCENARIO_OUTPUT and CAUSAL_GRAPH_JSON.
+
+    2. Do not use missing_step, unsupported_node, schema_mismatch, or other issue types to
+       imply that an additional HazardConsequence node should be added. If the downstream
+       consequence representation seems imperfect, diagnose only the existing node labels,
+       evidence, or connectivity.
 
 OUTPUT REQUIREMENTS
 

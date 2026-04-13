@@ -8,11 +8,30 @@ from pipeline.batch_runner import run_batch_pipeline as run_batch_api_pipeline
 from pipeline.runner import run_batch_pipeline as run_responses_pipeline
 from utils.batch_pipeline_utils import (
     PipelineConfig,
-    copy_batch_for_round,
     discover_case_folders,
     filter_case_folders,
     iter_target_batch_dirs,
+    prepare_round_output_dirs,
 )
+
+
+def _resolve_target_folders_for_batch(
+    *,
+    batch_dir: Path,
+    config: PipelineConfig,
+) -> tuple[Path, ...]:
+    source_folder_map = config.source_folder_map or {}
+    mapped_folders = tuple(
+        folder
+        for folder in source_folder_map
+        if folder == batch_dir or folder.parent == batch_dir
+    )
+    if mapped_folders:
+        return filter_case_folders(mapped_folders, config.target_cases)
+    return filter_case_folders(
+        discover_case_folders(batch_dir),
+        config.target_cases,
+    )
 
 
 def run_pipeline_for_mode(
@@ -45,9 +64,11 @@ def run_single_or_multi_batch(
         target_folders = tuple(
             folder
             for batch_dir in target_batch_dirs
-            for folder in discover_case_folders(batch_dir)
+            for folder in _resolve_target_folders_for_batch(
+                batch_dir=batch_dir,
+                config=config,
+            )
         )
-        target_folders = filter_case_folders(target_folders, config.target_cases)
         combined_base_dir = run_base_dir
         combined_workdir = combined_base_dir / "_batch_pipeline_all"
         print(f"Running one combined batch pipeline for: {combined_base_dir}")
@@ -64,9 +85,9 @@ def run_single_or_multi_batch(
         return
 
     for batch_dir in target_batch_dirs:
-        target_folders = filter_case_folders(
-            discover_case_folders(batch_dir),
-            config.target_cases,
+        target_folders = _resolve_target_folders_for_batch(
+            batch_dir=batch_dir,
+            config=config,
         )
         print(f"Running {execution_mode} pipeline for: {batch_dir}")
         run_pipeline_for_mode(
@@ -118,17 +139,20 @@ def run_with_stability(
                 continue
             shutil.rmtree(round_base_dir)
         round_base_dir.mkdir(parents=True, exist_ok=True)
+        source_folder_map: dict[Path, Path] = {}
 
         for source_batch_dir in source_batch_dirs:
             round_batch_dir = round_base_dir / f"{source_batch_dir.name}_output_round_{round_index}"
-            copy_batch_for_round(
-                source_batch_dir=source_batch_dir,
-                target_batch_dir=round_batch_dir,
-                target_cases=config.target_cases,
+            source_folder_map.update(
+                prepare_round_output_dirs(
+                    source_batch_dir=source_batch_dir,
+                    target_batch_dir=round_batch_dir,
+                    target_cases=config.target_cases,
+                )
             )
 
         run_single_or_multi_batch(
-            config=config,
+            config=replace(config, source_folder_map=source_folder_map),
             run_base_dir=round_base_dir,
             execution_mode=execution_mode,
             upload_all_files_in_one_batch=upload_all_files_in_one_batch,

@@ -17,19 +17,20 @@ construct a clear causal chain that explains how the accident developed.
 
 Requirements:
 
-- Identify the key causal steps from initiating condition to hazard consequence.
-- Focus on physical and process mechanisms.
-- Avoid listing unrelated observations, downstream damage descriptions, or duplicate restatements of the final hazard consequence.
-- Prefer concise, ordered, step-by-step causal progression.
-- Only include steps supported by the incident description or analysis text.
-- If multiple alternative causal mechanisms are described in the report, 
-  you must select the single most plausible or most directly supported mechanism 
-  and construct a single causal chain.
+  - Identify the key causal steps from initiating condition to hazard consequence.
+  - Focus on physical and process mechanisms.
+  - Avoid listing unrelated observations, downstream damage descriptions, or duplicate
+    restatements of the final hazard consequence.
+  - Prefer concise, ordered, step-by-step causal progression.
+  - Only include steps supported by the incident description or analysis text.
+  - If multiple alternative causal mechanisms are described in the report, you must select
+    the single most plausible or most directly supported mechanism and construct a single
+    causal chain.
 
-- Preference should be given to mechanisms that:
-  - are supported by more direct evidence
-  - are physically consistent with the identified hazard consequence
-  - require fewer assumptions
+  - Preference should be given to mechanisms that:
+    - are supported by more direct evidence
+    - are physically consistent with the identified hazard consequence
+    - require fewer assumptions
 
 Do NOT include alternative or parallel mechanisms in the same causal narrative.
 
@@ -48,10 +49,10 @@ Return a JSON object with this structure:
 
 Rules:
 
-- Use integer step_number values starting from 1.
-- Keep each description concise and mechanism-focused.
-- Order the steps causally from upstream setup/trigger to the hazard consequence.
-- Include the final realized hazard consequence as the last step when supported.
+  - Use integer step_number values starting from 1.
+  - Keep each description concise and mechanism-focused.
+  - Order the steps causally from upstream setup/trigger to the hazard consequence.
+  - Include the final realized hazard consequence as the last step when supported.
 
 OUTPUT FORMAT
 

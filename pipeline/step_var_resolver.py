@@ -71,6 +71,60 @@ def _read_text(path: Path) -> str:
     return path.read_text(encoding="utf-8").strip()
 
 
+def _extract_candidate_evidence_snippets(path: Path, limit: int = 8) -> str:
+    with path.open("r", encoding="utf-8") as fp:
+        data = json.load(fp)
+
+    snippets: List[str] = []
+    keys = (
+        "hazard_consequence_node",
+        "candidate_entity_nodes",
+        "candidate_condition_nodes",
+        "candidate_event_nodes",
+    )
+    for key in keys:
+        nodes = data.get(key, [])
+        if isinstance(nodes, dict):
+            nodes = [nodes]
+        if not isinstance(nodes, list):
+            continue
+        for node in nodes:
+            if not isinstance(node, dict):
+                continue
+            label = str(node.get("label") or "").strip()
+            name = str(node.get("name") or "").strip()
+            evidence = str(node.get("evidence") or "").strip()
+            if not evidence:
+                continue
+            snippets.append(f"{label}:{name} -> {evidence}")
+            if len(snippets) >= limit:
+                return "\n".join(snippets)
+    return "\n".join(snippets)
+
+
+def _extract_edge_candidate_evidence_snippets(path: Path, limit: int = 10) -> str:
+    with path.open("r", encoding="utf-8") as fp:
+        data = json.load(fp)
+
+    snippets: List[str] = []
+    edges = data.get("candidate_edges", [])
+    if not isinstance(edges, list):
+        return ""
+    for edge in edges:
+        if not isinstance(edge, dict):
+            continue
+        source = str(edge.get("source") or "").strip()
+        target = str(edge.get("target") or "").strip()
+        relation = str(edge.get("relation") or "").strip()
+        evidence = str(edge.get("evidence") or "").strip()
+        if not evidence:
+            continue
+        snippets.append(f"{source} -[{relation}]-> {target} :: {evidence}")
+        if len(snippets) >= limit:
+            break
+    return "\n".join(snippets)
+
+
 def _format_few_shot_example(title: str, sections: Iterable[tuple[str, str]]) -> str:
     lines: List[str] = [title, ""]
     for label, content in sections:
@@ -101,6 +155,21 @@ def _build_few_shot_examples(step_key: str, case_dirs: Iterable[Path]) -> str:
         elif step_key == "identify_accident_scenario":
             sections = [
                 (
+                    "SCENARIO_CANDIDATE_EXTRACTION_OUTPUT",
+                    _read_text(case_dir / "scenario_candidate_extraction_output.json"),
+                ),
+                (
+                    "SCENARIO_STRUCTURE_VALIDATION_OUTPUT",
+                    _read_text(case_dir / "scenario_structure_validation_output.json"),
+                ),
+                (
+                    "CORRECT OUTPUT",
+                    _read_text(case_dir / "identify_accident_scenario_output.json"),
+                ),
+            ]
+        elif step_key == "scenario_candidate_extraction":
+            sections = [
+                (
                     "INCIDENT_DESCRIPTION",
                     _extract_incident_text_from_json(case_dir / "identify_incident_output.json"),
                 ),
@@ -114,7 +183,32 @@ def _build_few_shot_examples(step_key: str, case_dirs: Iterable[Path]) -> str:
                 ),
                 (
                     "CORRECT OUTPUT",
-                    _read_text(case_dir / "identify_accident_scenario_output.json"),
+                    _read_text(case_dir / "scenario_candidate_extraction_output.json"),
+                ),
+            ]
+        elif step_key == "scenario_structure_validation":
+            sections = [
+                (
+                    "IDENTIFIED_HAZARD_CONSEQUENCE",
+                    _read_text(case_dir / "identify_hazard_consequence_output.json"),
+                ),
+                (
+                    "CAUSAL_NARRATIVE_EXTRACTION",
+                    _read_text(case_dir / "causal_narrative_extraction_output.json"),
+                ),
+                (
+                    "SCENARIO_CANDIDATE_EXTRACTION_OUTPUT",
+                    _read_text(case_dir / "scenario_candidate_extraction_output.json"),
+                ),
+                (
+                    "CANDIDATE_EVIDENCE_SNIPPETS",
+                    _extract_candidate_evidence_snippets(
+                        case_dir / "scenario_candidate_extraction_output.json"
+                    ),
+                ),
+                (
+                    "CORRECT OUTPUT",
+                    _read_text(case_dir / "scenario_structure_validation_output.json"),
                 ),
             ]
         elif step_key == "causal_narrative_extraction":
@@ -135,16 +229,68 @@ def _build_few_shot_examples(step_key: str, case_dirs: Iterable[Path]) -> str:
         elif step_key == "causal_edge_linking":
             sections = [
                 (
-                    "INCIDENT_DESCRIPTION",
-                    _extract_incident_text_from_json(case_dir / "identify_incident_output.json"),
+                    "CAUSAL_NARRATIVE_EXTRACTION",
+                    _read_text(case_dir / "causal_narrative_extraction_output.json"),
                 ),
                 (
-                    "IDENTIFY_ACCIDENT_SCENARIO",
+                    "IDENTIFY_ACCIDENT_SCENARIO_OUTPUT",
                     _read_text(case_dir / "identify_accident_scenario_output.json"),
+                ),
+                (
+                    "EDGE_CANDIDATE_EXTRACTION_OUTPUT",
+                    _read_text(case_dir / "edge_candidate_extraction_output.json"),
+                ),
+                (
+                    "EDGE_STRUCTURE_VALIDATION_OUTPUT",
+                    _read_text(case_dir / "edge_structure_validation_output.json"),
                 ),
                 (
                     "CORRECT OUTPUT",
                     _read_text(case_dir / "causal_edge_linking_output.json"),
+                ),
+            ]
+        elif step_key == "edge_candidate_extraction":
+            sections = [
+                (
+                    "INCIDENT_DESCRIPTION",
+                    _extract_incident_text_from_json(case_dir / "identify_incident_output.json"),
+                ),
+                (
+                    "CAUSAL_NARRATIVE_EXTRACTION",
+                    _read_text(case_dir / "causal_narrative_extraction_output.json"),
+                ),
+                (
+                    "IDENTIFY_ACCIDENT_SCENARIO_OUTPUT",
+                    _read_text(case_dir / "identify_accident_scenario_output.json"),
+                ),
+                (
+                    "CORRECT OUTPUT",
+                    _read_text(case_dir / "edge_candidate_extraction_output.json"),
+                ),
+            ]
+        elif step_key == "edge_structure_validation":
+            sections = [
+                (
+                    "CAUSAL_NARRATIVE_EXTRACTION",
+                    _read_text(case_dir / "causal_narrative_extraction_output.json"),
+                ),
+                (
+                    "IDENTIFY_ACCIDENT_SCENARIO_OUTPUT",
+                    _read_text(case_dir / "identify_accident_scenario_output.json"),
+                ),
+                (
+                    "EDGE_CANDIDATE_EXTRACTION_OUTPUT",
+                    _read_text(case_dir / "edge_candidate_extraction_output.json"),
+                ),
+                (
+                    "EDGE_CANDIDATE_EVIDENCE_SNIPPETS",
+                    _extract_edge_candidate_evidence_snippets(
+                        case_dir / "edge_candidate_extraction_output.json"
+                    ),
+                ),
+                (
+                    "CORRECT OUTPUT",
+                    _read_text(case_dir / "edge_structure_validation_output.json"),
                 ),
             ]
         elif step_key == "joint_accident_graph_extraction":
@@ -188,19 +334,38 @@ def _resolve_required_var(
     *,
     key: str,
     folder: Path,
+    source_folder: Path,
     hazards_json: Path,
     conditions_json: Path,
     project_root: Path,
 ) -> Any:
     required_vars = STEP_REGISTRY.get(key, {}).get("required_vars", {})
     explicit_source = required_vars.get(var_name) if isinstance(required_vars, dict) else None
+    if var_name == "candidate_evidence_snippets":
+        candidate_path = folder / "scenario_candidate_extraction_output.json"
+        if not candidate_path.exists():
+            candidate_path = source_folder / "scenario_candidate_extraction_output.json"
+        if candidate_path.exists():
+            return _extract_candidate_evidence_snippets(candidate_path)
+        return ""
+    if var_name == "edge_candidate_evidence_snippets":
+        candidate_path = folder / "edge_candidate_extraction_output.json"
+        if not candidate_path.exists():
+            candidate_path = source_folder / "edge_candidate_extraction_output.json"
+        if candidate_path.exists():
+            return _extract_edge_candidate_evidence_snippets(candidate_path)
+        return ""
     if explicit_source is not None:
         if explicit_source == "config:hazards_json":
             return hazards_json
         if explicit_source == "config:conditions_json":
             return conditions_json
         if isinstance(explicit_source, str) and explicit_source.startswith("folder:"):
-            return folder / explicit_source.split(":", 1)[1]
+            relative_path = explicit_source.split(":", 1)[1]
+            output_path = folder / relative_path
+            if output_path.exists():
+                return output_path
+            return source_folder / relative_path
         if isinstance(explicit_source, str) and explicit_source.startswith("project:"):
             return project_root / explicit_source.split(":", 1)[1]
         raise KeyError(
@@ -216,12 +381,16 @@ def _resolve_required_var(
 
     if var_name == "incident_description":
         incident_json_path = folder / "identify_incident_output.json"
+        if not incident_json_path.exists():
+            incident_json_path = source_folder / "identify_incident_output.json"
         if incident_json_path.exists():
             return _extract_incident_text_from_json(incident_json_path)
         return folder / "identify_incident_output.txt"
 
     if var_name == "identify_incident_output":
         incident_json_path = folder / "identify_incident_output.json"
+        if not incident_json_path.exists():
+            incident_json_path = source_folder / "identify_incident_output.json"
         if incident_json_path.exists():
             return _extract_incident_text_from_json(incident_json_path)
         return folder / "identify_incident_output.txt"
@@ -248,6 +417,7 @@ def _build_vars_from_registry(
     key: str,
     *,
     folder: Path,
+    source_folder: Path,
     hazards_json: Path,
     conditions_json: Path,
     project_root: Path,
@@ -264,6 +434,7 @@ def _build_vars_from_registry(
             var_name,
             key=key,
             folder=folder,
+            source_folder=source_folder,
             hazards_json=hazards_json,
             conditions_json=conditions_json,
             project_root=project_root,
@@ -284,6 +455,7 @@ def get_step_var_builder(
     project_root: Path,
     use_few_shot: bool = False,
     few_shot_cases: Iterable[Path] = (),
+    source_folder_map: dict[Path, Path] | None = None,
 ) -> Callable[[Path], Dict[str, Any]]:
     if key not in STEP_REGISTRY:
         raise KeyError(f"Unsupported step key in STEP_REGISTRY: {key}")
@@ -291,6 +463,7 @@ def get_step_var_builder(
     return lambda folder: _build_vars_from_registry(
         key=key,
         folder=folder,
+        source_folder=(source_folder_map or {}).get(folder, folder),
         hazards_json=hazards_json,
         conditions_json=conditions_json,
         project_root=project_root,

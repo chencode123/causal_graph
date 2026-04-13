@@ -33,6 +33,7 @@ DEFAULT_FOLDER = Path("runs/stability_test_batch_1_9")  # Default base folder fo
 SHOW_PROGRESS = True  # Default progress-bar visibility; can still be overridden by --show-progress/--hide-progress.
 COMPUTE_GED_OPERATION_COUNTS = False  # Whether to run the expensive node/edge edit-operation counting step by default.
 DEFAULT_WORKERS = 2  # Safer default on Windows to avoid process-pool crashes from heavy native imports.
+EXACT_GED = True
 
 if str(SCRIPTS_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPTS_DIR))
@@ -107,8 +108,21 @@ def parse_args() -> argparse.Namespace:
         action="store_false",
         help="Hide the live tqdm progress bar and only print summary output.",
     )
+    parser.add_argument(
+        "--exact-ged",
+        dest="exact_ged",
+        action="store_true",
+        help="Exhaust GED candidates and take the minimum value.",
+    )
+    parser.add_argument(
+        "--fast-ged",
+        dest="exact_ged",
+        action="store_false",
+        help="Use only the first GED candidate for faster but less reliable results.",
+    )
     parser.set_defaults(compute_ged_operation_counts=COMPUTE_GED_OPERATION_COUNTS)
     parser.set_defaults(show_progress=SHOW_PROGRESS)
+    parser.set_defaults(exact_ged=EXACT_GED)
     return parser.parse_args()
 
 
@@ -170,6 +184,8 @@ def main() -> None:
             sys.argv.append("--skip-ged-operation-counts")
         if not args.show_progress:
             sys.argv.append("--hide-progress")
+        if not args.exact_ged:
+            sys.argv.append("--fast-ged")
         results_dir = eval_module.main()
         figures_dir = plot_module.generate_all_figures(results_dir)
         print(f"Saved evaluation figures to {figures_dir}.")

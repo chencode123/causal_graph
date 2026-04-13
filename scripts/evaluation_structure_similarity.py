@@ -208,8 +208,21 @@ def parse_args() -> argparse.Namespace:
         action="store_false",
         help="Hide the live tqdm progress bar and only print summary output.",
     )
+    parser.add_argument(
+        "--exact-ged",
+        dest="exact_ged",
+        action="store_true",
+        help="Exhaust GED candidates and take the minimum value.",
+    )
+    parser.add_argument(
+        "--fast-ged",
+        dest="exact_ged",
+        action="store_false",
+        help="Use only the first GED candidate for faster but less reliable results.",
+    )
     parser.set_defaults(compute_ged_operation_counts=True)
     parser.set_defaults(show_progress=True)
+    parser.set_defaults(exact_ged=True)
     return parser.parse_args()
 
 
@@ -355,6 +368,8 @@ def edge_labels_match(left: Dict[str, Any], right: Dict[str, Any]) -> bool:
 def compute_graph_edit_metrics(
     generated_graph: nx.DiGraph,
     updated_graph: nx.DiGraph,
+    *,
+    exact_ged: bool = True,
 ) -> Tuple[float, float, float]:
     """Compute GED, normalized GED, and GED-based similarity."""
     ged_candidates = nx.optimize_graph_edit_distance(
@@ -362,7 +377,10 @@ def compute_graph_edit_metrics(
         updated_graph,
         node_match=node_labels_match,
     )
-    graph_edit_distance = float(next(ged_candidates))
+    try:
+        graph_edit_distance = float(min(ged_candidates) if exact_ged else next(ged_candidates))
+    except ValueError:
+        graph_edit_distance = 0.0
     size_denominator = (
         generated_graph.number_of_nodes()
         + updated_graph.number_of_nodes()
@@ -522,6 +540,7 @@ def evaluate_case(
     case_folder: Path,
     parent_dir: Path,
     compute_ged_operation_counts: bool = True,
+    exact_ged: bool = True,
 ) -> Dict[str, Any]:
     """Evaluate one case folder and return a CSV-ready row."""
     case_id = case_folder.name
@@ -586,7 +605,7 @@ def evaluate_case(
             graph_edit_distance,
             normalized_graph_edit_distance,
             graph_edit_similarity,
-        ) = compute_graph_edit_metrics(generated_graph, updated_graph)
+        ) = compute_graph_edit_metrics(generated_graph, updated_graph, exact_ged=exact_ged)
         if compute_ged_operation_counts:
             operation_counts = compute_graph_edit_operation_counts(generated_graph, updated_graph)
         else:
@@ -615,7 +634,11 @@ def evaluate_case(
                 accept_all_graph_edit_distance,
                 accept_all_normalized_graph_edit_distance,
                 accept_all_graph_edit_similarity,
-            ) = compute_graph_edit_metrics(accept_all_graph, updated_graph)
+            ) = compute_graph_edit_metrics(
+                accept_all_graph,
+                updated_graph,
+                exact_ged=exact_ged,
+            )
             if compute_ged_operation_counts:
                 raw_accept_all_operation_counts = compute_graph_edit_operation_counts(
                     accept_all_graph,
@@ -683,10 +706,16 @@ def evaluate_case_with_timing(
     case_folder: Path,
     parent_dir: Path,
     compute_ged_operation_counts: bool = True,
+    exact_ged: bool = True,
 ) -> Tuple[Dict[str, Any], float]:
     """Evaluate one case and return both the row and elapsed seconds."""
     started_at = time.perf_counter()
-    row = evaluate_case(case_folder, parent_dir, compute_ged_operation_counts)
+    row = evaluate_case(
+        case_folder,
+        parent_dir,
+        compute_ged_operation_counts,
+        exact_ged=exact_ged,
+    )
     elapsed_seconds = time.perf_counter() - started_at
     return row, elapsed_seconds
 
@@ -1033,6 +1062,7 @@ def evaluate_cases_with_progress(
     workers: int | None = None,
     compute_ged_operation_counts: bool = True,
     show_progress: bool = True,
+    exact_ged: bool = True,
 ) -> List[Dict[str, Any]]:
     """Evaluate all cases with a progress bar and runtime summary."""
     case_rows: List[Dict[str, Any]] = []
@@ -1055,6 +1085,7 @@ def evaluate_cases_with_progress(
                 folder,
                 parent_dir,
                 compute_ged_operation_counts,
+                exact_ged=exact_ged,
             )
             case_rows.append(row)
             case_timings.append(
@@ -1089,6 +1120,7 @@ def evaluate_cases_with_progress(
                     folder,
                     parent_dir,
                     compute_ged_operation_counts,
+                    exact_ged,
                 )
                 futures[future] = index
                 future_meta[future] = (index, folder, time.perf_counter())
@@ -1177,6 +1209,7 @@ def main() -> Path:
         args.workers,
         compute_ged_operation_counts=args.compute_ged_operation_counts,
         show_progress=args.show_progress,
+        exact_ged=args.exact_ged,
     )
     batch_rows = build_batch_rows(case_rows)
     overall_rows = build_overall_summary(case_rows, batch_rows)

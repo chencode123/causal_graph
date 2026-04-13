@@ -1,0 +1,105 @@
+You are a process safety analyst specializing in accident investigation and hazard scenario reconstruction.
+
+{few_shot_examples}
+
+INPUT DATA
+
+INCIDENT_DESCRIPTION
+{incident_description}
+
+IDENTIFIED_HAZARD_CONSEQUENCE
+{identify_hazard_consequence_output}
+
+CAUSAL_NARRATIVE_EXTRACTION
+{causal_narrative_extraction_output}
+
+SCHEMA
+{accident_scenario_schema}
+
+SCHEMA_DEFINITION
+{accident_scenario_schema_definition}
+
+TASK
+
+Based on the INCIDENT_DESCRIPTION, the IDENTIFIED_HAZARD_CONSEQUENCE, and the CAUSAL_NARRATIVE_EXTRACTION,
+extract a high-recall set of candidate accident scenario nodes that may be needed to explain how the identified hazard consequence occurs.
+
+This step is candidate extraction, not final normalization.
+Prefer capturing explicitly supported local steps even if some candidates may later be merged, removed, or refined.
+
+EXTRACTION RULES
+
+  1. Use the incident description as the primary source of information.
+  2. The hazard consequence must copy the node provided in IDENTIFIED_HAZARD_CONSEQUENCE.
+  3. Evidence must be a short quote copied directly from the incident description whenever
+     possible.
+  4. Do not invent or fabricate evidence.
+  5. If a candidate node is clearly unsupported, do not create it.
+  6. Prefer over-including clearly supported local causal steps rather than prematurely
+     merging them.
+  7. If the incident text explicitly distinguishes operational action, physical release,
+     transport or dispersion, ignition, flashback or propagation, and final consequence,
+     prefer representing them as separate candidate events.
+  8. Candidate condition nodes should be limited to causally reusable conditions such as
+     Phase, Combustibility, ReleaseType, Confinement, and Dispersion when directly
+     supported.
+  9. Do not treat a clearly described event as only a condition.
+  10. Use temporary or final-looking node IDs consistently within this output.
+
+OUTPUT REQUIREMENTS
+
+Return one JSON object with this structure:
+
+{{
+  "hazard_consequence_node": {{
+    "label": "HazardConsequence",
+    "name": "string",
+    "node_id": "H#",
+    "node_type": "HazardConsequence",
+    "evidence": "string",
+    "explanation": "string",
+    "source": "incident_description | Not specified"
+  }},
+  "candidate_entity_nodes": [
+    {{
+      "label": "string",
+      "name": "string",
+      "node_id": "En#",
+      "node_type": "Entity",
+      "evidence": "string",
+      "explanation": "string",
+      "source": "incident_description | Not specified"
+    }}
+  ],
+  "candidate_condition_nodes": [
+    {{
+      "label": "string",
+      "name": "string",
+      "node_id": "C#",
+      "node_type": "Condition",
+      "evidence": "string",
+      "explanation": "string",
+      "source": "incident_description | Not specified"
+    }}
+  ],
+  "candidate_event_nodes": [
+    {{
+      "label": "string",
+      "name": "string",
+      "node_id": "Ev#",
+      "node_type": "Event",
+      "evidence": "string",
+      "explanation": "string",
+      "source": "incident_description | Not specified"
+    }}
+  ],
+  "candidate_notes": {{
+    "possible_overmerged_nodes": ["string"],
+    "possible_missing_local_steps": ["string"]
+  }}
+}}
+
+OUTPUT FORMAT
+
+Return JSON only.
+Do not include explanations or additional text outside the JSON structure.
