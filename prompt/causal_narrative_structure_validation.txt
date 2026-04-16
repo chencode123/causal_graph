@@ -1,0 +1,128 @@
+You are a process safety analyst.
+
+{few_shot_examples}
+
+INPUT DATA
+
+INCIDENT_DESCRIPTION
+{incident_description}
+
+IDENTIFIED_HAZARD_CONSEQUENCE
+{identify_hazard_consequence_output}
+
+CAUSAL_NARRATIVE_CANDIDATE_EXTRACTION_OUTPUT
+{causal_narrative_candidate_extraction_output}
+
+TASK
+
+Review the candidate causal steps and supporting evidence, and determine the
+best-supported single primary causal chain.
+
+Requirements:
+
+  - Use the candidate extraction output as the primary working draft.
+  - Use the incident description to verify support, identify clear missing mechanisms,
+    and reject unsupported or non-causal items.
+  - Do not reconstruct a new causal chain from scratch unless the candidate output is
+    clearly deficient.
+  - Validate whether each candidate step is sufficiently supported.
+  - Determine whether each candidate step plays an independent causal role in the
+    primary accident-development chain.
+  - Reject candidate steps that are unsupported, redundant, too weakly supported,
+    alternative, purely downstream damage, or otherwise not part of the single
+    primary chain.
+  - Identify missing causal steps when the evidence clearly supports an independent
+    mechanism needed to connect accepted steps.
+  - Identify merge decisions when two candidate steps describe the same mechanism
+    at slightly different wording or granularity.
+  - Reorder accepted steps into a coherent causal sequence from upstream setup or
+    trigger to realized hazard consequence.
+  - Ensure the final accepted chain ends at the identified hazard consequence.
+
+Validation guidance:
+
+  - Prefer the single mechanism that is most directly supported by the evidence.
+  - Do not mix alternative or parallel mechanisms into the final chain plan.
+  - Do not include emergency response, broad management issues, or general lessons
+    unless they directly and independently change the physical accident progression.
+  - Treat a step as missing if the evidence supports an independent local causal
+    mechanism between two accepted steps.
+  - Treat a step as redundant if it only restates the same mechanism without adding
+    a distinct causal transition.
+
+OUTPUT REQUIREMENTS
+
+Return a JSON object with this structure:
+
+{{
+  "verification_checks": [
+    {{
+      "check_id": "V1",
+      "question": "Are accepted steps sufficiently supported by evidence?",
+      "result": "pass",
+      "finding": "..."
+    }}
+  ],
+  "validated_step_decisions": [
+    {{
+      "candidate_id": "CN1",
+      "decision": "accept",
+      "reason": "...",
+      "validated_order": 1,
+      "final_role": "enabling_condition"
+    }}
+  ],
+  "missing_step_proposals": [
+    {{
+      "proposed_id": "MS1",
+      "description": "...",
+      "insert_after_candidate_id": "CN2",
+      "evidence_ids": ["E4"],
+      "reason": "..."
+    }}
+  ],
+  "merge_decisions": [
+    {{
+      "merged_candidate_ids": ["CN3", "CN4"],
+      "merged_description": "...",
+      "reason": "..."
+    }}
+  ],
+  "rejected_steps": [
+    {{
+      "candidate_id": "CN7",
+      "reason": "..."
+    }}
+  ],
+  "final_chain_plan": [
+    {{
+      "order": 1,
+      "source": "candidate:CN1",
+      "description": "..."
+    }},
+    {{
+      "order": 2,
+      "source": "missing:MS1",
+      "description": "..."
+    }}
+  ]
+}}
+
+Rules:
+
+  - Use decision values accept or reject.
+  - Use result values pass or fail.
+  - validated_order must start from 1 for accepted candidate steps.
+  - final_chain_plan must represent one single primary causal chain only.
+  - final_chain_plan descriptions should already be concise and suitable for
+    final causal narrative drafting.
+  - The last item in final_chain_plan must match the realized hazard consequence
+    when supported.
+  - If no missing steps are needed, return an empty list.
+  - If no merges are needed, return an empty list.
+  - Return JSON only.
+
+OUTPUT FORMAT
+
+Return JSON only.
+Do not include explanations or additional text outside the JSON structure.

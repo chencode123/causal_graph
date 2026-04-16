@@ -20,12 +20,50 @@ STEP_REGISTRY: Dict[str, Dict[str, Any]] = {
             "verbosity": None,
         },
     },
-    "causal_narrative_extraction": {
-        "output_file": "causal_narrative_extraction_output.json",
+    "causal_narrative_candidate_extraction": {
+        "output_file": "causal_narrative_candidate_extraction_output.json",
         "required_vars": {
             "incident_description": "folder:identify_incident_output.json",
             "identify_hazard_consequence_output": (
                 "folder:identify_hazard_consequence_output.json"
+            ),
+        },
+        "default_params": {
+            "enabled": True,
+            "reasoning_effort": None,
+            "temperature": None,
+            "verbosity": None,
+        },
+    },
+    "causal_narrative_structure_validation": {
+        "output_file": "causal_narrative_structure_validation_output.json",
+        "required_vars": {
+            "incident_description": "folder:identify_incident_output.json",
+            "identify_hazard_consequence_output": (
+                "folder:identify_hazard_consequence_output.json"
+            ),
+            "causal_narrative_candidate_extraction_output": (
+                "folder:causal_narrative_candidate_extraction_output.json"
+            ),
+        },
+        "default_params": {
+            "enabled": True,
+            "reasoning_effort": None,
+            "temperature": None,
+            "verbosity": None,
+        },
+    },
+    "causal_narrative_extraction": {
+        "output_file": "causal_narrative_extraction_output.json",
+        "required_vars": {
+            "identify_hazard_consequence_output": (
+                "folder:identify_hazard_consequence_output.json"
+            ),
+            "causal_narrative_candidate_extraction_output": (
+                "folder:causal_narrative_candidate_extraction_output.json"
+            ),
+            "causal_narrative_structure_validation_output": (
+                "folder:causal_narrative_structure_validation_output.json"
             ),
         },
         "default_params": {

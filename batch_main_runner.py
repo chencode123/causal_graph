@@ -41,12 +41,12 @@ load_dotenv(dotenv_path=Path(__file__).with_name(".env_openai"), override=True)
 # CONFIG
 # ================================================================
 #############################################################################更新所有的update_html
-BASE_DIR = Path(r"runs\stability_test\batch_4_without_few_shot_reruns\round_2")  # Can point to a single batch dir or a folder containing batch_* subdirs.
+BASE_DIR = Path(r"runs\stability_test\batch_4_without_few_shot_reruns_cov")  # Can point to a single batch dir or a folder containing batch_* subdirs.
 EXECUTION_MODE = "responses"  # "batch" uses OpenAI Batch API; "responses" uses direct Responses API for faster iteration/debugging.
 RESPONSES_ASYNC_ENABLED = True  # Only applies when EXECUTION_MODE="responses"; when True, folders within each step run concurrently.
 UPLOAD_ALL_FILES_IN_ONE_BATCH = False  # Merge all discovered case folders into one large job per step when multiple batch_* dirs are present.
 TARGET_CASES = None
-# TARGET_CASES = ("round_1",)  # Only use round_1 as the source case for stability reruns.
+# TARGET_CASES = ("1",)  # Only use round_1 as the source case for stability reruns.
 STABILITY_ROUNDS = 1  # Generate round_2 and round_3 from the source case.
 STABILITY_START_ROUND = 1  # Starting round index for resumable naming.
 STABILITY_RESUME = False  # Skip a round when its output folder already exists.
@@ -58,7 +58,7 @@ REASONING_EFFORT = "high"
 VERBOSITY = "medium"
 FORCE_JSON_OUTPUT = True
 SAVE_RAW_RESPONSE = True
-MAX_OUTPUT_TOKENS = 128000
+MAX_OUTPUT_TOKENS = 32000
 CALL_SLEEP_SECONDS = 0.0
 REMOVE_SHORTCUT_EDGES = False
 HAZARDS_JSON_PATH = Path("prompt/hazards_consequence.json")
@@ -77,15 +77,17 @@ FEW_SHOT_PATTERN_FILES_BY_STEP = {
 }
 ACTIVE_STEP_KEYS = (
     # "identify_hazard_consequence",
+    # "causal_narrative_candidate_extraction",
+    # "causal_narrative_structure_validation",
     # "causal_narrative_extraction",
     # "scenario_candidate_extraction",
     # "scenario_structure_validation",
     # "identify_accident_scenario",
-    # "edge_candidate_extraction",
-    # "edge_structure_validation",
-    # "causal_edge_linking",
-    # "graph_diagnosis",
-    # "graph_revision_planning",
+    "edge_candidate_extraction",
+    "edge_structure_validation",
+    "causal_edge_linking",
+    "graph_diagnosis",
+    "graph_revision_planning",
     # "review_feedback_analysis", 
 )
 

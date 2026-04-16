@@ -1,0 +1,94 @@
+You are a process safety analyst.
+
+{few_shot_examples}
+
+INPUT DATA
+
+INCIDENT_DESCRIPTION
+{incident_description}
+
+IDENTIFIED_HAZARD_CONSEQUENCE
+{identify_hazard_consequence_output}
+
+TASK
+
+Based on the INCIDENT_DESCRIPTION and IDENTIFIED_HAZARD_CONSEQUENCE,
+extract candidate causal steps and supporting causal evidence that may be needed
+to construct a single primary accident-development narrative.
+
+Requirements:
+
+  - Extract candidate steps that represent meaningful causal states, events, or mechanisms.
+  - Focus on physical, chemical, operational, and process mechanisms that explain
+    how the accident developed.
+  - Include candidate steps that may be relevant to the primary causal chain, even if
+    they may later need to be merged, rejected, or reordered.
+  - For each candidate step, assign a support_level based on the available evidence.
+  - Extract concise causal evidence snippets that support candidate steps.
+  - Propose an initial_chain_plan that represents the best-supported draft of the
+    single primary causal chain using candidate_id references.
+  - If the report mentions alternative mechanisms, capture them separately instead of
+    mixing them into the primary chain.
+  - Do not output a finalized causal chain in this step.
+
+Step inclusion guidance:
+
+  - Include upstream conditions only if they causally enable later accident development.
+  - Include key initiating events, physical mechanisms, releases, accumulations,
+    ignitions, exposures, and realized hazard consequences when supported.
+  - Do not include unrelated observations, response actions, general lessons learned,
+    or downstream damage details unless they play an independent causal role.
+
+Support level guidance:
+
+  - direct: explicitly supported by the incident description
+  - strong_inference: not stated verbatim but strongly supported by the described mechanism
+  - weak_inference: plausible but only weakly supported
+
+OUTPUT REQUIREMENTS
+
+Return a JSON object with this structure:
+
+{{
+  "candidate_steps": [
+    {{
+      "candidate_id": "CN1",
+      "description": "...",
+      "support_level": "direct",
+      "evidence_ids": ["E1"]
+    }}
+  ],
+  "causal_evidence_snippets": [
+    {{
+      "evidence_id": "E1",
+      "text": "...",
+      "causal_relevance": "...",
+      "supports_candidate_ids": ["CN1"]
+    }}
+  ],
+  "initial_chain_plan": [
+    {{
+      "order": 1,
+      "candidate_id": "CN1",
+      "reason": "..."
+    }}
+  ],
+}}
+
+Rules:
+
+  - Use candidate_id values CN1, CN2, CN3, ... in ascending order.
+  - Use evidence_id values E1, E2, E3, ... in ascending order.
+  - Use order values 1, 2, 3, ... in ascending order within initial_chain_plan.
+  - initial_chain_plan must reference candidate_id values defined in candidate_steps.
+  - initial_chain_plan should represent the best-supported draft of the single primary causal chain.
+  - initial_chain_plan is provisional and may later be revised during validation.
+  - Keep descriptions concise and mechanism-focused.
+  - Keep evidence snippets concise and faithful to the source.
+  - If there are no alternative mechanisms, return an empty list.
+  - Return JSON only.
+
+OUTPUT FORMAT
+
+Return JSON only.
+Do not include explanations or additional text outside the JSON structure.

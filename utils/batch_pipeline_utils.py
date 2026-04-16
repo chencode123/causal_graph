@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
+import re
 import shutil
 
 
@@ -40,7 +41,6 @@ def build_few_shot_cases_by_step(
         step_key: tuple(few_shot_cases)
         for step_key in (
             "identify_hazard_consequence",
-            "causal_narrative_extraction",
             "scenario_candidate_extraction",
             "scenario_structure_validation",
             "identify_accident_scenario",
@@ -54,7 +54,13 @@ def build_few_shot_cases_by_step(
 
 
 def iter_target_batch_dirs(base_dir: Path) -> list[Path]:
-    """Return target batch dirs based on the current BASE_DIR contents."""
+    """Return target run dirs based on the current BASE_DIR contents.
+
+    Preference order:
+    1. child ``batch*`` directories
+    2. child ``round_<n>`` directories
+    3. the base directory itself
+    """
     child_batch_dirs = sorted(
         path
         for path in base_dir.iterdir()
@@ -63,7 +69,16 @@ def iter_target_batch_dirs(base_dir: Path) -> list[Path]:
         and not path.name.endswith("_reruns")
         and path.name != "results"
     )
-    return child_batch_dirs or [base_dir]
+    if child_batch_dirs:
+        return child_batch_dirs
+
+    child_round_dirs = sorted(
+        path
+        for path in base_dir.iterdir()
+        if path.is_dir()
+        and re.fullmatch(r"round_\d+", path.name.lower())
+    )
+    return child_round_dirs or [base_dir]
 
 
 def filter_case_folders(

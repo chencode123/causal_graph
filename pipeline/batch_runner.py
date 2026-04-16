@@ -37,6 +37,12 @@ def _load_required_prompts() -> Dict[str, str]:
     """Load only the prompt files required by the current pipeline."""
     prompt_paths = {
         "identify_hazard_consequence": Path("prompt/identify_hazard_consequence.txt"),
+        "causal_narrative_candidate_extraction": Path(
+            "prompt/causal_narrative_candidate_extraction.txt"
+        ),
+        "causal_narrative_structure_validation": Path(
+            "prompt/causal_narrative_structure_validation.txt"
+        ),
         "causal_narrative_extraction": Path("prompt/causal_narrative_extraction.txt"),
         "scenario_candidate_extraction": Path("prompt/scenario_candidate_extraction.txt"),
         "scenario_structure_validation": Path("prompt/scenario_structure_validation.txt"),

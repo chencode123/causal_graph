@@ -284,7 +284,7 @@ def _build_few_shot_examples(step_key: str, case_dirs: Iterable[Path]) -> str:
                     _read_text(case_dir / "scenario_structure_validation_output.json"),
                 ),
             ]
-        elif step_key == "causal_narrative_extraction":
+        elif step_key == "causal_narrative_candidate_extraction":
             sections = [
                 (
                     "INCIDENT_DESCRIPTION",
@@ -293,6 +293,44 @@ def _build_few_shot_examples(step_key: str, case_dirs: Iterable[Path]) -> str:
                 (
                     "IDENTIFIED_HAZARD_CONSEQUENCE",
                     _read_text(case_dir / "identify_hazard_consequence_output.json"),
+                ),
+                (
+                    "CORRECT OUTPUT",
+                    _read_text(case_dir / "causal_narrative_candidate_extraction_output.json"),
+                ),
+            ]
+        elif step_key == "causal_narrative_structure_validation":
+            sections = [
+                (
+                    "INCIDENT_DESCRIPTION",
+                    _extract_incident_text_from_json(case_dir / "identify_incident_output.json"),
+                ),
+                (
+                    "IDENTIFIED_HAZARD_CONSEQUENCE",
+                    _read_text(case_dir / "identify_hazard_consequence_output.json"),
+                ),
+                (
+                    "CAUSAL_NARRATIVE_CANDIDATE_EXTRACTION_OUTPUT",
+                    _read_text(case_dir / "causal_narrative_candidate_extraction_output.json"),
+                ),
+                (
+                    "CORRECT OUTPUT",
+                    _read_text(case_dir / "causal_narrative_structure_validation_output.json"),
+                ),
+            ]
+        elif step_key == "causal_narrative_extraction":
+            sections = [
+                (
+                    "IDENTIFIED_HAZARD_CONSEQUENCE",
+                    _read_text(case_dir / "identify_hazard_consequence_output.json"),
+                ),
+                (
+                    "CAUSAL_NARRATIVE_CANDIDATE_EXTRACTION_OUTPUT",
+                    _read_text(case_dir / "causal_narrative_candidate_extraction_output.json"),
+                ),
+                (
+                    "CAUSAL_NARRATIVE_STRUCTURE_VALIDATION_OUTPUT",
+                    _read_text(case_dir / "causal_narrative_structure_validation_output.json"),
                 ),
                 (
                     "CORRECT OUTPUT",

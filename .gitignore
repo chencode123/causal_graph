@@ -6,3 +6,11 @@ runs/
 
 # figures
 figures/
+
+# Python caches
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Test/tool caches
+.pytest_cache/
