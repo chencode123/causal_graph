@@ -21,12 +21,14 @@ class PipelineConfig:
     conditions_json_path: Path
     use_few_shot: bool = False
     few_shot_cases_by_step: dict[str, tuple[Path, ...]] | None = None
+    few_shot_pattern_files_by_step: dict[str, tuple[Path, ...]] | None = None
     target_folders: tuple[Path, ...] | None = None
     target_cases: tuple[str, ...] | None = None
     batch_workdir: Path | None = None
     active_step_keys: tuple[str, ...] | None = None
     source_folder_map: dict[Path, Path] | None = None
     remove_shortcut_edges: bool = True
+    responses_async_enabled: bool = False
 
 
 def build_few_shot_cases_by_step(
@@ -113,6 +115,7 @@ def prepare_round_output_dirs(
     source_batch_dir: Path,
     target_batch_dir: Path,
     target_cases: tuple[str, ...] | None,
+    excluded_filenames: set[str] | None = None,
 ) -> dict[Path, Path]:
     """Prepare empty round output folders and return output->source case folder mapping."""
     if target_batch_dir.exists():
@@ -123,12 +126,49 @@ def prepare_round_output_dirs(
     source_case_dirs = filter_case_folders(discover_case_folders(source_batch_dir), target_cases)
 
     if is_case_folder(source_batch_dir):
-        target_batch_dir.mkdir(parents=True, exist_ok=True)
+        copy_case_seed_files(
+            source_case_dir=source_batch_dir,
+            target_case_dir=target_batch_dir,
+            excluded_filenames=excluded_filenames,
+        )
         folder_map[target_batch_dir] = source_batch_dir
         return folder_map
 
     for source_case_dir in source_case_dirs:
         output_case_dir = target_batch_dir / source_case_dir.name
-        output_case_dir.mkdir(parents=True, exist_ok=True)
+        copy_case_seed_files(
+            source_case_dir=source_case_dir,
+            target_case_dir=output_case_dir,
+            excluded_filenames=excluded_filenames,
+        )
         folder_map[output_case_dir] = source_case_dir
     return folder_map
+
+
+def copy_case_seed_files(
+    *,
+    source_case_dir: Path,
+    target_case_dir: Path,
+    excluded_filenames: set[str] | None = None,
+) -> None:
+    """Copy stable seed files needed to rerun a case into a fresh output folder."""
+    excluded = set(excluded_filenames or ())
+    excluded.update(
+        {
+            "updated_causal_graph_accept_all.json",
+            "updated_causal_graph_accept_all.html",
+            "updated_causal_graph_review_state_accept_all.json",
+        }
+    )
+    target_case_dir.mkdir(parents=True, exist_ok=True)
+
+    for path in source_case_dir.iterdir():
+        if path.is_dir():
+            continue
+        if path.name in excluded:
+            continue
+        if path.name.endswith("_error.txt"):
+            continue
+        if path.suffix.lower() not in {".json", ".txt", ".md", ".html", ".docx"}:
+            continue
+        shutil.copy2(path, target_case_dir / path.name)

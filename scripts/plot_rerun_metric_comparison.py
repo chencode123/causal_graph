@@ -14,6 +14,7 @@ WL_COLUMN = "structural_similarity"
 NORM_GED_COLUMN = "normalized_graph_edit_distance"
 SEMANTIC_PRIMARY_COLUMN = "semantic_similarity_generated_vs_updated"
 SEMANTIC_FALLBACK_COLUMN = "semantic_similarity"
+CAUSAL_NARRATIVE_COLUMN = "causal_narrative_similarity"
 DEFAULT_STABILITY_ROOT = Path(r"runs\temproal_result_5_step_batch_4_stability_test_123")
 
 
@@ -126,17 +127,22 @@ def collect_rerun_metrics(
             one_minus_norm_ged_values.append(1.0 - norm_ged)
 
     semantic_values: List[float] = []
+    causal_narrative_values: List[float] = []
     for row in semantic_rows:
         semantic_value = to_float(row.get(SEMANTIC_PRIMARY_COLUMN, ""))
         if semantic_value is None:
             semantic_value = to_float(row.get(SEMANTIC_FALLBACK_COLUMN, ""))
         if semantic_value is not None:
             semantic_values.append(semantic_value)
+        causal_narrative_value = to_float(row.get(CAUSAL_NARRATIVE_COLUMN, ""))
+        if causal_narrative_value is not None:
+            causal_narrative_values.append(causal_narrative_value)
 
     return {
         "wl_kernel_similarity": wl_values,
         "one_minus_normalized_ged": one_minus_norm_ged_values,
         "semantic_similarity": semantic_values,
+        "causal_narrative_similarity": causal_narrative_values,
     }
 
 
@@ -155,17 +161,22 @@ def collect_metrics_from_rows(
             one_minus_norm_ged_values.append(1.0 - norm_ged)
 
     semantic_values: List[float] = []
+    causal_narrative_values: List[float] = []
     for row in semantic_rows:
         semantic_value = to_float(row.get(SEMANTIC_PRIMARY_COLUMN, ""))
         if semantic_value is None:
             semantic_value = to_float(row.get(SEMANTIC_FALLBACK_COLUMN, ""))
         if semantic_value is not None:
             semantic_values.append(semantic_value)
+        causal_narrative_value = to_float(row.get(CAUSAL_NARRATIVE_COLUMN, ""))
+        if causal_narrative_value is not None:
+            causal_narrative_values.append(causal_narrative_value)
 
     return {
         "wl_kernel_similarity": wl_values,
         "one_minus_normalized_ged": one_minus_norm_ged_values,
         "semantic_similarity": semantic_values,
+        "causal_narrative_similarity": causal_narrative_values,
     }
 
 
@@ -198,13 +209,14 @@ def plot_grouped_boxplot(
     metric_keys = [
         ("wl_kernel_similarity", "WL kernel"),
         ("one_minus_normalized_ged", "1 - normGED"),
-        ("semantic_similarity", "Semantic"),
+        ("semantic_similarity", "Graph semantic"),
+        ("causal_narrative_similarity", "Narrative"),
     ]
-    metric_colors = ["#4C72B0", "#C44E52", "#55A868"]
+    metric_colors = ["#4C72B0", "#C44E52", "#55A868", "#8172B3"]
     n_groups = len(labels)
     x = np.arange(n_groups, dtype=float)
-    width = 0.22
-    offsets = np.array([-width, 0.0, width], dtype=float)
+    width = 0.18
+    offsets = np.linspace(-1.5 * width, 1.5 * width, len(metric_keys), dtype=float)
 
     fig, ax = plt.subplots(figsize=(9.5, 5.8))
     style_axes(ax)
@@ -259,16 +271,18 @@ def plot_radar_chart(
     metrics_by_label: Dict[str, Dict[str, List[float]]],
     output_dir: Path,
 ) -> None:
-    axes_labels = ["WL kernel", "1 - normGED", "Semantic"]
+    axes_labels = ["WL kernel", "1 - normGED", "Graph semantic", "Narrative"]
     means_by_label: Dict[str, List[float]] = {}
     for label in labels:
         wl_values = metrics_by_label[label]["wl_kernel_similarity"]
         ged_values = metrics_by_label[label]["one_minus_normalized_ged"]
         semantic_values = metrics_by_label[label]["semantic_similarity"]
+        causal_narrative_values = metrics_by_label[label]["causal_narrative_similarity"]
         means_by_label[label] = [
             float(np.mean(wl_values)) if wl_values else 0.0,
             float(np.mean(ged_values)) if ged_values else 0.0,
             float(np.mean(semantic_values)) if semantic_values else 0.0,
+            float(np.mean(causal_narrative_values)) if causal_narrative_values else 0.0,
         ]
 
     angles = np.linspace(0, 2 * np.pi, len(axes_labels), endpoint=False).tolist()

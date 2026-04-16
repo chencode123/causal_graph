@@ -21,11 +21,14 @@ SCHEMA_DEFINITION
 
 TASK
 
-Based on the INCIDENT_DESCRIPTION, the IDENTIFIED_HAZARD_CONSEQUENCE, and the CAUSAL_NARRATIVE_EXTRACTION,
-extract a high-recall set of candidate accident scenario nodes that may be needed to explain how the identified hazard consequence occurs.
+Based on the INCIDENT_DESCRIPTION, the IDENTIFIED_HAZARD_CONSEQUENCE, and the
+CAUSAL_NARRATIVE_EXTRACTION, extract a high-recall set of candidate accident
+scenario nodes that may be needed to explain how the identified hazard
+consequence occurs.
 
 This step is candidate extraction, not final normalization.
-Prefer capturing explicitly supported local steps even if some candidates may later be merged, removed, or refined.
+Prefer capturing explicitly supported local steps even if some candidates may
+later be merged, removed, or refined.
 
 EXTRACTION RULES
 
@@ -41,10 +44,14 @@ EXTRACTION RULES
      transport or dispersion, ignition, flashback or propagation, and final consequence,
      prefer representing them as separate candidate events.
   8. Candidate condition nodes should be limited to causally reusable conditions such as
-     Phase, Combustibility, ReleaseType, Confinement, and Dispersion when directly
-     supported.
-  9. Do not treat a clearly described event as only a condition.
-  10. Use temporary or final-looking node IDs consistently within this output.
+     Phase, Combustibility, and Confinement when directly supported.
+  9. Treat release and dispersion primarily as event candidates.
+     If the text supports release timing or mode, use event labels such as
+     "InstantRelease" or "ContinuousRelease".
+     If the text supports spreading, transport, or cloud movement, represent
+     that as an event rather than a condition.
+  10. Do not treat a clearly described event as only a condition.
+  11. Use temporary or final-looking node IDs consistently within this output.
 
 OUTPUT REQUIREMENTS
 

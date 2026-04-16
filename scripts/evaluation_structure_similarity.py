@@ -220,6 +220,15 @@ def parse_args() -> argparse.Namespace:
         action="store_false",
         help="Use only the first GED candidate for faster but less reliable results.",
     )
+    parser.add_argument(
+        "--ged-timeout",
+        type=float,
+        default=None,
+        help=(
+            "Maximum seconds for each exact GED calculation. "
+            "When set, NetworkX returns the current best GED after the timeout."
+        ),
+    )
     parser.set_defaults(compute_ged_operation_counts=True)
     parser.set_defaults(show_progress=True)
     parser.set_defaults(exact_ged=True)
@@ -370,17 +379,31 @@ def compute_graph_edit_metrics(
     updated_graph: nx.DiGraph,
     *,
     exact_ged: bool = True,
+    ged_timeout_seconds: float | None = None,
 ) -> Tuple[float, float, float]:
     """Compute GED, normalized GED, and GED-based similarity."""
-    ged_candidates = nx.optimize_graph_edit_distance(
-        generated_graph,
-        updated_graph,
-        node_match=node_labels_match,
-    )
-    try:
-        graph_edit_distance = float(min(ged_candidates) if exact_ged else next(ged_candidates))
-    except ValueError:
-        graph_edit_distance = 0.0
+    if exact_ged and ged_timeout_seconds is not None:
+        graph_edit_distance_raw = nx.graph_edit_distance(
+            generated_graph,
+            updated_graph,
+            node_match=node_labels_match,
+            timeout=ged_timeout_seconds,
+        )
+        if graph_edit_distance_raw is None:
+            raise TimeoutError(
+                f"No GED candidate was found before timeout={ged_timeout_seconds}s."
+            )
+        graph_edit_distance = float(graph_edit_distance_raw)
+    else:
+        ged_candidates = nx.optimize_graph_edit_distance(
+            generated_graph,
+            updated_graph,
+            node_match=node_labels_match,
+        )
+        try:
+            graph_edit_distance = float(min(ged_candidates) if exact_ged else next(ged_candidates))
+        except ValueError:
+            graph_edit_distance = 0.0
     size_denominator = (
         generated_graph.number_of_nodes()
         + updated_graph.number_of_nodes()
@@ -541,6 +564,7 @@ def evaluate_case(
     parent_dir: Path,
     compute_ged_operation_counts: bool = True,
     exact_ged: bool = True,
+    ged_timeout_seconds: float | None = None,
 ) -> Dict[str, Any]:
     """Evaluate one case folder and return a CSV-ready row."""
     case_id = case_folder.name
@@ -605,7 +629,12 @@ def evaluate_case(
             graph_edit_distance,
             normalized_graph_edit_distance,
             graph_edit_similarity,
-        ) = compute_graph_edit_metrics(generated_graph, updated_graph, exact_ged=exact_ged)
+        ) = compute_graph_edit_metrics(
+            generated_graph,
+            updated_graph,
+            exact_ged=exact_ged,
+            ged_timeout_seconds=ged_timeout_seconds,
+        )
         if compute_ged_operation_counts:
             operation_counts = compute_graph_edit_operation_counts(generated_graph, updated_graph)
         else:
@@ -638,6 +667,7 @@ def evaluate_case(
                 accept_all_graph,
                 updated_graph,
                 exact_ged=exact_ged,
+                ged_timeout_seconds=ged_timeout_seconds,
             )
             if compute_ged_operation_counts:
                 raw_accept_all_operation_counts = compute_graph_edit_operation_counts(
@@ -707,6 +737,7 @@ def evaluate_case_with_timing(
     parent_dir: Path,
     compute_ged_operation_counts: bool = True,
     exact_ged: bool = True,
+    ged_timeout_seconds: float | None = None,
 ) -> Tuple[Dict[str, Any], float]:
     """Evaluate one case and return both the row and elapsed seconds."""
     started_at = time.perf_counter()
@@ -715,6 +746,7 @@ def evaluate_case_with_timing(
         parent_dir,
         compute_ged_operation_counts,
         exact_ged=exact_ged,
+        ged_timeout_seconds=ged_timeout_seconds,
     )
     elapsed_seconds = time.perf_counter() - started_at
     return row, elapsed_seconds
@@ -1063,6 +1095,7 @@ def evaluate_cases_with_progress(
     compute_ged_operation_counts: bool = True,
     show_progress: bool = True,
     exact_ged: bool = True,
+    ged_timeout_seconds: float | None = None,
 ) -> List[Dict[str, Any]]:
     """Evaluate all cases with a progress bar and runtime summary."""
     case_rows: List[Dict[str, Any]] = []
@@ -1086,6 +1119,7 @@ def evaluate_cases_with_progress(
                 parent_dir,
                 compute_ged_operation_counts,
                 exact_ged=exact_ged,
+                ged_timeout_seconds=ged_timeout_seconds,
             )
             case_rows.append(row)
             case_timings.append(
@@ -1121,6 +1155,7 @@ def evaluate_cases_with_progress(
                     parent_dir,
                     compute_ged_operation_counts,
                     exact_ged,
+                    ged_timeout_seconds,
                 )
                 futures[future] = index
                 future_meta[future] = (index, folder, time.perf_counter())
@@ -1210,6 +1245,7 @@ def main() -> Path:
         compute_ged_operation_counts=args.compute_ged_operation_counts,
         show_progress=args.show_progress,
         exact_ged=args.exact_ged,
+        ged_timeout_seconds=args.ged_timeout,
     )
     batch_rows = build_batch_rows(case_rows)
     overall_rows = build_overall_summary(case_rows, batch_rows)

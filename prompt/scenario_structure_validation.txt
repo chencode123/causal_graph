@@ -41,7 +41,9 @@ VALIDATION RULES
      in the candidate node set.
   6. Condition nodes should be retained only when they play a reusable causal role in later
      linking.
-  7. Do not recommend purely stylistic changes.
+  7. Treat release and dispersion as event-stage concepts by default. Flag them as wrong
+     node type if they are represented only as conditions.
+  8. Do not recommend purely stylistic changes.
 
 OUTPUT REQUIREMENTS
 
@@ -63,7 +65,7 @@ Return one JSON object with this structure:
   "normalization_guidance": {{
     "must_split": ["string"],
     "must_keep_separate": ["string"],
-    "must_add_condition_types": ["Phase | Combustibility | ReleaseType | Confinement | Dispersion"],
+    "must_add_condition_types": ["Phase | Combustibility | Confinement"],
     "must_remove_nodes": ["string"]
   }}
 }}

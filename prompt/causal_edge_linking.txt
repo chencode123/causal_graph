@@ -87,20 +87,21 @@ If a node label indicates that the condition did not occur (e.g., "Not dispersed
 Such nodes must not appear in the node list and must not be connected by any edges.
 
   11. Release-dispersion priority rule (soft constraint): In most accident mechanisms,
-      hazardous dispersion is downstream of a hazardous release. If both ReleaseType and
-      Dispersion nodes are present and supported by the narrative and node set, prefer
-      adding a direct edge from ReleaseType to Dispersion (typically relation: enables). If
-      this edge is not added, explain briefly in the edge explanations why another
-      mechanism/path is more direct in this specific case.
+      a dispersion event is downstream of a release event. If both release and dispersion
+      events are present and supported by the narrative and node set, prefer adding a
+      direct local edge from the release event to the dispersion event. If this edge is not
+      added, explain briefly in the edge explanations why another mechanism or path is more
+      direct in this specific case.
 
   12. Local mechanism explicitness principle: If the narrative and validation guidance
       support a local causal chain, prefer representing that local chain directly instead of
       jumping to a more downstream node.
 
   13. Typical local mechanism priority: When explicitly supported by the narrative and node
-      set, prefer local chains such as ReleaseType -> Dispersion, Dispersion -> ignition
-      event, IgnitionSource -> ignition event, ignition event -> flame propagation or
-      flashback event, and flame propagation or flashback event -> HazardConsequence.
+      set, prefer local chains such as release event -> dispersion event, dispersion event
+      -> ignition event, IgnitionSource -> ignition event, ignition event -> flame
+      propagation or flashback event, and flame propagation or flashback event ->
+      HazardConsequence.
 
   14. Define shortcut edges during linking: An edge is too direct if it bypasses a necessary
       or strongly supported intermediate local mechanism that is already present as a node
@@ -167,9 +168,9 @@ Return the result in JSON format:
          "passed": true,
          "reason": "string"
       }},
-      "release_dispersion_link_checked": {{
-         "passed": true,
-         "reason": "string"
+      "release_to_dispersion_event_link_checked": {{
+        "passed": true,
+        "reason": "string"
       }}
    }}
 }}

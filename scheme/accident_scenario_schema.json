@@ -119,28 +119,8 @@
     },
 
     {
-      "label": "ReleaseType",
-      "name": "Continuous release | Instant release | Not specified",
-      "node_id": "C#",
-      "node_type": "Condition",
-      "evidence": "string | N/A",
-      "explanation": "string",
-      "source": "incident_description | Not specified"
-    },
-
-    {
       "label": "Confinement",
       "name": "High confinement | Low confinement | Not specified",
-      "node_id": "C#",
-      "node_type": "Condition",
-      "evidence": "string | N/A",
-      "explanation": "string",
-      "source": "incident_description | Not specified"
-    },
-
-    {
-      "label": "Dispersion",
-      "name": "Dispersed | Not dispersed | Not specified",
       "node_id": "C#",
       "node_type": "Condition",
       "evidence": "string | N/A",
@@ -152,38 +132,8 @@
 
   "event_nodes": [
     {
-      "label": "InitiatingEvent",
-      "name": "string | Not specified",
-      "node_id": "Ev#",
-      "node_type": "Event",
-      "evidence": "string",
-      "explanation": "string",
-      "source": "incident_description | Not specified"
-    },
-
-    {
-      "label": "MechanicalFailure",
-      "name": "string | Unknown mechanical failure | Not specified",
-      "node_id": "Ev#",
-      "node_type": "Event",
-      "evidence": "string",
-      "explanation": "string",
-      "source": "incident_description | Not specified"
-    },
-
-    {
-      "label": "IgnitionSource",
-      "name": "string | Unknown ignition source | Not specified",
-      "node_id": "Ev#",
-      "node_type": "Event",
-      "evidence": "string | N/A",
-      "explanation": "string",
-      "source": "incident_description | Not specified"
-    },
-    
-    {
-      "label": "IntermediateEvent",
-      "name": "string | Not specified",
+      "label": "InitiatingEvent | MechanicalFailure | IgnitionSource | IntermediateEvent | InstantRelease | ContinuousRelease | Dispersion",
+      "name": "string",
       "node_id": "Ev#",
       "node_type": "Event",
       "evidence": "string | N/A",

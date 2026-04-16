@@ -25,11 +25,14 @@ SCENARIO_STRUCTURE_VALIDATION_OUTPUT
 
 TASK
 
-Based on the IDENTIFIED_HAZARD_CONSEQUENCE, the CAUSAL_NARRATIVE_EXTRACTION, the SCENARIO_CANDIDATE_EXTRACTION_OUTPUT, and the SCENARIO_STRUCTURE_VALIDATION_OUTPUT,
-produce the final normalized accident scenario output that will be used for edge linking.
+Based on the IDENTIFIED_HAZARD_CONSEQUENCE, the
+CAUSAL_NARRATIVE_EXTRACTION, the SCENARIO_CANDIDATE_EXTRACTION_OUTPUT, and the
+SCENARIO_STRUCTURE_VALIDATION_OUTPUT, produce the final normalized accident
+scenario output that will be used for edge linking.
 
 You must strictly follow the provided SCHEMA and SCHEMA_DEFINITION.
-Use SCENARIO_CANDIDATE_EXTRACTION_OUTPUT as the candidate pool and SCENARIO_STRUCTURE_VALIDATION_OUTPUT as the normalization guide.
+Use SCENARIO_CANDIDATE_EXTRACTION_OUTPUT as the candidate pool and
+SCENARIO_STRUCTURE_VALIDATION_OUTPUT as the normalization guide.
 
 EXTRACTION RULES
 
@@ -62,17 +65,22 @@ EXTRACTION RULES
   10. If the candidate pool already separates release, transport or dispersion, ignition,
       flame propagation or flashback, and final consequence, preserve that separation unless
       validation guidance explicitly supports merging.
+ 
+  11. Represent release and dispersion as event nodes rather than condition
+      nodes.
+      When the report distinguishes release mode, prefer event labels such as
+      "InstantRelease" or "ContinuousRelease".
 
-  11. Only merge candidates when they are tightly coupled and jointly define the same local
+  12. Only merge candidates when they are tightly coupled and jointly define the same local
       mechanism. Do not merge across different causal stages.
 
-  12. Keep the final output grounded in the candidate evidence and aligned with the causal
+  13. Keep the final output grounded in the candidate evidence and aligned with the causal
       narrative.
 
 Source rules
 
-If the information is derived from the candidate extraction and validated against the scenario structure,
-set source to "incident_description".
+If the information is derived from the candidate extraction and validated
+against the scenario structure, set source to "incident_description".
 
 If the information cannot be determined, use "Not specified".
 
@@ -82,10 +90,10 @@ Return a JSON object that strictly follows the structure defined in SCHEMA.
 
 The output must:
 
-• Use the exact field names defined in the SCHEMA
-• Use only the allowed values specified in the SCHEMA
-• Include evidence quotes whenever required  
-• Use "Not specified" if the information cannot be determined  
+- Use the exact field names defined in the SCHEMA
+- Use only the allowed values specified in the SCHEMA
+- Include evidence quotes whenever required
+- Use "Not specified" if the information cannot be determined
 
 In addition to the SCHEMA fields, include a top-level object:
 
@@ -95,7 +103,7 @@ In addition to the SCHEMA fields, include a top-level object:
       "passed": true,
       "reason": "string"
     }},
-    "release_ignition_flashback_distinct": {{
+    "release_dispersion_ignition_distinct": {{
       "passed": true,
       "reason": "string"
     }},

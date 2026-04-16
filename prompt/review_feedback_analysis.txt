@@ -19,7 +19,14 @@ GRAPH_REVISION_PLANNING_OUTPUT
 
 TASK
 
-Compare the original CAUSAL_GRAPH_JSON with UPDATED_CAUSAL_GRAPH_REVIEW_STATE_JSON and convert the review outcomes into a compact, few-shot-ready set of decision patterns. Use GRAPH_DIAGNOSIS_OUTPUT and GRAPH_REVISION_PLANNING_OUTPUT as the rule references. Use UPDATED_CAUSAL_GRAPH_JSON only to confirm what was actually kept, removed, or changed.
+Compare the original CAUSAL_GRAPH_JSON with UPDATED_CAUSAL_GRAPH_REVIEW_STATE_JSON and
+convert the review outcomes into two compact, few-shot-ready sections:
+
+- planning_patterns: how each proposed change was accepted or rejected
+- diagnosis_patterns: what each review decision implies about the correct diagnosis framing
+
+Use GRAPH_DIAGNOSIS_OUTPUT and GRAPH_REVISION_PLANNING_OUTPUT as the rule references.
+Use UPDATED_CAUSAL_GRAPH_JSON only to confirm what was actually kept, removed, or changed.
 
 DECISION INTERPRETATION RULES
 
@@ -41,15 +48,17 @@ DECISION INTERPRETATION RULES
      }}
 
   3. For every reviewed suggestion that can be matched to GRAPH_REVISION_PLANNING_OUTPUT,
-     create one compact decision pattern.
+     create one planning pattern and one diagnosis pattern.
 
-  4. For each decision pattern:
+  4. For each planning pattern:
      - identify the original suggestion object from GRAPH_REVISION_PLANNING_OUTPUT
      - keep the proposed change concise and concrete
      - if UPDATED_CAUSAL_GRAPH_REVIEW_STATE_JSON provides review_reason, treat that as the
        primary explanation of why the reviewer accepted or rejected the suggestion
-     - if review_reason is missing, infer the most likely reason from the original graph,
-       the updated graph, and nearby decisions
+     - for rejected decisions, if review_reason is missing, infer the most likely reason
+       from the original graph, the updated graph, and nearby decisions
+     - for accepted decisions, do not invent a reviewer reason if none is provided;
+       leave reviewer_reason as an empty string
      - match the decision to the single most relevant explicit rule from
        GRAPH_DIAGNOSIS_OUTPUT or GRAPH_REVISION_PLANNING_OUTPUT
      - distill the outcome into one short reusable few-shot takeaway that can teach future
@@ -65,29 +74,67 @@ DECISION INTERPRETATION RULES
      - if decision is rejected, do not use a diagnosis statement or planning problem
        statement as matched_rule unless that statement itself explicitly argues against the
        proposed change
+     - for accepted decisions without review_reason, keep the interpretation minimal and
+       grounded only in the accepted proposal, the diagnosis context, and what the updated
+       graph actually kept; do not fabricate reviewer intent
 
-  5. Prefer citing the most specific matching rule(s), especially rules about shortcut
+  5. For each diagnosis pattern:
+     - derive it from the same reviewed suggestion using derived_from_decision_key
+     - keep observed_pattern short and structural
+     - if the decision is rejected and review_reason is present, ground diagnosis_interpretation
+       primarily in that review_reason
+     - if the decision is rejected and review_reason is missing, infer a minimal diagnosis
+       interpretation from the original graph, the updated graph, and the matched rule
+     - if the decision is accepted and review_reason is missing, do not invent reviewer intent;
+       write only a minimal diagnosis_interpretation grounded in the accepted proposal, the
+       diagnosis context, and what the updated graph actually kept
+     - diagnosis_patterns must focus on diagnosis framing, not proposal evaluation
+     - do not restate proposed_change inside diagnosis_patterns
+     - diagnosis_interpretation should explain what the decision suggests about how the issue
+       should be diagnosed, framed, or prioritized
+     - supporting_rule must support that diagnosis interpretation
+     - few_shot_takeaway should teach future diagnosis behavior, not planning behavior
+
+  6. Prefer citing the most specific matching rule(s), especially rules about shortcut
      edges, transitive edges, redundant nodes, duplicate semantics, unsupported changes, and
      invalid connectivity.
 
-  6. If a decision key is missing from GRAPH_REVISION_PLANNING_OUTPUT, list it under
+  7. If a decision key is missing from GRAPH_REVISION_PLANNING_OUTPUT, list it under
      unresolved_decisions.
 
-  7. If a suggestion was implicitly covered by another accepted change, mention that under
+  8. If a suggestion was implicitly covered by another accepted change, mention that under
      coverage_notes.
 
-  8. For matched_rule:
-     - prefer the single best matching rule, not multiple overlapping rules
-     - prefer exact numbered rules from GRAPH_DIAGNOSIS_OUTPUT or
-       GRAPH_REVISION_PLANNING_OUTPUT prompts when possible
+  9. For matched_rule in planning_patterns:
+      - prefer the single best matching rule, not multiple overlapping rules
+      - prefer exact numbered rules from GRAPH_DIAGNOSIS_OUTPUT or
+        GRAPH_REVISION_PLANNING_OUTPUT prompts when possible
      - keep the matched rule concise
      - do not fabricate rule numbers that are not actually present in those prompts
-     - when GRAPH_REVISION_PLANNING_OUTPUT contains both a proposal-supporting rationale and
-       a proposal-limiting rule, prefer the rule that better explains the final accepted or
-       rejected decision
-     - for rejected decisions, prefer wording such as do not, avoid, must not, should not,
-       cannot, or an explicit shortcut / transitive / redundancy constraint when supported
-       by the prompts
+      - when GRAPH_REVISION_PLANNING_OUTPUT contains both a proposal-supporting rationale and
+        a proposal-limiting rule, prefer the rule that better explains the final accepted or
+        rejected decision
+      - for rejected decisions, prefer wording such as do not, avoid, must not, should not,
+        cannot, or an explicit shortcut / transitive / redundancy constraint when supported
+        by the prompts
+
+  10. For supporting_rule in diagnosis_patterns:
+      - prefer the single best matching rule, not multiple overlapping rules
+      - prefer a rule that supports the diagnosis framing implied by the final decision
+      - keep the supporting rule concise
+      - do not fabricate rule numbers that are not actually present in those prompts
+
+  11. Abstraction rules:
+      - generalize each matched_rule, supporting_rule, and few_shot_takeaway one level
+        above the current case
+      - prefer reusable structural language over case-specific node IDs or incident-specific
+        wording
+      - keep case-specific wording mainly in proposed_change and reviewer_reason
+      - avoid using node IDs such as Ev5, Ev6, C3, or En5 inside matched_rule,
+        supporting_rule, diagnosis_interpretation, and few_shot_takeaway unless strictly
+        necessary for clarity
+      - in diagnosis_patterns, describe the structural diagnosis lesson rather than retelling
+        the case
 
 OUTPUT REQUIREMENTS
 
@@ -100,13 +147,23 @@ Return one JSON object with this structure:
     "unresolved_count": 0,
     "summary": "string"
   }},
-  "decision_patterns": [
+  "planning_patterns": [
     {{
       "decision_key": "string",
       "proposed_change": "string",
       "decision": "accepted | rejected",
       "reviewer_reason": "string",
       "matched_rule": "string",
+      "few_shot_takeaway": "string"
+    }}
+  ],
+  "diagnosis_patterns": [
+    {{
+      "derived_from_decision_key": "string",
+      "decision": "accepted | rejected",
+      "observed_pattern": "string",
+      "diagnosis_interpretation": "string",
+      "supporting_rule": "string",
       "few_shot_takeaway": "string"
     }}
   ],

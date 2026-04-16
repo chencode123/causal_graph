@@ -144,6 +144,37 @@ SEVERITY GUIDANCE
 
 OUTPUT REQUIREMENTS
 
+For node_updates, current_state and suggested_state must be JSON objects, not free-form
+strings.
+
+For change_type = rename:
+  - current_state should include the current name
+  - suggested_state should include only the new name
+
+For change_type = relabel:
+  - current_state should include the current label
+  - suggested_state should include only the new label
+
+For change_type = retype:
+  - current_state should include the current node_type
+  - suggested_state should include only the new node_type
+
+Only populate the field relevant to the change_type. Leave unrelated fields omitted.
+
+For rename, never write node display strings such as
+`Ev3 = IntermediateEvent: "New event name"` inside suggested_state.name.
+Use only the plain replacement name:
+
+{{
+  "change_type": "rename",
+  "current_state": {{
+    "name": "Mixer motor started with solid explosive in pot 5"
+  }},
+  "suggested_state": {{
+    "name": "Operator failed to verify pot 5 contents before turning on mixer motor"
+  }}
+}}
+
 Return one JSON object with the following structure:
 
 {{
@@ -158,8 +189,16 @@ Return one JSON object with the following structure:
     {{
       "target_id": "node_id",
       "change_type": "rename | relabel | retype",
-      "current_state": "string",
-      "suggested_state": "string",
+      "current_state": {{
+        "name": "string",
+        "label": "string",
+        "node_type": "string"
+      }},
+      "suggested_state": {{
+        "name": "string",
+        "label": "string",
+        "node_type": "string"
+      }},
       "reason": "string",
       "evidence": "string",
       "severity": "high | medium | low",

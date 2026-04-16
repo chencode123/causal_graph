@@ -45,6 +45,7 @@ def build_pipeline(
     *,
     use_few_shot: bool = False,
     few_shot_cases_by_step: dict[str, tuple[Path, ...]] | None = None,
+    few_shot_pattern_files_by_step: dict[str, tuple[Path, ...]] | None = None,
     active_step_keys: tuple[str, ...] | None = None,
     source_folder_map: dict[Path, Path] | None = None,
 ) -> List[Step]:
@@ -62,6 +63,7 @@ def build_pipeline(
                     project_root=PROJECT_ROOT,
                     use_few_shot=use_few_shot,
                     few_shot_cases=(few_shot_cases_by_step or {}).get(key, ()),
+                    few_shot_pattern_files=(few_shot_pattern_files_by_step or {}).get(key, ()),
                     source_folder_map=source_folder_map,
                 ),
             )

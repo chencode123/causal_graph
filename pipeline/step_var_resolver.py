@@ -134,6 +134,79 @@ def _format_few_shot_example(title: str, sections: Iterable[tuple[str, str]]) ->
     return "\n".join(lines).strip()
 
 
+def _build_pattern_few_shot_examples(step_key: str, pattern_files: Iterable[Path]) -> str:
+    files = list(pattern_files)
+    if not files:
+        return ""
+
+    if step_key == "graph_revision_planning":
+        section_name = "planning_patterns"
+        title_prefix = "Planning Pattern"
+    elif step_key == "graph_diagnosis":
+        section_name = "diagnosis_patterns"
+        title_prefix = "Diagnosis Pattern"
+    else:
+        return ""
+
+    lines: List[str] = ["FEW-SHOT EXAMPLES", ""]
+    example_index = 1
+
+    for path in files:
+        with path.open("r", encoding="utf-8") as fp:
+            payload = json.load(fp)
+        patterns = payload.get(section_name, [])
+        if not isinstance(patterns, list):
+            continue
+
+        for pattern in patterns:
+            if not isinstance(pattern, dict):
+                continue
+            if step_key == "graph_revision_planning":
+                sections = [
+                    ("PROPOSED_CHANGE", str(pattern.get("proposed_change") or "").strip()),
+                    ("DECISION", str(pattern.get("decision") or "").strip()),
+                    ("REVIEWER_REASON", str(pattern.get("reviewer_reason") or "").strip()),
+                    ("MATCHED_RULE", str(pattern.get("matched_rule") or "").strip()),
+                    ("TAKEAWAY", str(pattern.get("few_shot_takeaway") or "").strip()),
+                ]
+            else:
+                sections = [
+                    ("OBSERVED_PATTERN", str(pattern.get("observed_pattern") or "").strip()),
+                    ("DECISION", str(pattern.get("decision") or "").strip()),
+                    (
+                        "DIAGNOSIS_INTERPRETATION",
+                        str(pattern.get("diagnosis_interpretation") or "").strip(),
+                    ),
+                    ("SUPPORTING_RULE", str(pattern.get("supporting_rule") or "").strip()),
+                    ("TAKEAWAY", str(pattern.get("few_shot_takeaway") or "").strip()),
+                ]
+
+            non_empty_sections = [
+                (label, content) for label, content in sections if content
+            ]
+            if not non_empty_sections:
+                continue
+
+            lines.append(
+                _format_few_shot_example(f"{title_prefix} {example_index}", non_empty_sections)
+            )
+            lines.append("")
+            example_index += 1
+
+    if example_index == 1:
+        return ""
+
+    lines.extend(
+        [
+            "End of examples.",
+            "Use the examples only as references for reasoning style and output structure.",
+            "Prefer the structural lesson over case-specific wording.",
+            "",
+        ]
+    )
+    return "\n".join(lines)
+
+
 def _build_few_shot_examples(step_key: str, case_dirs: Iterable[Path]) -> str:
     cases = list(case_dirs)
     if not cases:
@@ -293,25 +366,6 @@ def _build_few_shot_examples(step_key: str, case_dirs: Iterable[Path]) -> str:
                     _read_text(case_dir / "edge_structure_validation_output.json"),
                 ),
             ]
-        elif step_key == "joint_accident_graph_extraction":
-            sections = [
-                (
-                    "INCIDENT_DESCRIPTION",
-                    _extract_incident_text_from_json(case_dir / "identify_incident_output.json"),
-                ),
-                (
-                    "IDENTIFIED_HAZARD_CONSEQUENCE",
-                    _read_text(case_dir / "identify_hazard_consequence_output.json"),
-                ),
-                (
-                    "CAUSAL_NARRATIVE_EXTRACTION",
-                    _read_text(case_dir / "causal_narrative_extraction_output.json"),
-                ),
-                (
-                    "CORRECT OUTPUT",
-                    _read_text(case_dir / "joint_accident_graph_extraction_output.json"),
-                ),
-            ]
         else:
             return ""
 
@@ -423,6 +477,7 @@ def _build_vars_from_registry(
     project_root: Path,
     use_few_shot: bool,
     few_shot_cases: Iterable[Path],
+    few_shot_pattern_files: Iterable[Path],
 ) -> Dict[str, Any]:
     required_vars = STEP_REGISTRY[key].get("required_vars", {})
     if not isinstance(required_vars, dict):
@@ -441,9 +496,13 @@ def _build_vars_from_registry(
         )
         for var_name in required_vars
     }
-    resolved["few_shot_examples"] = (
-        _build_few_shot_examples(key, few_shot_cases) if use_few_shot else ""
-    )
+    if use_few_shot:
+        pattern_examples = _build_pattern_few_shot_examples(key, few_shot_pattern_files)
+        resolved["few_shot_examples"] = pattern_examples or _build_few_shot_examples(
+            key, few_shot_cases
+        )
+    else:
+        resolved["few_shot_examples"] = ""
     return resolved
 
 
@@ -455,6 +514,7 @@ def get_step_var_builder(
     project_root: Path,
     use_few_shot: bool = False,
     few_shot_cases: Iterable[Path] = (),
+    few_shot_pattern_files: Iterable[Path] = (),
     source_folder_map: dict[Path, Path] | None = None,
 ) -> Callable[[Path], Dict[str, Any]]:
     if key not in STEP_REGISTRY:
@@ -469,4 +529,5 @@ def get_step_var_builder(
         project_root=project_root,
         use_few_shot=use_few_shot,
         few_shot_cases=few_shot_cases,
+        few_shot_pattern_files=few_shot_pattern_files,
     )

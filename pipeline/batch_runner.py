@@ -280,6 +280,9 @@ def run_batch_pipeline(config: Any) -> None:
         conditions_json=config.conditions_json_path,
         use_few_shot=getattr(config, "use_few_shot", False),
         few_shot_cases_by_step=getattr(config, "few_shot_cases_by_step", None),
+        few_shot_pattern_files_by_step=getattr(
+            config, "few_shot_pattern_files_by_step", None
+        ),
         active_step_keys=getattr(config, "active_step_keys", None),
         source_folder_map=getattr(config, "source_folder_map", None),
     )

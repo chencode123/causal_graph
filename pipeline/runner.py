@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import json
 import os
 import time
@@ -8,7 +9,7 @@ from copy import deepcopy
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
-from openai import OpenAI
+from openai import AsyncOpenAI, OpenAI
 from tqdm import tqdm
 
 import utils.incident_card_to_word as incident_card_to_word
@@ -94,9 +95,87 @@ def _next_node_id(existing_ids: List[str], node_type: str) -> str:
     return f"{prefix}{max_index + 1}"
 
 
-def _parse_field_from_suggested_state(suggested_state: str, field: str) -> str:
-    match = re.search(rf"{re.escape(field)}\s*:\s*([^\n]+)", str(suggested_state or ""), flags=re.IGNORECASE)
+def _parse_field_from_suggested_state(suggested_state: Any, field: str) -> str:
+    if isinstance(suggested_state, dict):
+        value = suggested_state.get(field)
+        if value is None and field == "node_type":
+            value = suggested_state.get("type")
+        return str(value or "").strip()
+
+    text = str(suggested_state or "").strip()
+    if not text:
+        return ""
+    match = re.search(
+        rf"(?im)(?:^|[;\n])\s*{re.escape(field)}\s*[:=]\s*(.+?)(?=\s*(?:[;\n]|$))",
+        text,
+    )
     return match.group(1).strip() if match else ""
+
+
+def _resolve_suggested_state_value(
+    suggested_state: Any,
+    *,
+    preferred_fields: List[str],
+    current_value: str,
+) -> str:
+    if isinstance(suggested_state, dict):
+        for field in preferred_fields:
+            value = suggested_state.get(field)
+            if value is None and field == "node_type":
+                value = suggested_state.get("type")
+            parsed = str(value or "").strip()
+            if not parsed:
+                continue
+            lowered = parsed.lower()
+            if lowered in {"retained", "keep", "unchanged", "no change", "same"}:
+                return current_value
+            return parsed
+        return current_value
+
+    text = str(suggested_state or "").strip()
+    if not text:
+        return current_value
+
+    for field in preferred_fields:
+        parsed = _parse_field_from_suggested_state(text, field)
+        if parsed:
+            lowered = parsed.strip().lower()
+            if lowered in {"retained", "keep", "unchanged", "no change", "same"}:
+                return current_value
+            return parsed
+
+    lowered_text = text.lower()
+    if "label" in preferred_fields:
+        match = re.search(
+            r"(?i)\brelabel\b.*?\bas\s+\"?([^\".;\n]+)\"?",
+            text,
+        )
+        if match:
+            return match.group(1).strip()
+    if "name" in preferred_fields:
+        match = re.search(
+            r'(?is)^\s*(?:name\s*[-=]>\s*)?(?:[A-Za-z]+\d+\s*)?=\s*[^:\n]+:\s*"([^"]+)"\s*$',
+            text,
+        )
+        if match:
+            return match.group(1).strip()
+        match = re.search(
+            r"(?i)\brename\b.*?\b(?:to|as)\b\s+\"?([^\".;\n]+)\"?",
+            text,
+        )
+        if match:
+            return match.group(1).strip()
+    if "node_type" in preferred_fields or "type" in preferred_fields:
+        match = re.search(
+            r"(?i)\b(?:retype|change\s+the\s+type|change\s+type)\b.*?\bas\s+\"?([^\".;\n]+)\"?",
+            text,
+        )
+        if match:
+            return match.group(1).strip()
+
+    if lowered_text in {"retained", "keep", "unchanged", "no change", "same"}:
+        return current_value
+    return text
 
 
 def _group_key_for_node_type(node_type: str) -> str:
@@ -194,19 +273,41 @@ def _apply_review_accept_all(
         if node is None:
             continue
         change_type = str(item.get("change_type") or "").strip().lower()
-        suggested_state = str(item.get("suggested_state") or "").strip()
+        suggested_state = item.get("suggested_state") or ""
         if change_type == "rename":
-            node["name"] = suggested_state or node.get("name", "")
+            node["name"] = _resolve_suggested_state_value(
+                suggested_state,
+                preferred_fields=["name"],
+                current_value=str(node.get("name", "")),
+            )
         elif change_type == "relabel":
-            node["label"] = suggested_state or node.get("label", "")
+            node["label"] = _resolve_suggested_state_value(
+                suggested_state,
+                preferred_fields=["label"],
+                current_value=str(node.get("label", "")),
+            )
         elif change_type == "retype":
-            node["node_type"] = suggested_state or node.get("node_type", "")
+            node["node_type"] = _resolve_suggested_state_value(
+                suggested_state,
+                preferred_fields=["node_type", "type"],
+                current_value=str(node.get("node_type", "")),
+            )
         elif change_type == "update_evidence":
-            node["evidence"] = _parse_field_from_suggested_state(suggested_state, "evidence") or suggested_state or node.get("evidence", "")
+            node["evidence"] = (
+                _parse_field_from_suggested_state(suggested_state, "evidence")
+                or (suggested_state if isinstance(suggested_state, str) else "")
+                or node.get("evidence", "")
+            )
         elif change_type == "update_explanation":
-            node["explanation"] = _parse_field_from_suggested_state(suggested_state, "explanation") or suggested_state or node.get("explanation", "")
+            node["explanation"] = (
+                _parse_field_from_suggested_state(suggested_state, "explanation")
+                or (suggested_state if isinstance(suggested_state, str) else "")
+                or node.get("explanation", "")
+            )
         elif change_type == "clarify_role":
-            node["explanation"] = suggested_state or node.get("explanation", "")
+            node["explanation"] = (
+                suggested_state if isinstance(suggested_state, str) else ""
+            ) or node.get("explanation", "")
         accepted_decisions[key] = "accepted"
 
     node_additions = review_data.get("node_additions", []) if isinstance(review_data.get("node_additions"), list) else []
@@ -535,7 +636,8 @@ def _format_causal_narrative_markdown(payload: Dict[str, Any], case_id: str) -> 
 
 def _format_review_feedback_analysis_markdown(payload: Dict[str, Any], case_id: str) -> str:
     case_summary = payload.get("case_summary", {})
-    patterns = payload.get("decision_patterns", [])
+    planning_patterns = payload.get("planning_patterns", [])
+    diagnosis_patterns = payload.get("diagnosis_patterns", [])
     coverage_notes = payload.get("coverage_notes", [])
     unresolved = payload.get("unresolved_decisions", [])
 
@@ -553,9 +655,9 @@ def _format_review_feedback_analysis_markdown(payload: Dict[str, Any], case_id: 
     if summary_text:
         lines.extend(["## Summary", "", summary_text, ""])
 
-    lines.extend(["## Decision Patterns", ""])
-    if isinstance(patterns, list) and patterns:
-        for index, item in enumerate(patterns, start=1):
+    lines.extend(["## Planning Patterns", ""])
+    if isinstance(planning_patterns, list) and planning_patterns:
+        for index, item in enumerate(planning_patterns, start=1):
             if not isinstance(item, dict):
                 continue
             lines.extend(
@@ -578,7 +680,34 @@ def _format_review_feedback_analysis_markdown(payload: Dict[str, Any], case_id: 
             if takeaway:
                 lines.extend(["Few-shot takeaway:", takeaway, ""])
     else:
-        lines.extend(["_No decision patterns._", ""])
+        lines.extend(["_No planning patterns._", ""])
+
+    lines.extend(["## Diagnosis Patterns", ""])
+    if isinstance(diagnosis_patterns, list) and diagnosis_patterns:
+        for index, item in enumerate(diagnosis_patterns, start=1):
+            if not isinstance(item, dict):
+                continue
+            lines.extend(
+                [
+                    f"### {index}. `{item.get('derived_from_decision_key', '')}`",
+                    "",
+                    f"Decision: `{item.get('decision', '')}`",
+                    "",
+                    f"Observed pattern: {str(item.get('observed_pattern') or '').strip()}",
+                    "",
+                ]
+            )
+            interpretation = str(item.get("diagnosis_interpretation") or "").strip()
+            supporting_rule = str(item.get("supporting_rule") or "").strip()
+            takeaway = str(item.get("few_shot_takeaway") or "").strip()
+            if interpretation:
+                lines.extend(["Diagnosis interpretation:", interpretation, ""])
+            if supporting_rule:
+                lines.extend(["Supporting rule:", supporting_rule, ""])
+            if takeaway:
+                lines.extend(["Few-shot takeaway:", takeaway, ""])
+    else:
+        lines.extend(["_No diagnosis patterns._", ""])
 
     lines.extend(["## Coverage Notes", ""])
     if isinstance(coverage_notes, list) and coverage_notes:
@@ -663,6 +792,102 @@ def ensure_causal_graph_json(folder: Path, *, remove_shortcut_edges: bool = True
     )
 
 
+def _prepare_step_inputs(
+    *,
+    all_prompts: Dict[str, str],
+    folder: Path,
+    step: Step,
+    config: Any,
+) -> tuple[Dict[str, Any], List[Dict[str, str]]]:
+    template = all_prompts[step.key]
+    vars_dict = step.build_vars(folder)
+    prompt_text = render_prompt(template, vars_dict)
+    messages = [
+        {"role": "system", "content": "You are a professional process safety analyst."},
+        {"role": "user", "content": prompt_text},
+    ]
+    save_step_input_snapshot(
+        folder=folder,
+        step_key=step.key,
+        template=template,
+        vars_dict=vars_dict,
+        prompt_text=prompt_text,
+        messages=messages,
+        truncate_limit=80000,
+    )
+    return vars_dict, messages
+
+
+def _build_responses_request_payload(
+    *,
+    messages: List[Dict[str, str]],
+    step: Step,
+    config: Any,
+) -> Dict[str, Any]:
+    reasoning_effort = step.reasoning_effort or config.reasoning_effort
+    step_temperature = step.temperature
+    verbosity = step.verbosity or config.verbosity
+    force_json_output = getattr(config, "force_json_output", False)
+
+    text_cfg: Dict[str, Any] = {"verbosity": verbosity}
+    if force_json_output:
+        text_cfg["format"] = {"type": "json_object"}
+
+    request_payload: Dict[str, Any] = {
+        "model": config.model_name,
+        "input": messages,
+        "max_output_tokens": config.max_output_tokens,
+        "text": text_cfg,
+    }
+    if step_temperature is not None:
+        request_payload["temperature"] = step_temperature
+    else:
+        request_payload["reasoning"] = {"effort": reasoning_effort}
+    return request_payload
+
+
+def _persist_step_response(
+    *,
+    folder: Path,
+    step: Step,
+    body: Dict[str, Any],
+    config: Any,
+) -> None:
+    out_text = extract_text_from_responses_body(body)
+    write_text(step.output_path(folder), out_text)
+    if step.key == "review_feedback_analysis":
+        write_review_feedback_analysis_markdown(folder)
+    if config.save_raw_response:
+        response_dir = get_response_dir(folder)
+        write_text(
+            response_dir / f"{step.key}_response_raw.json",
+            json.dumps(body, ensure_ascii=False, indent=2),
+        )
+
+
+def _prepare_graph_inputs_if_needed(
+    *,
+    folders: List[Path],
+    step: Step,
+    config: Any,
+) -> None:
+    if step.key not in {"review_causal_graph", "graph_diagnosis", "graph_revision_planning"}:
+        return
+    prep_ok = 0
+    prep_fail = 0
+    for folder in folders:
+        try:
+            ensure_causal_graph_json(
+                folder,
+                remove_shortcut_edges=getattr(config, "remove_shortcut_edges", True),
+            )
+            prep_ok += 1
+        except Exception as exc:
+            prep_fail += 1
+            write_text(folder / f"{step.key}_error.txt", f"Graph prep failed: {exc}\n")
+    print(f"[{step.key}] Graph prep done. ok={prep_ok}, fail={prep_fail}")
+
+
 def run_step_sync(
     client: OpenAI,
     all_prompts: Dict[str, str],
@@ -671,86 +896,37 @@ def run_step_sync(
     config: Any,
     call_sleep_seconds: float = 0.0,
 ) -> None:
-    if step.key in {"review_causal_graph", "graph_diagnosis", "graph_revision_planning"}:
-        prep_ok = 0
-        prep_fail = 0
-        for folder in folders:
-            try:
-                ensure_causal_graph_json(
-                    folder,
-                    remove_shortcut_edges=getattr(config, "remove_shortcut_edges", True),
-                )
-                prep_ok += 1
-            except Exception as exc:
-                prep_fail += 1
-                write_text(folder / f"{step.key}_error.txt", f"Graph prep failed: {exc}\n")
-        print(
-            f"[{step.key}] Graph prep done. ok={prep_ok}, fail={prep_fail}"
-        )
-    template = all_prompts[step.key]
+    _prepare_graph_inputs_if_needed(folders=folders, step=step, config=config)
     ok, fail = 0, 0
 
     for folder in folders:
         try:
-            vars_dict = step.build_vars(folder)
-            prompt_text = render_prompt(template, vars_dict)
+            _, messages = _prepare_step_inputs(
+                all_prompts=all_prompts,
+                folder=folder,
+                step=step,
+                config=config,
+            )
         except Exception as exc:
             fail += 1
             write_text(folder / f"{step.key}_error.txt", f"Prompt build failed: {exc}\n")
             continue
 
-        messages = [
-            {"role": "system", "content": "You are a professional process safety analyst."},
-            {"role": "user", "content": prompt_text},
-        ]
-
-        save_step_input_snapshot(
-            folder=folder,
-            step_key=step.key,
-            template=template,
-            vars_dict=vars_dict,
-            prompt_text=prompt_text,
-            messages=messages,
-            truncate_limit=80000,
-        )
-
         try:
-            reasoning_effort = step.reasoning_effort or config.reasoning_effort
-            step_temperature = step.temperature
-            verbosity = step.verbosity or config.verbosity
-            force_json_output = getattr(config, "force_json_output", False)
-
-            text_cfg: Dict[str, Any] = {"verbosity": verbosity}
-            if force_json_output:
-                text_cfg["format"] = {"type": "json_object"}
-
-            request_payload = {
-                "model": config.model_name,
-                "input": messages,
-                "max_output_tokens": config.max_output_tokens,
-                "text": text_cfg,
-            }
-            if step_temperature is not None:
-                request_payload["temperature"] = step_temperature
-            else:
-                request_payload["reasoning"] = {"effort": reasoning_effort}
-
+            request_payload = _build_responses_request_payload(
+                messages=messages,
+                step=step,
+                config=config,
+            )
             resp = client.responses.create(**request_payload)
-
             body = resp.model_dump() if hasattr(resp, "model_dump") else dict(resp)
-            out_text = extract_text_from_responses_body(body)
-
-            write_text(step.output_path(folder), out_text)
+            _persist_step_response(
+                folder=folder,
+                step=step,
+                body=body,
+                config=config,
+            )
             ok += 1
-            if step.key == "review_feedback_analysis":
-                write_review_feedback_analysis_markdown(folder)
-
-            if config.save_raw_response:
-                response_dir = get_response_dir(folder)
-                write_text(
-                    response_dir / f"{step.key}_response_raw.json",
-                    json.dumps(body, ensure_ascii=False, indent=2),
-                )
         except Exception as exc:
             fail += 1
             write_text(folder / f"{step.key}_error.txt", f"API call failed: {exc}\n")
@@ -759,6 +935,88 @@ def run_step_sync(
             time.sleep(call_sleep_seconds)
 
     print(f"[{step.key}] Sync done. ok={ok}, fail={fail}")
+
+
+async def run_step_async(
+    client: AsyncOpenAI,
+    all_prompts: Dict[str, str],
+    folders: List[Path],
+    step: Step,
+    config: Any,
+) -> None:
+    _prepare_graph_inputs_if_needed(folders=folders, step=step, config=config)
+    progress = tqdm(total=len(folders), desc=f"{step.key} (async)", unit="req", leave=False)
+
+    async def one_folder(folder: Path) -> bool:
+        try:
+            _, messages = _prepare_step_inputs(
+                all_prompts=all_prompts,
+                folder=folder,
+                step=step,
+                config=config,
+            )
+        except Exception as exc:
+            write_text(folder / f"{step.key}_error.txt", f"Prompt build failed: {exc}\n")
+            return False
+
+        try:
+            request_payload = _build_responses_request_payload(
+                messages=messages,
+                step=step,
+                config=config,
+            )
+            resp = await client.responses.create(**request_payload)
+            body = resp.model_dump() if hasattr(resp, "model_dump") else dict(resp)
+            _persist_step_response(
+                folder=folder,
+                step=step,
+                body=body,
+                config=config,
+            )
+            return True
+        except Exception as exc:
+            write_text(folder / f"{step.key}_error.txt", f"API call failed: {exc}\n")
+            return False
+        finally:
+            progress.update(1)
+
+    tasks = [asyncio.create_task(one_folder(folder)) for folder in folders]
+    ok = 0
+    fail = 0
+    try:
+        for task in asyncio.as_completed(tasks):
+            if await task:
+                ok += 1
+            else:
+                fail += 1
+    finally:
+        progress.close()
+
+    print(f"[{step.key}] Async done. ok={ok}, fail={fail}")
+
+
+async def _run_pipeline_async(
+    *,
+    all_prompts: Dict[str, str],
+    folders: List[Path],
+    pipeline: List[Step],
+    config: Any,
+) -> None:
+    client = AsyncOpenAI()
+    print("[RUNTIME] responses_async_enabled = True")
+    if getattr(config, "call_sleep_seconds", 0.0) > 0:
+        print("[RUNTIME] call_sleep_seconds is ignored in async responses mode")
+    for step in tqdm(pipeline, desc="Steps (async)", unit="step"):
+        if not step.enabled:
+            continue
+        await run_step_async(
+            client=client,
+            all_prompts=all_prompts,
+            folders=folders,
+            step=step,
+            config=config,
+        )
+    await client.close()
 
 
 def run_local_postprocess(
@@ -836,20 +1094,33 @@ def run_batch_pipeline(config: Any) -> None:
         conditions_json=config.conditions_json_path,
         use_few_shot=getattr(config, "use_few_shot", False),
         few_shot_cases_by_step=getattr(config, "few_shot_cases_by_step", None),
+        few_shot_pattern_files_by_step=getattr(
+            config, "few_shot_pattern_files_by_step", None
+        ),
         active_step_keys=getattr(config, "active_step_keys", None),
         source_folder_map=getattr(config, "source_folder_map", None),
     )
-    for step in tqdm(pipeline, desc="Steps (sync)", unit="step"):
-        if not step.enabled:
-            continue
-        run_step_sync(
-            client=client,
-            all_prompts=all_prompts,
-            folders=folders,
-            step=step,
-            config=config,
-            call_sleep_seconds=config.call_sleep_seconds,
+    if getattr(config, "responses_async_enabled", False):
+        asyncio.run(
+            _run_pipeline_async(
+                all_prompts=all_prompts,
+                folders=folders,
+                pipeline=pipeline,
+                config=config,
+            )
         )
+    else:
+        for step in tqdm(pipeline, desc="Steps (sync)", unit="step"):
+            if not step.enabled:
+                continue
+            run_step_sync(
+                client=client,
+                all_prompts=all_prompts,
+                folders=folders,
+                step=step,
+                config=config,
+                call_sleep_seconds=config.call_sleep_seconds,
+            )
 
     for folder in tqdm(folders, desc="Local postprocess", unit="folder"):
         try:

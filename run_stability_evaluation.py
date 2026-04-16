@@ -9,7 +9,7 @@ from utils.stability_evaluation import run_stability_evaluation
 PROJECT_ROOT = Path(__file__).resolve().parent
 STRUCTURE_EVAL_PATH = PROJECT_ROOT / "scripts" / "evaluation_structure_similarity.py"
 PLOT_EVAL_PATH = PROJECT_ROOT / "scripts" / "plot_evaluation_results.py"
-DEFAULT_FOLDER = Path(r"runs\stability_test\batch4_4_reruns")  # Default base folder for evaluation; can be overridden by --folder argument.
+DEFAULT_FOLDER = Path(r"runs/stability_test/stability_test_batch_1_9_reruns")  # Default base folder for evaluation; can be overridden by --folder argument.
 DEFAULT_GRAPH_FILE = "causal_graph.json"
 EXACT_GED = False
 

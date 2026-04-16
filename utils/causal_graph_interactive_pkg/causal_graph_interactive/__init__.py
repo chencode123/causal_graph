@@ -4165,6 +4165,86 @@ _JSON_GRAPH_HTML_TEMPLATE = r"""<!doctype html>
       return "confidence-low";
     }
 
+    function parseSuggestedStateField(suggestedState, field) {
+      if (suggestedState && typeof suggestedState === "object" && !Array.isArray(suggestedState)) {
+        const direct = suggestedState[field];
+        if (direct !== undefined && direct !== null && String(direct).trim()) {
+          return String(direct).trim();
+        }
+        if (field === "node_type") {
+          const alias = suggestedState.type;
+          if (alias !== undefined && alias !== null && String(alias).trim()) {
+            return String(alias).trim();
+          }
+        }
+        return "";
+      }
+      const text = String(suggestedState || "").trim();
+      if (!text) return "";
+      const escapedField = field.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const match = text.match(new RegExp(`(?:^|[;\\n])\\s*${escapedField}\\s*[:=]\\s*(.+?)(?=\\s*(?:[;\\n]|$))`, "i"));
+      return match ? match[1].trim() : "";
+    }
+
+    function resolveSuggestedStateValue(suggestedState, preferredFields, currentValue) {
+      if (suggestedState && typeof suggestedState === "object" && !Array.isArray(suggestedState)) {
+        for (const field of preferredFields) {
+          const parsed = parseSuggestedStateField(suggestedState, field);
+          if (!parsed) continue;
+          if (/^(retained|keep|unchanged|no change|same)$/i.test(parsed)) {
+            return currentValue || "";
+          }
+          return parsed;
+        }
+        return currentValue || "";
+      }
+      const text = String(suggestedState || "").trim();
+      if (!text) return currentValue || "";
+      for (const field of preferredFields) {
+        const parsed = parseSuggestedStateField(text, field);
+        if (parsed) {
+          if (/^(retained|keep|unchanged|no change|same)$/i.test(parsed)) {
+            return currentValue || "";
+          }
+          return parsed;
+        }
+      }
+      if (/\bretained\b|\bunchanged\b|\bno\s+change\b|\bkeep\b/i.test(text)) {
+        return currentValue || "";
+      }
+      return text;
+    }
+
+    function formatRevisionState(value) {
+      if (value && typeof value === "object" && !Array.isArray(value)) {
+        const entries = Object.entries(value)
+          .filter(([_, fieldValue]) => String(fieldValue || "").trim());
+        if (!entries.length) return "";
+        return entries
+          .map(([key, fieldValue]) => `${key}: ${String(fieldValue).trim()}`)
+          .join("; ");
+      }
+      return String(value || "").trim();
+    }
+
+    function summarizeNodeUpdate(item) {
+      const suggestedState = item.suggested_state || "";
+      const changeType = String(item.change_type || "").toLowerCase();
+      if (changeType === "relabel") {
+        const labelValue = resolveSuggestedStateValue(suggestedState, ["label"], "");
+        return labelValue ? `Label -> ${labelValue}` : (item.reason || "Update node");
+      }
+      if (changeType === "rename") {
+        const nameValue = resolveSuggestedStateValue(suggestedState, ["name"], "");
+        return nameValue ? `Name -> ${nameValue}` : (item.reason || "Update node");
+      }
+      if (changeType === "retype") {
+        const typeValue = resolveSuggestedStateValue(suggestedState, ["node_type", "type"], "");
+        return typeValue ? `Type -> ${typeValue}` : (item.reason || "Update node");
+      }
+      return formatRevisionState(suggestedState) || item.reason || "Update node";
+    }
+
     function collectReviewCards() {
       const cards = [];
       const coveredEdgeAdditions = new Map();
@@ -4225,10 +4305,11 @@ _JSON_GRAPH_HTML_TEMPLATE = r"""<!doctype html>
           key: `node_update_${index}`,
           relatedNodeIds: [item.target_id].filter(Boolean),
           relatedEdgeKeys: [],
-          summary: item.suggested_state || item.reason || "Update node",
+          summary: summarizeNodeUpdate(item),
           details: [
             ["Target", item.target_id || ""],
             ["Change", item.change_type || ""],
+            ["Suggested state", formatRevisionState(item.suggested_state || "")],
             ["Reason", item.reason || ""],
             ["Evidence", item.evidence || ""],
           ],
@@ -4594,17 +4675,16 @@ _JSON_GRAPH_HTML_TEMPLATE = r"""<!doctype html>
       if (!node) throw new Error(`Node ${item.target_id || ""} not found.`);
       const data = { ...node.data() };
       const changeType = String(item.change_type || "").toLowerCase();
-      const suggestedState = String(item.suggested_state || "");
-      const captureField = (label) => {
-        const match = suggestedState.match(new RegExp(`${label}:\\s*([^\\n]+)`, "i"));
-        return match ? match[1].trim() : "";
-      };
+      const suggestedState = item.suggested_state || "";
+      const captureField = (label) => parseSuggestedStateField(suggestedState, label);
+      const resolveFieldValue = (preferredFields, currentValue) =>
+        resolveSuggestedStateValue(suggestedState, preferredFields, currentValue);
       if (changeType === "rename") {
-        data.name = suggestedState || data.name;
+        data.name = resolveFieldValue(["name"], data.name);
       } else if (changeType === "relabel") {
-        data.label = suggestedState || data.label;
+        data.label = resolveFieldValue(["label"], data.label);
       } else if (changeType === "retype") {
-        data.nodeType = suggestedState || data.nodeType;
+        data.nodeType = resolveFieldValue(["node_type", "type"], data.nodeType);
       } else if (changeType === "update_evidence") {
         data.evidence = captureField("evidence") || suggestedState || data.evidence;
       } else if (changeType === "update_explanation") {

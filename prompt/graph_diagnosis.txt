@@ -1,5 +1,7 @@
 You are a process safety analyst specializing in accident investigation, hazard scenario reconstruction, and causal graph diagnosis.
 
+{few_shot_examples}
+
 INPUT DATA
 
 INCIDENT_DESCRIPTION
@@ -13,12 +15,6 @@ ACCIDENT_SCENARIO_SCHEMA_DEFINITION
 
 CAUSAL_NARRATIVE_EXTRACTION_OUTPUT
 {causal_narrative_extraction_output}
-
-IDENTIFY_ACCIDENT_SCENARIO_OUTPUT
-{identify_accident_scenario_output}
-
-CAUSAL_EDGE_LINKING_OUTPUT
-{causal_edge_linking_output}
 
 CAUSAL_GRAPH_JSON
 {causal_graph_json}
@@ -41,18 +37,17 @@ DIAGNOSIS RULES
     2. Use CAUSAL_NARRATIVE_EXTRACTION_OUTPUT as the primary reference for the intended
        accident progression and key intermediate causal steps.
 
-    3. Use IDENTIFY_ACCIDENT_SCENARIO_OUTPUT as the primary reference for what nodes were
-       extracted and how they were described.
-
-    4. Use CAUSAL_EDGE_LINKING_OUTPUT as the primary reference for how the current edge
-       suggestions were produced.
-
-    5. Use ACCIDENT_SCENARIO_SCHEMA and ACCIDENT_SCENARIO_SCHEMA_DEFINITION to judge whether
+    3. Use ACCIDENT_SCENARIO_SCHEMA and ACCIDENT_SCENARIO_SCHEMA_DEFINITION to judge whether
        labels, node types, and meanings are appropriate.
 
-    6. Do not invent unsupported accident mechanisms, conditions, or events.
+    4. Do not invent unsupported accident mechanisms, conditions, or events.
 
-    7. Prefer concise, high-value findings. Do not list purely stylistic issues.
+    5. Prefer concise, high-value findings. Do not list purely stylistic issues.
+
+    6. First determine whether the current graph has any material diagnosis issue at all.
+       Before concluding that no material issue exists, explicitly consider each allowed
+       issue_type in this prompt. If no material issue is supported by the evidence after
+       those checks, do not force a diagnosis.
 
 [Connectivity expectations]
 
@@ -66,9 +61,10 @@ DIAGNOSIS RULES
        edge.
 
     4. Every Condition node should normally have both at least one incoming edge and at
-       least one outgoing edge.
+       least one outgoing edge, but only if the Condition is worth retaining as a separate
+       node rather than redundant extraction.
 
-    5. If both ReleaseType and Dispersion nodes are present and supported, check whether the
+    5. If both release and dispersion events are present and supported, check whether the
        graph adequately represents the local release-to-dispersion mechanism.
 
 [Issue definitions]
@@ -85,6 +81,33 @@ DIAGNOSIS RULES
        chain A -> B -> C, you may diagnose both a shortcut_edge and a missing_step when B is
        not represented.
 
+    4. Do not diagnose missing_step for details that merely restate an existing downstream
+       consequence, restate semantics already captured by an existing node, or introduce a
+       finer-grained detail that does not play an independent local causal role.
+
+    5. Define duplicate_node as a node whose main semantics are already represented by one
+       or more existing nodes, such that keeping both would be meaningfully redundant.
+
+    6. Define wrong_direction as an edge whose causal direction is reversed relative to the
+       supported local mechanism.
+
+    7. Define wrong_relation as an edge whose relation label ("has" vs "enables") does not
+       match the supported semantic role between the connected nodes.
+
+    8. Define unsupported_node as a node whose claimed meaning is not supported, or not
+       sufficiently supported, by the incident description or causal narrative.
+
+    9. Define unsupported_edge as an edge whose claimed causal connection is not supported,
+       or not sufficiently supported, by the incident description or causal narrative.
+
+    10. Define disconnected_node as a node that lacks required local connectivity in the
+        current graph and therefore does not participate in a valid supported role.
+
+    11. Define schema_mismatch as a node or edge whose label, type, or meaning conflicts
+        with ACCIDENT_SCENARIO_SCHEMA or ACCIDENT_SCENARIO_SCHEMA_DEFINITION.
+
+    12. Use other only for material diagnosis problems that do not fit any listed issue_type.
+
 [Diagnostic decision rules]
 
     1. Prefer diagnosing a missing node or missing step only when the absent mechanism
@@ -98,12 +121,36 @@ DIAGNOSIS RULES
 
     3. For weakly connected or invalid condition nodes, determine whether the problem is
        missing support edges or unnecessary node extraction. Do not assume weak
-       condition should be preserved if the current causal graph can represent their meaning.
+       condition should be preserved if the current causal graph can represent their meanings.
+       Prefer duplicate_node or unsupported_node over weak_edge when the main problem is
+       that the condition should not have been retained as a separate node.
+
+    4. If the current graph already captures the needed local causal meaning, do not
+       diagnose a missing_step, missing node, or weak edge just to make the diagnosis more
+       complete.
+
+    5. Do not invent low-value, speculative, or purely completeness-driven issues when the
+       graph is already acceptable for the supported evidence.
+
+    6. Do not report multiple issue entries that merely restate the same underlying
+       problem. Use the smallest set of issues that captures the material diagnosis problem.
+
+    7. For each issue, keep affected_node_ids and affected_edges as specific and minimal as
+       possible. Do not attach broad graph regions when the problem is local.
+
+    8. issue_type_checks must be consistent with issues_summary. If an issue_type appears in
+       issues_summary, mark that issue_type as present in issue_type_checks. If an
+       issue_type does not appear in issues_summary, mark it as not_present.
+
+    9. If issues_summary is empty, case_assessment.main_problems must also be empty.
+
+    10. If issues_summary is empty, case_assessment.overall_quality must be "good".
+        Use "acceptable" only when at least one real but limited issue is present.
 
 [Hazard consequence constraints]
 
     1. Do not diagnose a missing HazardConsequence node. Treat the hazard consequence
-       inventory as fixed by IDENTIFY_ACCIDENT_SCENARIO_OUTPUT and CAUSAL_GRAPH_JSON.
+       inventory as fixed by CAUSAL_GRAPH_JSON.
 
     2. Do not use missing_step, unsupported_node, schema_mismatch, or other issue types to
        imply that an additional HazardConsequence node should be added. If the downstream
@@ -111,6 +158,18 @@ DIAGNOSIS RULES
        evidence, or connectivity.
 
 OUTPUT REQUIREMENTS
+
+If no material diagnosis issue is supported:
+
+  - set case_assessment.overall_quality to "good"
+  - return an empty issues_summary list
+  - still return issue_type_checks for all allowed issue_type values
+  - mark every issue_type as not_present
+  - do not leave any issue_type unchecked or omitted
+
+Do not manufacture issues just to avoid returning an empty issues_summary.
+Order issues_summary from highest-value finding to lowest-value finding, using severity and
+structural importance.
 
 Return one JSON object with this structure:
 
@@ -137,10 +196,51 @@ Return one JSON object with this structure:
       ]
     }}
   ],
-  "connectivity_checks": {{
-    "nodes_without_outgoing": ["node_id"],
-    "condition_nodes_missing_incoming": ["node_id"],
-    "condition_nodes_missing_outgoing": ["node_id"]
+  "issue_type_checks": {{
+    "missing_step": {{
+      "status": "present | not_present",
+      "note": "string"
+    }},
+    "duplicate_node": {{
+      "status": "present | not_present",
+      "note": "string"
+    }},
+    "weak_edge": {{
+      "status": "present | not_present",
+      "note": "string"
+    }},
+    "shortcut_edge": {{
+      "status": "present | not_present",
+      "note": "string"
+    }},
+    "wrong_direction": {{
+      "status": "present | not_present",
+      "note": "string"
+    }},
+    "wrong_relation": {{
+      "status": "present | not_present",
+      "note": "string"
+    }},
+    "unsupported_node": {{
+      "status": "present | not_present",
+      "note": "string"
+    }},
+    "unsupported_edge": {{
+      "status": "present | not_present",
+      "note": "string"
+    }},
+    "disconnected_node": {{
+      "status": "present | not_present",
+      "note": "string"
+    }},
+    "schema_mismatch": {{
+      "status": "present | not_present",
+      "note": "string"
+    }},
+    "other": {{
+      "status": "present | not_present",
+      "note": "string"
+    }}
   }}
 }}
 

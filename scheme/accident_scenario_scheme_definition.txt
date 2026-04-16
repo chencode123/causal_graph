@@ -1,12 +1,15 @@
 SCHEMA DEFINITION
 
-The output must strictly follow the provided JSON schema. Each field has a specific meaning and must be filled according to the rules below.
+The output must strictly follow the provided JSON schema.
+Each field has a specific meaning and must be filled according to the rules
+below.
 
 General Rules
 
 Evidence
 
-The "evidence" field must contain a short quote copied directly from the source that supports the extracted value.
+The "evidence" field must contain a short quote copied directly from the source
+that supports the extracted value.
 
 If source = "incident_description":
 The evidence must be copied verbatim from the incident report text.
@@ -19,7 +22,8 @@ source = "Not specified".
 
 Source
 
-The "source" field indicates where the information was obtained, the allowed source are listed in each nodes.
+The "source" field indicates where the information was obtained.
+The allowed source values are listed in each node definition.
 
 Allowed values:
 
@@ -60,7 +64,9 @@ Material
 Definition
 The hazardous substance involved in the accident scenario.
 
-This refers to the chemical or material present in the process that participates in the release, dispersion, ignition, or hazard consequence.
+This refers to the chemical or material present in the process that
+participates in release events, dispersion events, ignition, or hazard
+consequence.
 
 
 --------------------------------------------------
@@ -70,14 +76,16 @@ Location
 Definition
 The physical place or equipment where the accident-related event occurs.
 
-This may include process units, storage tanks, pipelines, packaging areas, or other facility locations relevant to the accident.
+This may include process units, storage tanks, pipelines, packaging areas, or
+other facility locations relevant to the accident.
 
 --------------------------------------------------
 IntermediateEvent
 --------------------------------------------------
 
-An intermediate event that occurs after the initiating event and before the final hazard consequence, 
-only when a necessary accident-process step cannot be adequately represented by the existing node types.
+An intermediate event that occurs after the initiating event and before the
+final hazard consequence, only when a necessary accident-process step cannot be
+adequately represented by the existing node types.
 
 Use IntermediateEvent sparingly.
 
@@ -88,10 +96,83 @@ Do not create an IntermediateEvent if the same accident logic can already be rep
 - Entity nodes
 - Condition nodes
 
-IntermediateEvent should only be used for a process-significant transition that adds unique causal 
-information and cannot be expressed by the other node types.
-Do not use IntermediateEvent merely to restate an observed outcome such as overpressure, explosion, 
-or fire unless that stage is distinctly necessary in the accident progression.
+IntermediateEvent should only be used for a process-significant transition that
+adds unique causal information and cannot be expressed by the other node types.
+
+Do not use IntermediateEvent merely to restate an observed outcome such as
+overpressure, explosion, or fire unless that stage is distinctly necessary in
+the accident progression.
+
+Event labels
+
+Event labels must use one of the schema-supported labels:
+- InitiatingEvent
+- MechanicalFailure
+- IgnitionSource
+- IntermediateEvent
+- InstantRelease
+- ContinuousRelease
+- Dispersion
+
+Use event labels to reflect the local causal role described by the report, such as:
+- InitiatingEvent
+- MechanicalFailure
+- IgnitionSource
+- IntermediateEvent
+- InstantRelease
+- ContinuousRelease
+- Dispersion
+
+When release or dispersion is described as a process-significant step in the
+accident progression, represent it as an Event rather than a Condition.
+
+If the described event semantically matches InstantRelease,
+ContinuousRelease, or Dispersion, prefer using that more specific event label
+rather than the more generic InitiatingEvent or IntermediateEvent label.
+
+--------------------------------------------------
+InstantRelease
+--------------------------------------------------
+
+Definition
+A release event in which hazardous material is discharged suddenly or over a
+short interval.
+
+Use InstantRelease when the report describes a rapid loss of containment, abrupt discharge,
+bursting release, or a one-time sudden emission.
+
+If the event semantically matches an instantaneous release, prefer
+InstantRelease over InitiatingEvent or IntermediateEvent.
+
+--------------------------------------------------
+ContinuousRelease
+--------------------------------------------------
+
+Definition
+A release event in which hazardous material is discharged continuously or over
+an extended interval.
+
+Use ContinuousRelease when the report describes ongoing leakage, venting, steady discharge,
+or persistent release over time.
+
+If the event semantically matches a continuous release, prefer
+ContinuousRelease over InitiatingEvent or IntermediateEvent.
+
+--------------------------------------------------
+Dispersion
+--------------------------------------------------
+
+Definition
+A dispersion event in which released material spreads, travels, accumulates, or
+forms a cloud in the surrounding environment.
+
+Use Dispersion when the report describes vapor cloud formation, gas spreading,
+material transport through air, or accumulation of released material in a
+nearby area.
+
+If the event semantically matches dispersion, prefer Dispersion over
+InitiatingEvent or IntermediateEvent.
+
 --------------------------------------------------
 Phase
 --------------------------------------------------
@@ -99,7 +180,9 @@ Phase
 Definition
 The physical phase of the material at the time of the accident.
 
-This condition describes whether the material exists as liquid, vapor, solid, or a two-phase mixture, which can influence release behavior and hazard consequences.
+This condition describes whether the material exists as liquid, vapor, solid,
+or a two-phase mixture, which can influence release behavior and hazard
+consequences.
 
 
 --------------------------------------------------
@@ -116,10 +199,15 @@ Pressure
 --------------------------------------------------
 
 Definition
-The pressure condition of the material or process system during the accident scenario.
+The pressure condition of the material or process system during the accident
+scenario.
 
-Pressure influences the containment, release rate, and phase behavior of the material.
-Elevated pressure can increase the driving force for a release and accelerate discharge from equipment, while low or atmospheric pressure conditions may affect vapor formation and dispersion behavior.
+Pressure influences the containment, release rate, and phase behavior of the
+material.
+
+Elevated pressure can increase the driving force for a release event and
+accelerate discharge from equipment, while low or atmospheric pressure
+conditions may affect vapor formation and downstream event development.
 
 --------------------------------------------------
 Volatility
@@ -128,7 +216,8 @@ Volatility
 Definition
 The tendency of a substance to vaporize.
 
-High volatility substances can easily form flammable or toxic vapor clouds that may contribute to explosion or dispersion hazards.
+High volatility substances can easily form flammable or toxic vapor clouds that
+may contribute to explosion or toxic exposure hazards.
 
 
 --------------------------------------------------
@@ -146,9 +235,11 @@ ToxicSubstance
 --------------------------------------------------
 
 Definition
-Whether the material has toxic properties that can cause harm to humans or the environment.
+Whether the material has toxic properties that can cause harm to humans or the
+environment.
 
-Toxic substances may produce hazardous exposure through vapor dispersion or direct contact.
+Toxic substances may produce hazardous exposure through released vapor,
+downstream dispersion events, or direct contact.
 
 
 --------------------------------------------------
@@ -156,9 +247,11 @@ Asphyxiant
 --------------------------------------------------
 
 Definition
-Whether the substance can cause oxygen displacement or interfere with oxygen transport in the body.
+Whether the substance can cause oxygen displacement or interfere with oxygen
+transport in the body.
 
-Asphyxiants may lead to suffocation or oxygen deficiency hazards in confined or poorly ventilated spaces.
+Asphyxiants may lead to suffocation or oxygen deficiency hazards in confined or
+poorly ventilated spaces.
 
 
 --------------------------------------------------
@@ -169,16 +262,6 @@ Definition
 The electrical conductivity property of the material.
 
 Low conductivity liquids may accumulate static electricity during transfer operations, increasing the risk of static discharge ignition.
-
-
---------------------------------------------------
-ReleaseType
---------------------------------------------------
-
-Definition
-The manner in which hazardous material is released into the environment.
-
-This condition distinguishes between instantaneous releases and continuous releases, which influence dispersion behavior and accident escalation.
 
 
 --------------------------------------------------
@@ -196,19 +279,11 @@ Confinement
 --------------------------------------------------
 
 Definition
-The degree to which flammable or hazardous material is enclosed within a confined space.
+The degree to which flammable or hazardous material is enclosed within a
+confined space.
 
-High confinement can increase explosion overpressure and significantly influence explosion severity.
-
-
---------------------------------------------------
-Dispersion
---------------------------------------------------
-
-Definition
-The spreading of released material into the surrounding environment.
-
-Dispersion determines how vapors, gases, or toxic substances distribute in air and whether hazardous concentrations can form.
+High confinement can increase explosion overpressure and significantly
+influence explosion severity.
 
 
 --------------------------------------------------
@@ -218,11 +293,13 @@ MechanicalFailure
 Definition
 A physical failure of equipment that contributes to the accident.
 
-This may include rupture, leakage, seal failure, structural failure, refractory degradation, 
-or malfunction of process equipment that leads to loss of containment or abnormal process behavior.
+This may include rupture, leakage, seal failure, structural failure,
+refractory degradation, or malfunction of process equipment that leads to loss
+of containment or abnormal process behavior.
 
-If the report describes a plausible or observed physical failure in the analysis section, 
-extract it as a MechanicalFailure even if the report does not confirm it as the exact root cause.
+If the report describes a plausible or observed physical failure in the
+analysis section, extract it as a MechanicalFailure even if the report does not
+confirm it as the exact root cause.
 
 If a mechanical failure clearly occurred and contributed to the accident,
 but the exact failed component or exact failure mode cannot be determined
@@ -235,15 +312,17 @@ support to identify whether a mechanical failure should be represented at all.
 InitiatingEvent
 --------------------------------------------------
 
-The first abnormal operational or process event that initiates the accident sequence within the process system.
+The first abnormal operational or process event that initiates the accident
+sequence within the process system.
 
 Prefer events that represent a process upset or system disturbance.
 
-Do NOT use an observed consequence (e.g., overpressure, explosion, fire) as the InitiatingEvent 
-if it can be explained as the result of other identified causes (e.g., mechanical failure or process conditions).
+Do NOT use an observed consequence such as overpressure, explosion, or fire as
+the InitiatingEvent if it can be explained as the result of other identified
+causes such as mechanical failure or process conditions.
 
-If a concrete MechanicalFailure is identified, it should generally precede or explain the InitiatingEvent, 
-rather than being replaced by it.
+If a concrete MechanicalFailure is identified, it should generally precede or
+explain the InitiatingEvent, rather than being replaced by it.
 
 --------------------------------------------------
 IgnitionSource Special Rule

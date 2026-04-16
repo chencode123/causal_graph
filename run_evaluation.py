@@ -29,11 +29,12 @@ PROJECT_ROOT = Path(__file__).resolve().parent
 SCRIPTS_DIR = PROJECT_ROOT / "scripts"
 STRUCTURE_EVAL_PATH = PROJECT_ROOT / "scripts" / "evaluation_structure_similarity.py"
 PLOT_EVAL_PATH = PROJECT_ROOT / "scripts" / "plot_evaluation_results.py"
-DEFAULT_FOLDER = Path("runs/stability_test_batch_1_9")  # Default base folder for evaluation; can be overridden by --folder argument.
+DEFAULT_FOLDER = Path("runs/stability_test/batch_4_without_few_shot_reruns")  # Default base folder for evaluation; can be overridden by --folder argument.
 SHOW_PROGRESS = True  # Default progress-bar visibility; can still be overridden by --show-progress/--hide-progress.
 COMPUTE_GED_OPERATION_COUNTS = False  # Whether to run the expensive node/edge edit-operation counting step by default.
 DEFAULT_WORKERS = 2  # Safer default on Windows to avoid process-pool crashes from heavy native imports.
-EXACT_GED = True
+USE_EXACT_GED = False  # True: exhaustive exact GED; False: fast first-candidate GED.
+GED_TIMEOUT_SECONDS = None  # Optional per-GED timeout in seconds. None keeps NetworkX default behavior.
 
 if str(SCRIPTS_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPTS_DIR))
@@ -120,9 +121,18 @@ def parse_args() -> argparse.Namespace:
         action="store_false",
         help="Use only the first GED candidate for faster but less reliable results.",
     )
+    parser.add_argument(
+        "--ged-timeout",
+        type=float,
+        default=GED_TIMEOUT_SECONDS,
+        help=(
+            "Maximum seconds for each exact GED calculation. "
+            "If omitted, NetworkX runs without a per-GED timeout."
+        ),
+    )
     parser.set_defaults(compute_ged_operation_counts=COMPUTE_GED_OPERATION_COUNTS)
     parser.set_defaults(show_progress=SHOW_PROGRESS)
-    parser.set_defaults(exact_ged=EXACT_GED)
+    parser.set_defaults(exact_ged=USE_EXACT_GED)
     return parser.parse_args()
 
 
@@ -186,6 +196,8 @@ def main() -> None:
             sys.argv.append("--hide-progress")
         if not args.exact_ged:
             sys.argv.append("--fast-ged")
+        if args.ged_timeout is not None:
+            sys.argv.extend(["--ged-timeout", str(args.ged_timeout)])
         results_dir = eval_module.main()
         figures_dir = plot_module.generate_all_figures(results_dir)
         print(f"Saved evaluation figures to {figures_dir}.")

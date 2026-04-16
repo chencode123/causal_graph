@@ -96,19 +96,6 @@
       "few_shot_examples"
     ]
   },
-  "joint_accident_graph_extraction": {
-    "template_file": "joint_accident_graph_extraction.txt",
-    "required_vars": [
-      "incident_description",
-      "identify_hazard_consequence_output",
-      "causal_narrative_extraction_output",
-      "accident_scenario_schema",
-      "accident_scenario_schema_definition"
-    ],
-    "optional_vars": [
-      "few_shot_examples"
-    ]
-  },
   "review_causal_graph": {
     "template_file": "review_causal_graph.txt",
     "required_vars": [
@@ -129,11 +116,11 @@
       "accident_scenario_schema",
       "accident_scenario_schema_definition",
       "causal_narrative_extraction_output",
-      "identify_accident_scenario_output",
-      "causal_edge_linking_output",
       "causal_graph_json"
     ],
-    "optional_vars": []
+    "optional_vars": [
+      "few_shot_examples"
+    ]
   },
   "graph_revision_planning": {
     "template_file": "graph_revision_planning.txt",
@@ -142,12 +129,12 @@
       "accident_scenario_schema",
       "accident_scenario_schema_definition",
       "causal_narrative_extraction_output",
-      "identify_accident_scenario_output",
-      "causal_edge_linking_output",
       "causal_graph_json",
       "graph_diagnosis_output"
     ],
-    "optional_vars": []
+    "optional_vars": [
+      "few_shot_examples"
+    ]
   },
   "review_feedback_analysis": {
     "template_file": "review_feedback_analysis.txt",

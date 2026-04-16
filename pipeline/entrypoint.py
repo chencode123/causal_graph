@@ -6,8 +6,10 @@ import shutil
 
 from pipeline.batch_runner import run_batch_pipeline as run_batch_api_pipeline
 from pipeline.runner import run_batch_pipeline as run_responses_pipeline
+from pipeline.step_registry import STEP_REGISTRY
 from utils.batch_pipeline_utils import (
     PipelineConfig,
+    copy_case_seed_files,
     discover_case_folders,
     filter_case_folders,
     iter_target_batch_dirs,
@@ -124,10 +126,22 @@ def run_with_stability(
         return
 
     source_batch_dirs = iter_target_batch_dirs(base_dir)
+    source_case_dirs = tuple(
+        folder
+        for batch_dir in source_batch_dirs
+        for folder in filter_case_folders(discover_case_folders(batch_dir), config.target_cases)
+    )
     output_root = stability_output_root or (base_dir.parent / f"{base_dir.name}_stability")
     output_root.mkdir(parents=True, exist_ok=True)
     print(f"Stability mode enabled: rounds={rounds}, start_round={start_round}")
     print(f"Stability outputs root: {output_root}")
+
+    flatten_single_case = len(source_case_dirs) == 1
+    excluded_filenames = {
+        STEP_REGISTRY[step_key]["output_file"]
+        for step_key in (config.active_step_keys or ())
+        if step_key in STEP_REGISTRY
+    }
 
     for round_offset in range(rounds):
         round_index = start_round + round_offset
@@ -141,19 +155,58 @@ def run_with_stability(
         round_base_dir.mkdir(parents=True, exist_ok=True)
         source_folder_map: dict[Path, Path] = {}
 
+        if flatten_single_case:
+            source_case_dir = source_case_dirs[0]
+            copy_case_seed_files(
+                source_case_dir=source_case_dir,
+                target_case_dir=round_base_dir,
+                excluded_filenames=excluded_filenames,
+            )
+            source_folder_map[round_base_dir] = source_case_dir
+            run_pipeline_for_mode(
+                config=replace(
+                    config,
+                    base_dir=round_base_dir,
+                    target_folders=(round_base_dir,),
+                    target_cases=None,
+                    source_folder_map=source_folder_map,
+                    batch_workdir=round_base_dir / "_batch_pipeline",
+                ),
+                execution_mode=execution_mode,
+            )
+            continue
+
+        flatten_single_batch = len(source_batch_dirs) == 1
         for source_batch_dir in source_batch_dirs:
-            round_batch_dir = round_base_dir / f"{source_batch_dir.name}_output_round_{round_index}"
+            round_batch_dir = (
+                round_base_dir
+                if flatten_single_batch
+                else round_base_dir / f"{source_batch_dir.name}_output_round_{round_index}"
+            )
             source_folder_map.update(
                 prepare_round_output_dirs(
                     source_batch_dir=source_batch_dir,
                     target_batch_dir=round_batch_dir,
                     target_cases=config.target_cases,
+                    excluded_filenames=excluded_filenames,
                 )
             )
 
-        run_single_or_multi_batch(
-            config=replace(config, source_folder_map=source_folder_map),
-            run_base_dir=round_base_dir,
-            execution_mode=execution_mode,
-            upload_all_files_in_one_batch=upload_all_files_in_one_batch,
-        )
+        if flatten_single_batch:
+            run_pipeline_for_mode(
+                config=replace(
+                    config,
+                    base_dir=round_base_dir,
+                    target_folders=tuple(source_folder_map),
+                    source_folder_map=source_folder_map,
+                    batch_workdir=round_base_dir / "_batch_pipeline",
+                ),
+                execution_mode=execution_mode,
+            )
+        else:
+            run_single_or_multi_batch(
+                config=replace(config, source_folder_map=source_folder_map),
+                run_base_dir=round_base_dir,
+                execution_mode=execution_mode,
+                upload_all_files_in_one_batch=upload_all_files_in_one_batch,
+            )
