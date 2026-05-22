@@ -1,0 +1,32 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(npm --version)",
+      "PowerShell(node --version)",
+      "PowerShell(npm --version)",
+      "WebFetch(domain:www.cyber.tamus.edu)",
+      "Bash(/c/Users/cheny/miniconda3/envs/llm/python.exe -)",
+      "Bash(python -c ' *)",
+      "Read(//g/Other computers/My computer/project C/gen ai/manuscript/llm_manuscript/**)",
+      "Bash(/c/Users/cheny/miniconda3/envs/llm/python.exe \"G:/Other computers/My computer/project C/gen ai/code/llm/.claude/skills/docx/scripts/office/pack.py\" AI_unpacked/ AI.docx --original AI.docx)",
+      "Bash(/c/Users/cheny/miniconda3/envs/llm/python.exe \"G:/Other computers/My computer/project C/gen ai/code/llm/.claude/skills/docx/scripts/office/pack.py\" AI_unpacked/ AI.docx --original AI.docx --validate false)",
+      "Bash(/c/Users/cheny/miniconda3/envs/llm/python.exe -c ' *)",
+      "PowerShell(& \"C:\\\\Users\\\\cheny\\\\miniconda3\\\\envs\\\\llm\\\\python.exe\" \"G:\\\\Other computers\\\\My computer\\\\project C\\\\gen ai\\\\code\\\\llm\\\\scripts\\\\plot_stability_comparison.py\" 2>&1)",
+      "Bash(C:/Users/cheny/anaconda3/envs/llm/python.exe -c \"import pandas; print\\('ok', pandas.__version__\\)\")",
+      "PowerShell(& \"C:\\\\Users\\\\cheny\\\\miniconda3\\\\envs\\\\llm\\\\python.exe\" -c \"import pandas; print\\('ok', pandas.__version__\\)\")",
+      "Edit(/.claude/skills/psep-writing/**)",
+      "Bash(\"C:/Users/cheny/miniconda3/envs/llm/python.exe\" \"g:/Other computers/My computer/project C/gen ai/code/llm/scripts/plot_similarity_factors.py\")",
+      "Bash(\"C:/Users/cheny/miniconda3/envs/llm/python.exe\" scripts/plot_graph_structure_factors.py)",
+      "Bash(C:/Users/cheny/miniconda3/envs/llm/python.exe -c ' *)",
+      "Bash(pandoc AI.docx -t plain)",
+      "Skill(psep-writing)",
+      "Skill(psep-writing:*)",
+      "Bash(dir \"g:\\\\Other computers\\\\My computer\\\\project C\\\\gen ai\\\\code\\\\llm\\\\runs\\\\stability_test\\\\rounds_with_few_shot\\\\round_2\\\\batch_1\\\\1\" /b)",
+      "Bash(python -c \"import pkg_resources; [print\\(d\\) for d in pkg_resources.working_set]\")",
+      "Bash(sed 's/ .*//')",
+      "Bash(python -c \"import json; d=json.load\\(open\\('prompt/review_feedback/review_feedback_analysis_few_shot_balanced_small.json' if False else 'prompt/review_feedback/case_coverage_12/review_feedback_analysis_few_shot_balanced_small.json', encoding='utf-8'\\)\\); print\\(list\\(d.keys\\(\\)\\)\\); import json; p=d.get\\('diagnosis_patterns', d.get\\('planning_patterns',[]\\)\\); print\\(len\\(p\\), 'patterns'\\); print\\(list\\(p[0].keys\\(\\)\\) if p else 'empty'\\)\")"
+    ]
+  }
+}
