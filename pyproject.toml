@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "causal-graphviz"
+version = "0.1.0"
+requires-python = ">=3.9"
+dependencies = [
+    "openai",
+    "python-dotenv",
+    "graphviz>=0.20.0",
+    "tqdm",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["pipeline*", "utils.causal_graphviz*", "utils.causal_postprocess*"]

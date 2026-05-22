@@ -7,6 +7,9 @@ INPUT DATA
 IDENTIFIED_HAZARD_CONSEQUENCE
 {identify_hazard_consequence_output}
 
+INCIDENT_DESCRIPTION
+{incident_description}
+
 CAUSAL_NARRATIVE_EXTRACTION
 {causal_narrative_extraction_output}
 
@@ -15,6 +18,12 @@ SCHEMA
 
 SCHEMA_DEFINITION
 {accident_scenario_schema_definition}
+
+CAUSAL_NODE_ISSUE_DEFINITION
+{causal_node_issue_definition}
+
+CAUSAL_ISSUE_OUTPUT_DEFINITION
+{causal_issue_output_definition}
 
 SCENARIO_CANDIDATE_EXTRACTION_OUTPUT
 {scenario_candidate_extraction_output}
@@ -26,49 +35,52 @@ TASK
 
 Validate the structure of SCENARIO_CANDIDATE_EXTRACTION_OUTPUT.
 Do not create the final normalized scenario in this step.
-Your job is to identify over-merged nodes, missing local steps, redundant conditions, and normalization guidance needed for the final scenario output.
+Your job is to identify over-merged nodes, missing local nodes, redundant nodes,
+wrong node types, schema-level mismatches, and other material structural problems,
+and to provide normalization guidance for the final scenario output.
 
 VALIDATION RULES
 
+VALIDATION BASIS
+
   1. Use CAUSAL_NARRATIVE_EXTRACTION as the primary reference for the intended accident
      progression.
-  2. Use CANDIDATE_EVIDENCE_SNIPPETS only as supporting evidence anchors.
-  3. Treat a candidate as over-merged if it combines multiple distinct causal stages that
-     should remain separate.
-  4. Treat a step as missing if the causal narrative clearly supports an independent local
-     role that is absent from the candidate set.
-  5. Prefer marking missing or weak edges conceptually only when the semantics already exist
-     in the candidate node set.
-  6. Condition nodes should be retained only when they play a reusable causal role in later
-     linking.
-  7. Treat release and dispersion as event-stage concepts by default. Flag them as wrong
-     node type if they are represented only as conditions.
-  8. Do not recommend purely stylistic changes.
+  2. Use INCIDENT_DESCRIPTION as the primary factual source for checking whether candidate
+     nodes, node types, and missing local nodes are directly supported.
+  3. Use CANDIDATE_EVIDENCE_SNIPPETS only as supporting evidence anchors, not as the only
+     basis for validation.
+  3a. Evaluate the candidate set in this order:
+      (1) whether one primary pathway is represented,
+      (2) whether any required local step is missing,
+      (3) whether alternative branches are mixed into that pathway,
+      (4) whether any candidates are overmerged, wrongly typed, or
+      purely descriptive.
+  3b. Use CAUSAL_NODE_ISSUE_DEFINITION as the authoritative guide for node-related issue
+      meanings.
+  3c. Use CAUSAL_ISSUE_OUTPUT_DEFINITION as the authoritative guide for shared
+      validation-style output structure.
+
+ISSUE DEFINITIONS
+
+  4. Use overmerged_node, missing_node, redundant_node, wrong_node_type, and
+     schema_mismatch
+     only in ways consistent with CAUSAL_NODE_ISSUE_DEFINITION.
+  9. Use other only for a problem that does not fit the categories
+     above.
+
+STRUCTURAL CHECKS
+
+  10. Check the candidate set against the definitions above and report the validation results
+      using the defined issue types.
+
+SCOPE LIMIT
+
+  11. Do not recommend purely stylistic changes.
 
 OUTPUT REQUIREMENTS
 
-Return one JSON object with this structure:
-
-{{
-  "validation_summary": {{
-    "overall_quality": "good | acceptable | weak",
-    "summary": "string"
-  }},
-  "issues": [
-    {{
-      "issue_type": "overmerged_event | missing_step | redundant_condition | wrong_node_type | duplicate_candidate | other",
-      "description": "string",
-      "severity": "high | medium | low",
-      "affected_node_ids": ["string"]
-    }}
-  ],
-  "normalization_guidance": {{
-    "must_split": ["string"],
-    "must_keep_separate": ["string"],
-    "must_add_condition_types": ["Phase | Combustibility | Confinement"],
-    "must_remove_nodes": ["string"]
-  }}
-}}
+Return one JSON object using the exact `scenario_structure_validation`
+output structure defined in CAUSAL_ISSUE_OUTPUT_DEFINITION.
 
 OUTPUT FORMAT
 

@@ -1,0 +1,81 @@
+{
+  "case_summary": {
+    "accepted_count": 4,
+    "rejected_count": 0,
+    "unresolved_count": 0,
+    "summary": "All reviewed revisions were accepted. The accepted outcomes confirm the diagnosis that the graph needed two missing local links from vent/relief blockage to the resulting confinement and pressure states, removal of one shortcut edge that bypassed the final release event, and deletion of one redundant location node with no independent causal role."
+  },
+  "planning_patterns": [
+    {
+      "decision_key": "edge_addition_0",
+      "proposed_change": "Add an enables edge from vent and relief blockage to high confinement.",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "Add missing local links when a blockage event directly creates a no-escape confinement state.",
+      "few_shot_takeaway": "When the evidence says blocked relief leaves vapor with no escape path, connect the blockage event directly to confinement."
+    },
+    {
+      "decision_key": "edge_addition_1",
+      "proposed_change": "Add an enables edge from vent and relief blockage to high pressure.",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "Add missing local links when loss of venting directly leads to pressure buildup.",
+      "few_shot_takeaway": "If pressure rise is described as following blocked venting or relief, represent that local causal step explicitly."
+    },
+    {
+      "decision_key": "edge_deletion_0",
+      "proposed_change": "Delete the direct enables edge from high pressure to the hazard consequence.",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "Remove shortcut edges that bypass a more local final release event already represented in the graph.",
+      "few_shot_takeaway": "Prefer the chain through the immediate failure or release step over a direct state-to-consequence shortcut."
+    },
+    {
+      "decision_key": "node_deletion_0",
+      "proposed_change": "Delete the vent line and emergency pressure relief inlet location node.",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "Delete redundant nodes that do not carry an independent causal role or downstream use.",
+      "few_shot_takeaway": "Drop component or location nodes when their causal role is already captured elsewhere and they add no separate downstream function."
+    }
+  ],
+  "diagnosis_patterns": [
+    {
+      "derived_from_decision_key": "edge_addition_0",
+      "decision": "accepted",
+      "observed_pattern": "A blockage event is not linked to the confinement state it creates.",
+      "diagnosis_interpretation": "This should be diagnosed as a missing local-link problem: the retained confinement state needs to be framed as a direct result of blocked release paths, not as an isolated vessel attribute.",
+      "supporting_rule": "When blockage creates a no-escape condition, diagnose the gap as a missing local connection to confinement.",
+      "few_shot_takeaway": "Diagnose unattached confinement states as missing local-link issues when the narrative ties them directly to blocked venting or relief."
+    },
+    {
+      "derived_from_decision_key": "edge_addition_1",
+      "decision": "accepted",
+      "observed_pattern": "A blockage event is not linked to the pressure state that follows it.",
+      "diagnosis_interpretation": "This should be diagnosed as a missing local-link problem: pressure buildup should be framed as a direct downstream effect of blocked venting rather than only as a generic vessel condition.",
+      "supporting_rule": "When blocked venting directly produces pressure rise, diagnose the gap as a missing local connection to pressure.",
+      "few_shot_takeaway": "If the text says relief blockage pressurized the vessel, diagnose the issue as a missing blockage-to-pressure link."
+    },
+    {
+      "derived_from_decision_key": "edge_deletion_0",
+      "decision": "accepted",
+      "observed_pattern": "An upstream state is connected directly to the consequence despite an intervening final release event.",
+      "diagnosis_interpretation": "This should be framed as a shortcut-edge issue, not as missing causality. The consequence is better diagnosed through the immediate failure or release step already present in the graph.",
+      "supporting_rule": "A direct state-to-consequence edge is a shortcut when a more local final event already explains the consequence.",
+      "few_shot_takeaway": "When an immediate release event is present, diagnose extra upstream-to-consequence links as shortcut edges."
+    },
+    {
+      "derived_from_decision_key": "node_deletion_0",
+      "decision": "accepted",
+      "observed_pattern": "A component or location node has no independent downstream causal use.",
+      "diagnosis_interpretation": "This should be framed as a redundancy issue. If a node adds no separate causal work beyond an existing event or relation, it should not be treated as a missing-detail problem.",
+      "supporting_rule": "Treat nodes without independent causal function as redundant.",
+      "few_shot_takeaway": "Classify passive component details with no distinct causal role as redundant nodes rather than necessary pathway elements."
+    }
+  ],
+  "coverage_notes": [
+    "The two accepted edge additions jointly resolve the single diagnosed missing_local_link issue by restoring both blockage-to-confinement and blockage-to-pressure causality.",
+    "The component edge from the catch tank to the vent-line node was removed implicitly when the redundant vent-line node was deleted; this cleanup did not require a separate reviewed decision key."
+  ],
+  "unresolved_decisions": []
+}

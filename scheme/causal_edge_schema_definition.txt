@@ -1,0 +1,104 @@
+EDGE RELATION DEFINITIONS
+
+This file defines the allowed meanings of edge relations in the accident causal
+graph. These rules apply wherever causal edges are extracted, validated,
+normalized, diagnosed, or revised.
+
+GENERAL EDGE PRINCIPLES
+
+1. Every edge should represent one direct local relationship only.
+2. Do not use one edge to summarize a longer chain of intermediate steps.
+3. Prefer a smaller set of direct local edges over a larger set of weakly useful,
+   transitive, or repetitive edges.
+4. If a relationship is already captured by the wording of a node itself, do not
+   add an extra edge that only restates the same involvement.
+
+--------------------------------------------------
+Relation: has
+--------------------------------------------------
+
+Definition
+Use `has` only for non-event descriptive or part-of relationships that do not
+themselves express a local causal step.
+
+Allowed uses
+- Entity -> Condition
+- Entity -> component Entity
+- Entity -> component Location
+
+Typical meaning
+- a material has a phase or property
+- a process unit has a component or sub-location
+- an equipment item has a directly attached descriptive condition
+
+Disallowed uses
+- any edge pointing to an Event node
+- any edge whose source node is an Event node
+- Event -> Entity
+- Event -> Material
+- Event -> Location
+- Event -> Condition
+- Condition -> Event
+- Condition -> HazardConsequence
+
+Interpretation note
+Do not use `has` as a general-purpose relation for "involves", "contains",
+"released", "occurred at", or "is associated with". If that meaning is needed,
+either use `enables` for a true local causal contribution or do not create the
+edge.
+
+--------------------------------------------------
+Relation: enables
+--------------------------------------------------
+
+Definition
+Use `enables` for a direct local causal contribution from the source node to
+the downstream node.
+
+Allowed uses
+- Event -> Event when one local step directly leads to or enables the next
+- Entity -> Event when the entity directly participates as a causal contributor
+  in that local event
+- Condition -> Event when the condition directly enables or intensifies the
+  local mechanism
+- Event -> HazardConsequence when the event is the final local precursor to the
+  hazard consequence
+- Condition -> HazardConsequence only when the condition is explicitly supported
+  as a direct local contributor to the final consequence
+
+Disallowed uses
+- edges that only restate that an event involved a material, equipment item, or
+  location without expressing a true local causal contribution
+- shortcut edges that bypass necessary intermediate local mechanism nodes
+- transitive edges that duplicate an already represented local chain
+
+Interpretation note
+Use `enables` only when the source node contributes to the target node as part
+of the accident mechanism. Do not use it for generic association, textual
+co-occurrence, or node-name unpacking.
+
+--------------------------------------------------
+Event-specific guidance
+--------------------------------------------------
+
+1. If an Event node already names the failed equipment, released material, or
+   involved location, do not add a separate edge just to restate that same
+   involvement.
+2. A release event naming released materials should not automatically create
+   Event -> Material edges.
+3. A rupture or failure event naming the failed equipment should not
+   automatically create Event -> Equipment edges.
+4. If material participation is causally important, represent it through a
+   valid upstream `enables` edge only when the material itself is acting as a
+   direct local contributor to that event.
+
+--------------------------------------------------
+Validation guidance
+--------------------------------------------------
+
+1. Treat Event -> Entity/Material/Location/Condition with relation `has` as a
+   wrong relation by default.
+2. If an edge cannot be justified as either a valid `has` relation or a true
+   local `enables` relation, remove it.
+3. Do not preserve an edge merely because the source text mentions both nodes in
+   the same sentence. Mention alone is not sufficient support for an edge.

@@ -1,0 +1,1930 @@
+{
+  "source_root": "G:/Other computers/My computer/project C/gen ai/code/llm/runs/few-shot/review_feedback/case_coverage_12",
+  "source_files": [
+    "batch_12/2/review_feedback_analysis_output.json",
+    "batch_12/8/review_feedback_analysis_output.json",
+    "batch_3/3/review_feedback_analysis_output.json",
+    "batch_3/5/review_feedback_analysis_output.json",
+    "batch_5/2/review_feedback_analysis_output.json",
+    "batch_6/1/review_feedback_analysis_output.json",
+    "batch_6/7/review_feedback_analysis_output.json",
+    "batch_6/9/review_feedback_analysis_output.json",
+    "batch_7/10/review_feedback_analysis_output.json",
+    "batch_8/10/review_feedback_analysis_output.json",
+    "batch_9/1/review_feedback_analysis_output.json",
+    "batch_9/6_split_1/review_feedback_analysis_output.json"
+  ],
+  "summary": {
+    "file_count": 12,
+    "accepted_count": 37,
+    "rejected_count": 18,
+    "unresolved_count": 3,
+    "planning_pattern_count": 55,
+    "diagnosis_pattern_count": 55,
+    "deduped_planning_pattern_count": 55,
+    "deduped_diagnosis_pattern_count": 55
+  },
+  "planning_patterns": [
+    {
+      "decision_key": "node_addition_0",
+      "proposed_change": "Add a Reactor location node and link it to the retained low-pressure condition with a has edge.",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "Add a supporting entity node when a retained condition is explicitly described as belonging to specific equipment and otherwise lacks a valid incoming characterization link.",
+      "few_shot_takeaway": "If a condition is kept but its owning equipment is missing, accept the smallest evidence-grounded entity addition that anchors that condition.",
+      "source_file": "batch_12/2/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "node_addition_1",
+      "proposed_change": "Add a Hydrocarbon-air mixture material node and link it to the retained combustibility condition with a has edge.",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "Add a supporting material node when a retained combustibility condition is explicitly tied to a specific hazardous mixture and otherwise lacks a valid incoming characterization link.",
+      "few_shot_takeaway": "If a combustible condition is retained without a represented material, accept a material-node addition that anchors the condition to the identified hazardous mixture.",
+      "source_file": "batch_12/2/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "edge_addition_0",
+      "proposed_change": "Add an enables edge from the liquid-phase condition to the event where liquid methyl mercaptan entered the waste gas vent header.",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "Retained local conditions should be linked to the specific event they directly enable.",
+      "few_shot_takeaway": "When a kept condition is explicitly the local state behind a nearby event, add the direct condition-to-event link rather than leaving the condition structurally idle.",
+      "source_file": "batch_12/8/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "edge_addition_1",
+      "proposed_change": "Add a has edge from methyl mercaptan to the low-temperature condition.",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "Retained condition nodes should be anchored by an incoming entity-state link to the material or system they characterize.",
+      "few_shot_takeaway": "If a retained condition describes a material or system state, attach it to that entity so the condition is not left unanchored.",
+      "source_file": "batch_12/8/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "edge_addition_2",
+      "proposed_change": "Add a has edge from the waste gas vent header to the high-pressure condition.",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "Retained pressure or state conditions should be attached to the location or equipment they characterize.",
+      "few_shot_takeaway": "Anchor retained operating-state conditions to the equipment or location they belong to instead of leaving them free-standing.",
+      "source_file": "batch_12/8/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "node_deletion_0",
+      "proposed_change": "Delete the solid-phase condition node as redundant with the hydrate-plug formation event.",
+      "decision": "rejected",
+      "reviewer_reason": "don't identify redundancy accross different types",
+      "matched_rule": "Do not treat semantic overlap across different node types as automatic redundancy when the nodes may represent different causal roles.",
+      "few_shot_takeaway": "Before deleting a node for redundancy, check whether the overlap is truly same-role duplication rather than cross-type restatement.",
+      "source_file": "batch_12/8/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "node_deletion_1",
+      "proposed_change": "Delete the drain-valve location node as redundant with the retained opening and release events.",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "Remove a node when its semantics are already fully carried by retained event nodes and it adds no independent causal role.",
+      "few_shot_takeaway": "A component/location node can be removed when nearby retained events already capture its only function in the accident sequence.",
+      "source_file": "batch_12/8/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "node_deletion_0",
+      "proposed_change": "Delete redundant location node 'overhead vapor line'.",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "Remove standalone location nodes when the same local mechanism is already captured by retained event nodes.",
+      "few_shot_takeaway": "If a location adds no independent causal role beyond a retained event, delete the location node rather than keeping duplicate structure.",
+      "source_file": "batch_3/3/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "node_deletion_1",
+      "proposed_change": "Delete redundant location node 'blowdown drum and stack'.",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "Remove standalone location nodes when the same local mechanism is already captured by retained event nodes.",
+      "few_shot_takeaway": "Delete location nodes that only restate the setting of an already explicit event mechanism.",
+      "source_file": "batch_3/3/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "edge_addition_0",
+      "proposed_change": "Add edge raffinate splitter tower -> high pressure (has).",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "Retained condition nodes should be attached to the equipment state they characterize.",
+      "few_shot_takeaway": "When a condition is retained, ground it on the relevant equipment instead of leaving it structurally unanchored.",
+      "source_file": "batch_3/3/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "edge_addition_1",
+      "proposed_change": "Add edge raffinate splitter tower -> high temperature (has).",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "Retained condition nodes should be attached to the equipment state they characterize.",
+      "few_shot_takeaway": "Attach retained state conditions to the equipment they describe to complete the local causal structure.",
+      "source_file": "batch_3/3/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "edge_addition_2",
+      "proposed_change": "Add edge liquid -> relief valves discharged liquid raffinate into disposal header (enables).",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "Retained condition nodes should connect to the local release stage they directly enable.",
+      "few_shot_takeaway": "If a phase or state condition is kept, link it to the immediate mechanism it directly supports.",
+      "source_file": "batch_3/3/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "edge_deletion_1",
+      "proposed_change": "Delete edge ISOM unit -> blowdown drum and stack (has).",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "When a location node is redundant and removed, dependent containment edges to that node should also be removed.",
+      "few_shot_takeaway": "After deleting a redundant node, also delete its attached structural edges so duplicate locality is not preserved indirectly.",
+      "source_file": "batch_3/3/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "node_deletion_0",
+      "proposed_change": "Delete condition node C1 (Vapor).",
+      "decision": "rejected",
+      "reviewer_reason": "don't identify redundancy aaccross types",
+      "matched_rule": "Do not remove a node for redundancy based only on semantic overlap across different node types; remove only truly descriptive-only nodes with no needed causal role.",
+      "few_shot_takeaway": "Reject node deletions when the redundancy claim depends mainly on cross-type similarity rather than clear structural nonuse.",
+      "source_file": "batch_3/5/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "node_deletion_1",
+      "proposed_change": "Delete condition node C2 (Non-toxic).",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "Remove descriptive-only condition nodes that add no necessary local causal role and have no downstream mechanism links.",
+      "few_shot_takeaway": "Accept deletion of isolated descriptive conditions when they do not contribute to the supported causal pathway.",
+      "source_file": "batch_3/5/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "node_deletion_2",
+      "proposed_change": "Delete condition node C4 (High confinement).",
+      "decision": "rejected",
+      "reviewer_reason": "This condition contributed to the accumulation of nitrogen",
+      "matched_rule": "Keep a condition when it has a supported downstream causal function; the descriptive-only deletion rule applies only when no mechanism role exists.",
+      "few_shot_takeaway": "Reject deletion of a condition if it helps explain release, dispersion, or accumulation in the local mechanism.",
+      "source_file": "batch_3/5/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "edge_deletion_0",
+      "proposed_change": "Delete edge En1 -> C1 (Nitrogen has Vapor).",
+      "decision": "rejected",
+      "reviewer_reason": "don't identify redundancy accross types",
+      "matched_rule": "Do not remove an edge when the underlying redundancy claim for the connected node is unsupported, especially if based only on cross-type overlap.",
+      "few_shot_takeaway": "Keep attachment edges when the associated node remains valid and the redundancy rationale is not structurally supported.",
+      "source_file": "batch_3/5/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "edge_deletion_1",
+      "proposed_change": "Delete edge En1 -> C2 (Nitrogen has Non-toxic).",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "Delete incident edges when their target descriptive-only node is removed.",
+      "few_shot_takeaway": "Accept edge deletion as a direct follow-on when the connected node is correctly deleted.",
+      "source_file": "batch_3/5/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "edge_deletion_2",
+      "proposed_change": "Delete edge En2 -> C4 (Reactor has High confinement).",
+      "decision": "rejected",
+      "reviewer_reason": "the node was not deleted",
+      "matched_rule": "Do not delete an attachment edge when the connected condition node is retained as causally relevant.",
+      "few_shot_takeaway": "If a node remains in scope, keep its grounding edge unless there is a separate reason to remove it.",
+      "source_file": "batch_3/5/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "edge_addition_1",
+      "proposed_change": "Add edge Ev6 -> H1 (enables) from large vapor cloud formation to flash fire.",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "When the dispersed flammable cloud is the combustible body involved in the fire, add a direct local link from the cloud node to the fire consequence rather than routing that contribution only through an ignition-source node.",
+      "few_shot_takeaway": "Accept direct cloud-to-fire links when the cloud itself is the burning hazard in the final consequence.",
+      "source_file": "batch_5/2/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "edge_deletion_0",
+      "proposed_change": "Delete edge C2 -> Ev7 (enables) from combustibility to unknown ignition source.",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "Do not model fuel flammability as a cause of the ignition source; treat it as a contributor to the fire consequence once ignition occurs.",
+      "few_shot_takeaway": "Accept removal of edges that incorrectly make material flammability a parent of the ignition source.",
+      "source_file": "batch_5/2/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "edge_deletion_1",
+      "proposed_change": "Delete edge Ev6 -> Ev7 (enables) from large vapor cloud formation to unknown ignition source.",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "Do not model the vapor cloud as creating the ignition source when the cloud is instead the fuel involved in the final fire consequence.",
+      "few_shot_takeaway": "Accept removal of cloud-to-ignition-source edges when the cloud is fuel for the fire, not the source of ignition.",
+      "source_file": "batch_5/2/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "edge_addition_0",
+      "proposed_change": "Add a material-to-temperature edge from the solvent mixture to the high-temperature condition.",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "Add a local entity-to-condition link when a retained state node lacks attachment to the material it describes.",
+      "few_shot_takeaway": "If a retained condition is causally used but locally unattached, add the missing descriptive link.",
+      "source_file": "batch_6/1/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "node_deletion_0",
+      "proposed_change": "Delete the liquid-phase condition node.",
+      "decision": "rejected",
+      "reviewer_reason": "Redundancy cannot be identified accross different types",
+      "matched_rule": "Do not remove a condition as redundant solely because a related event exists; redundancy requires no independent local causal role, and cross-type semantics are not automatically duplicates.",
+      "few_shot_takeaway": "Before deleting a state node for redundancy, confirm true functional duplication rather than overlap with an event of a different type.",
+      "source_file": "batch_6/1/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "node_deletion_1",
+      "proposed_change": "Delete the vapor-phase condition node.",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "Delete a condition node when it adds no independent local causal role beyond the existing event chain.",
+      "few_shot_takeaway": "Remove a state node when it only restates phase information already carried by explicit release and dispersion events.",
+      "source_file": "batch_6/1/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "edge_deletion_0",
+      "proposed_change": "Delete the material-to-liquid-phase descriptive edge.",
+      "decision": "rejected",
+      "reviewer_reason": "Redundancy cannot be identified accross different types",
+      "matched_rule": "Do not delete a descriptive edge when the connected condition is retained and cross-type redundancy has not been established.",
+      "few_shot_takeaway": "Keep a supporting descriptive edge when the underlying state node is still considered valid.",
+      "source_file": "batch_6/1/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "edge_deletion_1",
+      "proposed_change": "Delete the material-to-vapor-phase descriptive edge.",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "Delete an edge that only supports a redundant node being removed.",
+      "few_shot_takeaway": "When a node is correctly removed as redundant, remove its sole supporting attachment edge as follow-on cleanup.",
+      "source_file": "batch_6/1/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "node_update_0",
+      "proposed_change": "Rename the dust-lofting event so it represents only post-primary-explosion dispersion, not the primary explosion itself.",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "When one event node merges an initiating explosion with a later dispersion stage, separate the stages so each local mechanism is represented distinctly.",
+      "few_shot_takeaway": "If an event name mixes event occurrence and later propagation, narrow the existing node to one stage and leave the other stage to a separate node.",
+      "source_file": "batch_6/7/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "node_addition_0",
+      "proposed_change": "Add an explicit intermediate event for the primary dust explosion, linked from explosible dust accumulation and ignition and linked forward to dust lofting.",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "Add a separate event node when a primary event is embedded inside a downstream propagation or dispersion node.",
+      "few_shot_takeaway": "When the narrative names a distinct primary event that triggers later effects, represent that event explicitly in the graph.",
+      "source_file": "batch_6/7/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "node_deletion_0",
+      "proposed_change": "Delete the generic 'Solid' phase condition node.",
+      "decision": "rejected",
+      "reviewer_reason": "don't identify redundancy accross different types",
+      "matched_rule": "Redundant-node removal should be based on lack of a necessary supported local role, not only on semantic overlap across different node types.",
+      "few_shot_takeaway": "Do not delete a condition node just because an entity node implies a similar property; first show true same-role redundancy.",
+      "source_file": "batch_6/7/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "edge_addition_0",
+      "proposed_change": "Add material-to-pressure link: alkylate -> high pressure.",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "Retained condition nodes should be fully integrated with their material-state links.",
+      "few_shot_takeaway": "If a condition is kept as part of the scenario, add its missing material-property attachment rather than leaving it structurally isolated.",
+      "source_file": "batch_6/9/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "edge_addition_1",
+      "proposed_change": "Add temperature-to-ignition link: high temperature -> ignition.",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "Retained condition nodes should have an explicit downstream role in the local mechanism.",
+      "few_shot_takeaway": "When a retained condition lacks pathway function, connect it to the nearest supported downstream event.",
+      "source_file": "batch_6/9/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "node_deletion_0",
+      "proposed_change": "Delete the liquid-phase condition node.",
+      "decision": "rejected",
+      "reviewer_reason": "don't identify redundancy accross different types",
+      "matched_rule": "Do not apply redundancy deletion when the claim depends only on cross-type overlap rather than true duplicate semantics.",
+      "few_shot_takeaway": "Do not delete a condition node just because it looks descriptively similar to another node of a different type.",
+      "source_file": "batch_6/9/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "edge_deletion_0",
+      "proposed_change": "Delete the material-to-liquid edge because the liquid node was proposed for deletion.",
+      "decision": "rejected",
+      "reviewer_reason": "don't identify redundancy accross different types",
+      "matched_rule": "Do not remove an edge based on a redundancy claim that is invalid across semantic types.",
+      "few_shot_takeaway": "Keep a property edge when the connected condition is still considered valid and the only deletion basis is cross-type redundancy.",
+      "source_file": "batch_6/9/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "edge_deletion_1",
+      "proposed_change": "Delete the direct combustibility -> jet fire edge.",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "Remove shortcut edges that bypass an explicit intermediate event already representing the mechanism.",
+      "few_shot_takeaway": "If an explicit intermediate event already carries the mechanism, delete the direct shortcut edge to the consequence.",
+      "source_file": "batch_6/9/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "edge_addition_0",
+      "proposed_change": "Add a direct enables edge from flammable vapor cloud formation to the VCE consequence.",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "When the formed hazardous cloud is the exploding mixture, add a direct local link from the cloud node to the explosion consequence.",
+      "few_shot_takeaway": "Add a direct consequence link when a retained cloud node is itself part of the explosion mechanism.",
+      "source_file": "batch_7/10/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "edge_deletion_0",
+      "proposed_change": "Delete the enables edge from vapor cloud formation to the ignition-source node.",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "Do not model the hazardous cloud as locally causing the ignition source; they are separate contributors to the consequence.",
+      "few_shot_takeaway": "Remove cloud-to-ignition edges when they imply the release mixture causes the ignition source.",
+      "source_file": "batch_7/10/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "node_deletion_0",
+      "proposed_change": "Delete the liquid-phase condition node as redundant.",
+      "decision": "rejected",
+      "reviewer_reason": "don't identify redundancy accross types",
+      "matched_rule": "Do not delete a condition node solely because an event elsewhere expresses related semantics; cross-type overlap alone is not valid redundancy.",
+      "few_shot_takeaway": "Do not remove a condition node just because an event mentions the same state; redundancy must be shown within the same semantic role.",
+      "source_file": "batch_7/10/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "node_deletion_1",
+      "proposed_change": "Delete the vapor-phase condition node as redundant.",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "A condition node can be removed when its meaning is fully captured by a retained event and it has no necessary independent pathway role.",
+      "few_shot_takeaway": "Delete an isolated phase node when a retained event already carries the same phase-transition meaning.",
+      "source_file": "batch_7/10/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "edge_deletion_1",
+      "proposed_change": "Delete the material-to-liquid-phase has edge because the liquid-phase node was proposed for deletion.",
+      "decision": "rejected",
+      "reviewer_reason": "don't identify redundancy accross types",
+      "matched_rule": "Do not remove a material-state edge when the condition node is still valid; cross-type overlap does not justify severing a retained relation.",
+      "few_shot_takeaway": "If a condition node is not validly redundant, keep its supporting material-condition edge.",
+      "source_file": "batch_7/10/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "edge_deletion_2",
+      "proposed_change": "Delete the material-to-vapor-phase has edge because the vapor-phase node was proposed for deletion.",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "When a redundant node is removed, delete its attached support edges as cleanup.",
+      "few_shot_takeaway": "After deleting a redundant node, also delete the edges that only existed to support that node.",
+      "source_file": "batch_7/10/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "node_update_0",
+      "proposed_change": "Relabel the hazard consequence node from \"VCE\" to \"HazardConsequence\".",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "When a node's causal meaning is correct but its label violates the schema, correct the label and retain the node.",
+      "few_shot_takeaway": "Accept narrow schema-fix relabels that standardize node labels without changing pathway content.",
+      "source_file": "batch_8/10/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "node_deletion_0",
+      "proposed_change": "Delete the condition node \"Liquid\" as a redundant descriptive state.",
+      "decision": "rejected",
+      "reviewer_reason": "don't identify redundancy accross types",
+      "matched_rule": "Do not delete a typed node as redundant solely because similar context is expressed by a different node type.",
+      "few_shot_takeaway": "Reject redundancy deletions that rely only on cross-type semantic overlap.",
+      "source_file": "batch_8/10/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "node_deletion_1",
+      "proposed_change": "Delete the condition node \"Low confinement\" as a redundant descriptive state.",
+      "decision": "rejected",
+      "reviewer_reason": "don't identify redundancy accross types",
+      "matched_rule": "Do not delete a typed node as redundant solely because similar context is expressed by a different node type.",
+      "few_shot_takeaway": "Reject redundancy deletions that rely only on cross-type semantic overlap.",
+      "source_file": "batch_8/10/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "edge_deletion_0",
+      "proposed_change": "Delete the has-edge from the material node to the \"Liquid\" condition node.",
+      "decision": "rejected",
+      "reviewer_reason": "th enode was not deleted",
+      "matched_rule": "Do not remove an edge when its only deletion rationale was cleanup for a node that remains in the graph.",
+      "few_shot_takeaway": "Reject dependent edge deletions if the related node deletion was not accepted.",
+      "source_file": "batch_8/10/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "edge_deletion_1",
+      "proposed_change": "Delete the has-edge from the location node to the \"Low confinement\" condition node.",
+      "decision": "rejected",
+      "reviewer_reason": "the node was not deleted",
+      "matched_rule": "Do not remove an edge when its only deletion rationale was cleanup for a node that remains in the graph.",
+      "few_shot_takeaway": "Reject dependent edge deletions if the related node deletion was not accepted.",
+      "source_file": "batch_8/10/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "edge_addition_0",
+      "proposed_change": "Add an enables edge from vent and relief blockage to high confinement.",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "Add missing local links when a blockage event directly creates a no-escape confinement state.",
+      "few_shot_takeaway": "When the evidence says blocked relief leaves vapor with no escape path, connect the blockage event directly to confinement.",
+      "source_file": "batch_9/1/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "edge_addition_1",
+      "proposed_change": "Add an enables edge from vent and relief blockage to high pressure.",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "Add missing local links when loss of venting directly leads to pressure buildup.",
+      "few_shot_takeaway": "If pressure rise is described as following blocked venting or relief, represent that local causal step explicitly.",
+      "source_file": "batch_9/1/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "edge_deletion_0",
+      "proposed_change": "Delete the direct enables edge from high pressure to the hazard consequence.",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "Remove shortcut edges that bypass a more local final release event already represented in the graph.",
+      "few_shot_takeaway": "Prefer the chain through the immediate failure or release step over a direct state-to-consequence shortcut.",
+      "source_file": "batch_9/1/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "node_deletion_0",
+      "proposed_change": "Delete the vent line and emergency pressure relief inlet location node.",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "Delete redundant nodes that do not carry an independent causal role or downstream use.",
+      "few_shot_takeaway": "Drop component or location nodes when their causal role is already captured elsewhere and they add no separate downstream function.",
+      "source_file": "batch_9/1/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "node_deletion_0",
+      "proposed_change": "Delete the standalone location node \"bucket elevator #12\".",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "Delete standalone equipment or location descriptors when event nodes already carry the mechanism and the node has no needed supported causal role.",
+      "few_shot_takeaway": "If a location node only labels where events occur and adds no distinct causal structure, remove it.",
+      "source_file": "batch_9/6_split_1/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "node_deletion_1",
+      "proposed_change": "Delete the standalone motor descriptor node \"bucket elevator #12 motor\".",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "Delete descriptive component nodes that form an equipment island when the actual mechanism is already represented by event nodes.",
+      "few_shot_takeaway": "Remove equipment-part nodes when failure or ignition events already represent their causal role.",
+      "source_file": "batch_9/6_split_1/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "edge_deletion_0",
+      "proposed_change": "Remove the descriptive \"has\" edge from \"bucket elevator #12\" to \"bucket elevator #12 motor\".",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "Remove descriptive component edges when both endpoints are redundant descriptors rather than needed causal nodes.",
+      "few_shot_takeaway": "When both connected descriptor nodes are accepted for deletion, delete the purely descriptive edge between them too.",
+      "source_file": "batch_9/6_split_1/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "node_deletion_2",
+      "proposed_change": "Delete the phase condition node \"Solid\".",
+      "decision": "rejected",
+      "reviewer_reason": "The phase sould be identified as it is better for people to understand the phase of the released material",
+      "matched_rule": "Do not delete a material-condition descriptor when reviewers judge it necessary for understanding the released material, even if its direct causal role is limited.",
+      "few_shot_takeaway": "Do not remove phase information when it is needed as explanatory context for interpreting the material involved.",
+      "source_file": "batch_9/6_split_1/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "edge_deletion_1",
+      "proposed_change": "Remove the \"has\" edge from \"fine iron dust\" to \"Solid\".",
+      "decision": "rejected",
+      "reviewer_reason": "the node was not deleted",
+      "matched_rule": "Do not remove a defining descriptor edge when the connected descriptor node is retained.",
+      "few_shot_takeaway": "If a condition node stays, keep the edge that anchors that condition to the material unless there is a separate reason to remove it.",
+      "source_file": "batch_9/6_split_1/review_feedback_analysis_output.json"
+    }
+  ],
+  "diagnosis_patterns": [
+    {
+      "derived_from_decision_key": "node_addition_0",
+      "decision": "accepted",
+      "observed_pattern": "A retained equipment-specific condition was left unanchored.",
+      "diagnosis_interpretation": "The issue should be framed as structural incompleteness in condition anchoring, not as a missing causal step in the main pathway.",
+      "supporting_rule": "When a report describes a condition as specific to named equipment, diagnosis should treat the missing equipment entity as needed support for that retained condition.",
+      "few_shot_takeaway": "Diagnose missing owner entities for retained conditions as anchoring gaps that should be fixed without expanding the causal sequence.",
+      "source_file": "batch_12/2/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "node_addition_1",
+      "decision": "accepted",
+      "observed_pattern": "A retained material-specific condition was left unanchored.",
+      "diagnosis_interpretation": "The issue should be framed as an unsupported condition characterization: combustibility was preserved, but the hazardous material to which it applies was not represented.",
+      "supporting_rule": "When a report identifies a specific flammable mixture, diagnosis should treat the missing material entity as required support for any retained combustibility condition.",
+      "few_shot_takeaway": "Diagnose missing material anchors for retained hazard properties as support-node omissions rather than as missing downstream consequence logic.",
+      "source_file": "batch_12/2/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "edge_addition_0",
+      "decision": "accepted",
+      "observed_pattern": "A retained phase condition lacked a downstream link to the event it locally conditions.",
+      "diagnosis_interpretation": "This should be diagnosed as a missing local causal link, not as harmless extra detail, when the retained state directly enables a specific nearby event.",
+      "supporting_rule": "Retained local conditions should connect to the event they directly enable.",
+      "few_shot_takeaway": "Diagnose unlinked but relevant local states as missing-link problems when they have an explicit event-level role.",
+      "source_file": "batch_12/8/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "edge_addition_1",
+      "decision": "accepted",
+      "observed_pattern": "A retained environmental condition lacked an incoming anchor to the material or system it describes.",
+      "diagnosis_interpretation": "The issue is incomplete anchoring of a retained condition node, so the diagnosis should focus on missing entity-state attachment rather than node deletion.",
+      "supporting_rule": "Retained condition nodes should be anchored to the material or system they characterize.",
+      "few_shot_takeaway": "When a kept condition floats without an owning entity, diagnose anchoring incompleteness first.",
+      "source_file": "batch_12/8/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "edge_addition_2",
+      "decision": "accepted",
+      "observed_pattern": "A retained pressure condition lacked an incoming link from the equipment or location it characterizes.",
+      "diagnosis_interpretation": "This is a structural anchoring gap in how the graph represents equipment state, so it should be framed as a missing local link issue.",
+      "supporting_rule": "Pressure or operating-state conditions should be attached to the equipment or location they characterize.",
+      "few_shot_takeaway": "Diagnose standalone operating-state nodes as incomplete unless they are tied to the equipment or location whose state they express.",
+      "source_file": "batch_12/8/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "node_deletion_0",
+      "decision": "rejected",
+      "observed_pattern": "A condition node and an event node shared similar hydrate-related semantics across node types.",
+      "diagnosis_interpretation": "The reviewer treated this as non-redundant because cross-type similarity alone does not prove duplicate causal representation; the diagnosis should distinguish same-topic overlap from same-role duplication.",
+      "supporting_rule": "Do not diagnose redundancy solely from overlap across different node types.",
+      "few_shot_takeaway": "Diagnose redundancy only when two nodes duplicate the same causal role, not merely the same subject matter.",
+      "source_file": "batch_12/8/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "node_deletion_1",
+      "decision": "accepted",
+      "observed_pattern": "A component/location node added no independent retained role beyond nearby action and release events.",
+      "diagnosis_interpretation": "This supports framing the node as redundant low-value structure because the graph already preserves the operative causal meaning in event form.",
+      "supporting_rule": "A node is diagnostically redundant when retained events already capture its entire causal contribution.",
+      "few_shot_takeaway": "If a component node only repeats where an already-retained action happened, diagnose it as redundant rather than essential structure.",
+      "source_file": "batch_12/8/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "node_deletion_0",
+      "decision": "accepted",
+      "observed_pattern": "Standalone location duplicates an event-local mechanism.",
+      "diagnosis_interpretation": "The diagnosis treats local equipment context as redundant when the same role is already embedded in a retained event description.",
+      "supporting_rule": "Separate location nodes are redundant when the same local mechanism is already expressed directly by event nodes.",
+      "few_shot_takeaway": "Diagnose redundant structure when a location node only restates where an already-retained event occurs.",
+      "source_file": "batch_3/3/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "node_deletion_1",
+      "decision": "accepted",
+      "observed_pattern": "Standalone location duplicates an event-local release mechanism.",
+      "diagnosis_interpretation": "The diagnosis frames the issue as duplicate locality rather than missing spatial detail when the release mechanism is already explicitly modeled as an event.",
+      "supporting_rule": "Separate location nodes are redundant when the same local mechanism is already expressed directly by event nodes.",
+      "few_shot_takeaway": "Treat separate location nodes as redundant when event nodes already carry the local causal meaning.",
+      "source_file": "batch_3/3/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "edge_addition_0",
+      "decision": "accepted",
+      "observed_pattern": "Condition node lacks upstream equipment grounding.",
+      "diagnosis_interpretation": "The diagnosis treats pressure as an equipment state that should be attached to the relevant vessel, not left only as an input to later events.",
+      "supporting_rule": "Retained condition nodes are structurally incomplete if they are not fully linked to the equipment they characterize.",
+      "few_shot_takeaway": "Diagnose ungrounded condition nodes as a completeness problem, especially for equipment states like pressure or temperature.",
+      "source_file": "batch_3/3/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "edge_addition_1",
+      "decision": "accepted",
+      "observed_pattern": "Condition node lacks upstream equipment grounding.",
+      "diagnosis_interpretation": "The diagnosis frames temperature as a local state of the affected equipment and expects that state to be explicitly attached in the graph.",
+      "supporting_rule": "Retained condition nodes are structurally incomplete if they are not fully linked to the equipment they characterize.",
+      "few_shot_takeaway": "When diagnosing graph quality, check whether retained state conditions are explicitly anchored to the equipment they describe.",
+      "source_file": "batch_3/3/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "edge_addition_2",
+      "decision": "accepted",
+      "observed_pattern": "Condition node lacks a downstream mechanism link.",
+      "diagnosis_interpretation": "The diagnosis treats a retained phase condition as incomplete if it is not connected to the release stage it directly enables.",
+      "supporting_rule": "Retained condition nodes are structurally incomplete if they are not fully linked to the mechanisms they describe.",
+      "few_shot_takeaway": "If a condition is retained, diagnose missing direct links to the mechanism it enables as structural incompleteness.",
+      "source_file": "batch_3/3/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "edge_deletion_1",
+      "decision": "accepted",
+      "observed_pattern": "Containment edge points to a redundant location node.",
+      "diagnosis_interpretation": "The diagnosis frames the problem at the redundancy level, so structural edges to a removed duplicate location should not be preserved.",
+      "supporting_rule": "When a location node is redundant because its role is already expressed by event nodes, attached containment edges to that node should also be removed.",
+      "few_shot_takeaway": "Diagnose duplicate locality at the node level and then remove inherited structural edges that only keep that redundancy alive.",
+      "source_file": "batch_3/3/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "node_deletion_0",
+      "decision": "rejected",
+      "observed_pattern": "A condition appears semantically similar to content already represented by another node type.",
+      "diagnosis_interpretation": "Reviewer treated cross-type similarity as insufficient for a redundancy diagnosis. Redundancy should be framed structurally, not just semantically.",
+      "supporting_rule": "Diagnose redundancy only for nodes that are descriptive-only and lack a necessary causal role.",
+      "few_shot_takeaway": "Do not diagnose a node as redundant solely because an event, entity, and condition express related ideas.",
+      "source_file": "batch_3/5/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "node_deletion_1",
+      "decision": "accepted",
+      "observed_pattern": "A condition is purely descriptive and structurally isolated from the mechanism.",
+      "diagnosis_interpretation": "This was treated as background characterization rather than causal mechanism, so it was appropriately diagnosed as removable redundancy.",
+      "supporting_rule": "Descriptive-only condition nodes with no necessary downstream mechanism links should be removed.",
+      "few_shot_takeaway": "Diagnose isolated descriptive attributes as low-value graph detail rather than mechanism.",
+      "source_file": "batch_3/5/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "node_deletion_2",
+      "decision": "rejected",
+      "observed_pattern": "A condition helps explain hazardous accumulation or exposure formation.",
+      "diagnosis_interpretation": "Reviewer reframed this condition as causally contributory, so it should not be diagnosed as isolated descriptive redundancy.",
+      "supporting_rule": "A condition is not redundant when it contributes a supported local causal role in the pathway.",
+      "few_shot_takeaway": "When a condition helps explain how the hazard environment forms, diagnose it as mechanism, not description.",
+      "source_file": "batch_3/5/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "edge_deletion_0",
+      "decision": "rejected",
+      "observed_pattern": "An attachment edge is challenged only because its connected condition was labeled redundant across types.",
+      "diagnosis_interpretation": "The review implies the diagnosis was overcalling redundancy. If the node is not convincingly redundant, its grounding edge should not be treated as a problem.",
+      "supporting_rule": "Only nodes truly diagnosed as descriptive-only redundancy justify follow-on cleanup of their incident edges.",
+      "few_shot_takeaway": "Do not diagnose support edges as deletable unless the connected node is first validly diagnosed as redundant.",
+      "source_file": "batch_3/5/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "edge_deletion_1",
+      "decision": "accepted",
+      "observed_pattern": "An edge only serves a condition already diagnosed as removable description.",
+      "diagnosis_interpretation": "Once the condition is framed as non-causal background, its support edge is likewise nonessential to the diagnosis.",
+      "supporting_rule": "When a descriptive-only node is removed, its incident support edge should also be removed.",
+      "few_shot_takeaway": "After diagnosing a node as removable background detail, diagnose its attachment edge as removable too.",
+      "source_file": "batch_3/5/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "edge_deletion_2",
+      "decision": "rejected",
+      "observed_pattern": "Edge removal depends on a node deletion that was not sustained.",
+      "diagnosis_interpretation": "The diagnosis preserved the condition as relevant, so the attachment edge should remain unless independently unsupported.",
+      "supporting_rule": "Retained causally relevant conditions should keep their grounding links.",
+      "few_shot_takeaway": "Do not diagnose an attachment edge as redundant when the connected condition remains part of the mechanism.",
+      "source_file": "batch_3/5/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "edge_addition_1",
+      "decision": "accepted",
+      "observed_pattern": "A dispersed combustible cloud is linked directly to the fire consequence.",
+      "diagnosis_interpretation": "The final-stage issue should be diagnosed as a missing local consequence link from the combustible cloud to the fire, not only as an ignition-source modeling problem.",
+      "supporting_rule": "Missing local links should be added when the combustible cloud directly participates in the hazard consequence.",
+      "few_shot_takeaway": "Diagnose flash-fire structure by checking whether the fuel cloud itself connects directly to the fire consequence.",
+      "source_file": "batch_5/2/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "edge_deletion_0",
+      "decision": "accepted",
+      "observed_pattern": "A material property was removed as a parent of the ignition-source node.",
+      "diagnosis_interpretation": "The issue should be framed as a category error: fuel flammability belongs in consequence readiness, not in the causal generation of an ignition source.",
+      "supporting_rule": "Unsupported-edge diagnoses should flag property-to-ignition links when the property does not create the ignition source.",
+      "few_shot_takeaway": "Diagnose ignition-source errors by separating fire-enabling material properties from actual ignition-source causes.",
+      "source_file": "batch_5/2/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "edge_deletion_1",
+      "decision": "accepted",
+      "observed_pattern": "A dispersion node was removed as a parent of the ignition-source node.",
+      "diagnosis_interpretation": "The issue should be diagnosed as miswiring between fuel presence and ignition causation: the cloud supplies ignitable mass for the fire but does not itself explain the ignition source.",
+      "supporting_rule": "Unsupported-edge diagnoses should remove cloud-to-ignition links when the cloud is a co-contributor to the fire rather than a cause of ignition.",
+      "few_shot_takeaway": "Diagnose final fire stages by distinguishing combustible-cloud presence from whatever actually provides ignition.",
+      "source_file": "batch_5/2/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "edge_addition_0",
+      "decision": "accepted",
+      "observed_pattern": "A retained temperature condition was causally active but unattached to its material.",
+      "diagnosis_interpretation": "This should be diagnosed as a missing local descriptive link in state attribution, not as a gap in the main accident pathway.",
+      "supporting_rule": "A retained material condition that enables an event should still be linked to the material whose state it describes.",
+      "few_shot_takeaway": "Diagnose unattached retained condition nodes as local-link omissions.",
+      "source_file": "batch_6/1/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "node_deletion_0",
+      "decision": "rejected",
+      "observed_pattern": "An upstream phase condition was kept despite overlap with a related event.",
+      "diagnosis_interpretation": "The issue should not be framed as simple redundancy when a condition and an event are different semantic types and duplicate function has not been shown.",
+      "supporting_rule": "Redundancy should be diagnosed only when a node lacks an independent local causal role, not merely because a nearby event expresses related meaning.",
+      "few_shot_takeaway": "Diagnose redundancy by functional duplication, not by condition-event similarity alone.",
+      "source_file": "batch_6/1/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "node_deletion_1",
+      "decision": "accepted",
+      "observed_pattern": "A downstream phase label duplicated meaning already carried by the event sequence.",
+      "diagnosis_interpretation": "The issue is appropriately framed as node redundancy because the phase meaning is already captured by the boil, release, and accumulation pathway.",
+      "supporting_rule": "If a condition does not contribute an independent local causal role beyond the existing event chain, diagnose it as redundant.",
+      "few_shot_takeaway": "Diagnose downstream phase labels as redundant when the event chain already fully expresses that state.",
+      "source_file": "batch_6/1/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "edge_deletion_0",
+      "decision": "rejected",
+      "observed_pattern": "A descriptive attachment to a retained state node was preserved.",
+      "diagnosis_interpretation": "This suggests the diagnosis should not treat the edge as clutter, because the underlying condition was not accepted as redundant.",
+      "supporting_rule": "Do not diagnose a descriptive attachment as redundant when the connected state remains a distinct retained description.",
+      "few_shot_takeaway": "If the node stays, its basic entity-to-condition attachment usually stays as well.",
+      "source_file": "batch_6/1/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "edge_deletion_1",
+      "decision": "accepted",
+      "observed_pattern": "An attachment edge disappeared together with a redundant downstream phase node.",
+      "diagnosis_interpretation": "The edge issue is derivative of the node-level redundancy diagnosis rather than a separate structural defect.",
+      "supporting_rule": "When a node is diagnosed as redundant, an edge that only serves that node is also redundant.",
+      "few_shot_takeaway": "Treat edge cleanup as secondary to the underlying node redundancy diagnosis.",
+      "source_file": "batch_6/1/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "node_update_0",
+      "decision": "accepted",
+      "observed_pattern": "One event node mixes the primary event with a later dispersion stage.",
+      "diagnosis_interpretation": "This should be diagnosed as an over-merged local mechanism, with the downstream node framed as the later dispersion step only.",
+      "supporting_rule": "If a node compresses two distinct local stages, diagnose it as over-merged rather than leaving the mechanism implicit.",
+      "few_shot_takeaway": "Flag over-merged nodes when they collapse event occurrence and later propagation into a single step.",
+      "source_file": "batch_6/7/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "node_addition_0",
+      "decision": "accepted",
+      "observed_pattern": "The chain jumps from explosible conditions and ignition directly to later propagation without an explicit primary event.",
+      "diagnosis_interpretation": "This should be framed as a missing intermediate event in the local accident mechanism.",
+      "supporting_rule": "When the narrative identifies a distinct primary event that triggers later stages, diagnose its absence as a structural gap.",
+      "few_shot_takeaway": "Treat a named but unmodeled primary event as a diagnosis issue, especially when it bridges ignition and propagation.",
+      "source_file": "batch_6/7/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "node_deletion_0",
+      "decision": "rejected",
+      "observed_pattern": "A condition node overlaps semantically with material nodes but remains a different node type.",
+      "diagnosis_interpretation": "This decision suggests that cross-type overlap alone should not be diagnosed as redundancy; redundancy needs stronger evidence that the retained typed node has no distinct supported role.",
+      "supporting_rule": "Do not diagnose redundancy from semantic similarity alone when the compared nodes serve different representational types.",
+      "few_shot_takeaway": "Be cautious about labeling nodes redundant across type boundaries; check typed function, not just similar meaning.",
+      "source_file": "batch_6/7/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "edge_addition_0",
+      "decision": "accepted",
+      "observed_pattern": "Retained pressure condition lacked its incoming material-property link.",
+      "diagnosis_interpretation": "This was correctly framed as a local completeness issue for a retained condition, not as a node quality problem requiring deletion.",
+      "supporting_rule": "Missing local links should be repaired when a retained condition is meaningful to the scenario.",
+      "few_shot_takeaway": "Diagnose unattached retained conditions as incomplete local mechanism structure.",
+      "source_file": "batch_6/9/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "edge_addition_1",
+      "decision": "accepted",
+      "observed_pattern": "Retained temperature condition lacked a downstream causal connection.",
+      "diagnosis_interpretation": "The issue was appropriately diagnosed as an incomplete mechanism around an otherwise valid condition node.",
+      "supporting_rule": "A retained condition should connect to the event stage where it has a supported causal role.",
+      "few_shot_takeaway": "When a condition is kept but has no downstream effect, diagnose a missing local causal link.",
+      "source_file": "batch_6/9/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "node_deletion_0",
+      "decision": "rejected",
+      "observed_pattern": "A descriptive condition was kept despite a prior redundant-node diagnosis.",
+      "diagnosis_interpretation": "The review implies the redundancy framing was too aggressive because it treated different semantic types as interchangeable duplicates.",
+      "supporting_rule": "Do not diagnose redundancy across different semantic types unless there is true duplicate meaning and no distinct role.",
+      "few_shot_takeaway": "Do not label a node redundant solely because it overlaps descriptively with a node of another type.",
+      "source_file": "batch_6/9/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "edge_deletion_0",
+      "decision": "rejected",
+      "observed_pattern": "The material-to-condition property link was preserved along with the condition.",
+      "diagnosis_interpretation": "The review suggests the original redundancy diagnosis should not cascade into edge removal when the retained condition is still considered meaningful.",
+      "supporting_rule": "Do not diagnose a supporting edge as redundant when the connected node remains valid and cross-type redundancy is the only basis.",
+      "few_shot_takeaway": "Only diagnose a supporting edge as removable when its target node is truly invalid or duplicate.",
+      "source_file": "batch_6/9/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "edge_deletion_1",
+      "decision": "accepted",
+      "observed_pattern": "A direct condition-to-consequence link bypassed an explicit ignition step.",
+      "diagnosis_interpretation": "This was correctly framed as a shortcut-edge issue because the intermediate event already captured the mechanism.",
+      "supporting_rule": "Direct edges that bypass an explicit intermediate mechanism should be diagnosed as shortcut edges.",
+      "few_shot_takeaway": "Diagnose direct links that skip represented mechanism steps as shortcut structure, not as needed parallel causation.",
+      "source_file": "batch_6/9/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "edge_addition_0",
+      "decision": "accepted",
+      "observed_pattern": "A formed hazardous cloud lacked a direct consequence link.",
+      "diagnosis_interpretation": "The issue should be diagnosed as a missing local consequence connection, not merely as an ignition-stage sequence problem.",
+      "supporting_rule": "If the graph already contains the hazardous cloud and the explosion consequence, diagnose the absence of the cloud-to-consequence link as a missing local link.",
+      "few_shot_takeaway": "Diagnose VCE incompleteness when the exploding cloud exists in the graph but is not directly connected to the explosion consequence.",
+      "source_file": "batch_7/10/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "edge_deletion_0",
+      "decision": "accepted",
+      "observed_pattern": "The cloud node was modeled as enabling the ignition-source node.",
+      "diagnosis_interpretation": "This should be framed as unsupported local causality because the cloud and ignition source are parallel inputs to the explosion, not a cause-and-effect pair.",
+      "supporting_rule": "Formation of a flammable cloud does not directly create the ignition source; treat them as separate contributors.",
+      "few_shot_takeaway": "Diagnose cloud-to-ignition links as unsupported when they confuse fuel presence with ignition generation.",
+      "source_file": "batch_7/10/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "node_deletion_0",
+      "decision": "rejected",
+      "observed_pattern": "A condition node shared content with an event node but belonged to a different node type.",
+      "diagnosis_interpretation": "Redundancy should not be diagnosed from cross-type semantic similarity alone; conditions and events may carry distinct structural meaning even when they describe related states.",
+      "supporting_rule": "Do not diagnose redundancy across different node types without showing that one node fully replaces the other's pathway role.",
+      "few_shot_takeaway": "Be cautious diagnosing redundancy across node types; similar wording is not enough.",
+      "source_file": "batch_7/10/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "node_deletion_1",
+      "decision": "accepted",
+      "observed_pattern": "A vapor-phase condition duplicated the dispersion semantics and had no retained independent role.",
+      "diagnosis_interpretation": "This supports diagnosing redundancy when a condition adds no distinct pathway meaning beyond a retained event that already captures the same phase behavior.",
+      "supporting_rule": "A phase condition is redundant when the retained event already expresses the same vaporization behavior and the condition does not contribute separately downstream.",
+      "few_shot_takeaway": "Diagnose a phase node as redundant only when its semantics are fully subsumed and it adds no separate pathway function.",
+      "source_file": "batch_7/10/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "edge_deletion_1",
+      "decision": "rejected",
+      "observed_pattern": "An attachment edge was flagged redundant only because its target condition was treated as cross-type duplicate.",
+      "diagnosis_interpretation": "Diagnose edge redundancy only after the target node is validly redundant; if the condition remains meaningful, its material-state edge remains diagnostically valid.",
+      "supporting_rule": "Do not treat a supporting edge as redundant when the underlying condition node has not been validly shown redundant.",
+      "few_shot_takeaway": "In diagnosis, validate node redundancy before labeling its support edges redundant.",
+      "source_file": "batch_7/10/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "edge_deletion_2",
+      "decision": "accepted",
+      "observed_pattern": "A support edge pointed only to a deleted redundant condition.",
+      "diagnosis_interpretation": "Once a node is correctly diagnosed as redundant, attached support edges can be diagnosed as derivative redundancy rather than independent issues.",
+      "supporting_rule": "Edges that only support a deleted redundant node can be removed as consequential cleanup.",
+      "few_shot_takeaway": "Diagnose attached support edges as derivative cleanup once their redundant target node is removed.",
+      "source_file": "batch_7/10/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "node_update_0",
+      "decision": "accepted",
+      "observed_pattern": "Correct consequence concept with a schema-noncompliant label.",
+      "diagnosis_interpretation": "This should be diagnosed as a labeling/schema mismatch rather than a substantive error in the consequence pathway.",
+      "supporting_rule": "If the node meaning is valid and only the label is off-schema, frame the issue as a relabeling fix.",
+      "few_shot_takeaway": "Diagnose schema naming problems separately from causal-structure problems.",
+      "source_file": "batch_8/10/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "node_deletion_0",
+      "decision": "rejected",
+      "observed_pattern": "A condition node overlaps descriptively with event or material context across node types.",
+      "diagnosis_interpretation": "Cross-type overlap alone is not sufficient grounds to diagnose the condition as redundant.",
+      "supporting_rule": "Redundancy should be diagnosed from lack of distinct causal role, not merely from semantic similarity across node types.",
+      "few_shot_takeaway": "Only diagnose redundancy when a node adds no distinct typed causal information.",
+      "source_file": "batch_8/10/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "node_deletion_1",
+      "decision": "rejected",
+      "observed_pattern": "A condition node overlaps descriptively with location or release context across node types.",
+      "diagnosis_interpretation": "The issue should not be framed as redundancy unless the condition truly lacks its own supported typed role.",
+      "supporting_rule": "Redundancy should be diagnosed from lack of distinct causal role, not merely from semantic similarity across node types.",
+      "few_shot_takeaway": "Do not diagnose typed conditions as redundant just because related context appears elsewhere in the graph.",
+      "source_file": "batch_8/10/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "edge_deletion_0",
+      "decision": "rejected",
+      "observed_pattern": "An edge-removal proposal is purely derivative of a proposed node deletion.",
+      "diagnosis_interpretation": "This should be diagnosed as contingent cleanup, not as an independent edge defect, unless the node-level redundancy claim is validated first.",
+      "supporting_rule": "Remove support edges only when the node they only serve is actually removed.",
+      "few_shot_takeaway": "Diagnose derivative edge removals only after confirming the underlying node deletion is warranted.",
+      "source_file": "batch_8/10/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "edge_deletion_1",
+      "decision": "rejected",
+      "observed_pattern": "An edge-removal proposal is purely derivative of a proposed node deletion.",
+      "diagnosis_interpretation": "The edge should not be diagnosed as independently problematic when its stated basis depends on a node that is retained.",
+      "supporting_rule": "Remove support edges only when the node they only serve is actually removed.",
+      "few_shot_takeaway": "Treat cleanup edge deletions as dependent on the correctness of the paired node-level diagnosis.",
+      "source_file": "batch_8/10/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "edge_addition_0",
+      "decision": "accepted",
+      "observed_pattern": "A blockage event is not linked to the confinement state it creates.",
+      "diagnosis_interpretation": "This should be diagnosed as a missing local-link problem: the retained confinement state needs to be framed as a direct result of blocked release paths, not as an isolated vessel attribute.",
+      "supporting_rule": "When blockage creates a no-escape condition, diagnose the gap as a missing local connection to confinement.",
+      "few_shot_takeaway": "Diagnose unattached confinement states as missing local-link issues when the narrative ties them directly to blocked venting or relief.",
+      "source_file": "batch_9/1/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "edge_addition_1",
+      "decision": "accepted",
+      "observed_pattern": "A blockage event is not linked to the pressure state that follows it.",
+      "diagnosis_interpretation": "This should be diagnosed as a missing local-link problem: pressure buildup should be framed as a direct downstream effect of blocked venting rather than only as a generic vessel condition.",
+      "supporting_rule": "When blocked venting directly produces pressure rise, diagnose the gap as a missing local connection to pressure.",
+      "few_shot_takeaway": "If the text says relief blockage pressurized the vessel, diagnose the issue as a missing blockage-to-pressure link.",
+      "source_file": "batch_9/1/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "edge_deletion_0",
+      "decision": "accepted",
+      "observed_pattern": "An upstream state is connected directly to the consequence despite an intervening final release event.",
+      "diagnosis_interpretation": "This should be framed as a shortcut-edge issue, not as missing causality. The consequence is better diagnosed through the immediate failure or release step already present in the graph.",
+      "supporting_rule": "A direct state-to-consequence edge is a shortcut when a more local final event already explains the consequence.",
+      "few_shot_takeaway": "When an immediate release event is present, diagnose extra upstream-to-consequence links as shortcut edges.",
+      "source_file": "batch_9/1/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "node_deletion_0",
+      "decision": "accepted",
+      "observed_pattern": "A component or location node has no independent downstream causal use.",
+      "diagnosis_interpretation": "This should be framed as a redundancy issue. If a node adds no separate causal work beyond an existing event or relation, it should not be treated as a missing-detail problem.",
+      "supporting_rule": "Treat nodes without independent causal function as redundant.",
+      "few_shot_takeaway": "Classify passive component details with no distinct causal role as redundant nodes rather than necessary pathway elements.",
+      "source_file": "batch_9/1/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "node_deletion_0",
+      "decision": "accepted",
+      "observed_pattern": "Standalone location descriptor with no downstream causal use.",
+      "diagnosis_interpretation": "This was treated as redundant descriptive context rather than a missing causal element because the operative pathway was already represented by event nodes.",
+      "supporting_rule": "Standalone equipment or location descriptors without needed supported causal roles should be diagnosed as redundancy.",
+      "few_shot_takeaway": "Diagnose equipment-location labels outside the mechanism as surplus description when event nodes already localize the pathway.",
+      "source_file": "batch_9/6_split_1/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "node_deletion_1",
+      "decision": "accepted",
+      "observed_pattern": "Component node isolated from the mechanism except by description.",
+      "diagnosis_interpretation": "The reviewer outcome implies that the motor descriptor belonged to a descriptive equipment island, while the real mechanism was already captured by failure and ignition events.",
+      "supporting_rule": "Descriptive component nodes that do not add a distinct supported role should be diagnosed as redundant.",
+      "few_shot_takeaway": "If an equipment-part node only restates where an event occurs, diagnose it as descriptive redundancy.",
+      "source_file": "batch_9/6_split_1/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "edge_deletion_0",
+      "decision": "accepted",
+      "observed_pattern": "Descriptive edge connecting redundant equipment descriptors.",
+      "diagnosis_interpretation": "The edge was treated as derivative redundancy rather than as an independent modeling problem because it only linked nodes that did not need to remain.",
+      "supporting_rule": "When connected nodes are redundant descriptors, the descriptive edge between them is also redundant.",
+      "few_shot_takeaway": "Diagnose descriptive edges as secondary redundancy when they only connect nodes that should not remain.",
+      "source_file": "batch_9/6_split_1/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "node_deletion_2",
+      "decision": "rejected",
+      "observed_pattern": "Material phase descriptor retained for interpretive value.",
+      "diagnosis_interpretation": "The reviewer treated phase as meaningful explanatory context, so the issue should not be framed as automatic redundancy just because the node originally appeared weakly integrated.",
+      "supporting_rule": "A descriptor should only be diagnosed as redundant when it lacks a needed supported role; if it is needed to interpret the material involved, keep it in scope.",
+      "few_shot_takeaway": "Be cautious diagnosing phase or property nodes as redundant when they help users understand the released material.",
+      "source_file": "batch_9/6_split_1/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "edge_deletion_1",
+      "decision": "rejected",
+      "observed_pattern": "Attribute edge retained because the descriptor remained in scope.",
+      "diagnosis_interpretation": "Once the phase descriptor was considered valid to keep, its material-to-condition link was no longer best framed as standalone redundancy.",
+      "supporting_rule": "Remove a descriptor edge only when the descriptor it anchors is being removed as redundant.",
+      "few_shot_takeaway": "Do not diagnose a material-to-property link as redundant if the property node itself is still considered necessary.",
+      "source_file": "batch_9/6_split_1/review_feedback_analysis_output.json"
+    }
+  ],
+  "coverage_notes": [
+    "Acceptance of node_deletion_1 structurally covered edge_deletion_1, since removing C2 required removing its incident En1 -> C2 edge.",
+    "Acceptance of the En2->En3 edge deletion was implicitly covered by acceptance of deleting both endpoint nodes.",
+    "Acceptance of the vapor cloud-to-VCE edge and deletion of the cloud-to-ignition edge jointly reframe the ignition stage so the cloud and ignition source act as separate contributors to the explosion.",
+    "Acceptance of the vapor-phase node deletion implicitly covered deletion of its only descriptive edge.",
+    "Acceptance of the vapor-phase node deletion implicitly supports cleanup of its attached material-to-phase edge, which was separately accepted.",
+    "After the rejection of the solid-phase node deletion, the updated graph kept that node and added an extra anchor edge from the material to the solid condition, indicating preservation rather than redundancy treatment.",
+    "Both rejected edge deletions were implicitly covered by the rejection of the paired node deletions; the updated graph retains the original has-edges because the target nodes were kept.",
+    "No separate edge-review decisions were needed because the needed has edges were covered as part of the accepted node additions.",
+    "Rejection of node_deletion_2 also explains rejection of edge_deletion_2; the updated graph further reinforced C4 retention by adding a downstream causal link from High confinement to nitrogen accumulation.",
+    "Rejection of the En1->C1 edge deletion directly followed from rejection of deleting C1.",
+    "Rejection of the liquid-phase node deletion also explains rejection of deleting its attached material-state edge; the edge remains valid because the node was retained.",
+    "Rejection of the liquid-phase node deletion also implied rejection of deleting its supporting descriptive edge.",
+    "The accepted deletion of the drain-valve location also implicitly covered removal of its containment edge from the vent header; that edge deletion did not require a separate reviewed suggestion.",
+    "The accepted deletions and accepted vapor-cloud-to-fire addition consistently reframe the final fire stage away from 'fuel causes ignition source' and toward 'fuel conditions contribute directly to the hazard consequence.'",
+    "The accepted hydrocarbon-air mixture node addition was implemented in the updated graph as En7 plus the implicit characterization edge En7 -> C3.",
+    "The accepted material-to-temperature edge addition repaired the retained high-temperature condition after the phase-node review split outcome.",
+    "The accepted node deletions for redundant locations also explain why associated containment edges were removed or intended for removal.",
+    "The accepted reactor node addition was implemented in the updated graph as En6 plus the implicit characterization edge En6 -> C1.",
+    "The accepted relabel was carried through in the updated graph: H1 now uses the schema label \"HazardConsequence\".",
+    "The accepted rename and accepted primary-explosion node addition jointly implement the single structural fix for the over-merged explosion-to-lofting pathway.",
+    "The component edge from the catch tank to the vent-line node was removed implicitly when the redundant vent-line node was deleted; this cleanup did not require a separate reviewed decision key.",
+    "The missing explicit decision for edge_deletion_0 appears to be implicitly covered by the accepted deletion of the 'overhead vapor line' node; the edge is listed in deleted_edges and is absent from the updated graph.",
+    "The missing-local-link issue for retained conditions was fully covered by the two accepted edge additions; no node changes were needed for pressure or temperature.",
+    "The planned addition C2 -> H1 (enables) was not explicitly reviewed, but the updated graph contains a related C2 -> H1 edge with relation 'has'; this appears to be partial or alternative implementation rather than a direct accept/reject of the planned suggestion.",
+    "The planned combustibility edge addition to the hazard consequence was not explicitly reviewed and is not present in the updated graph.",
+    "The proposed deletion of the material-to-liquid edge depended on deleting the liquid node; once the node deletion was rejected, keeping the edge was consistent.",
+    "The rejected deletion means the low-severity phase-condition redundancy diagnosis was not adopted; the phase node remains in the graph.",
+    "The three accepted edge additions collectively cover the diagnosed missing_local_link problems by anchoring retained conditions to the relevant event, material, and equipment context.",
+    "The two accepted edge additions jointly resolve the single diagnosed missing_local_link issue by restoring both blockage-to-confinement and blockage-to-pressure causality.",
+    "The updated graph added a new C1->Ev1 edge after review, which was not part of the planned suggestions and appears to have been used to better integrate the retained phase node.",
+    "The updated graph also introduced a new liquid-to-release edge outside the reviewed planning list, giving the retained liquid-phase node an explicit downstream role after review.",
+    "The updated graph also keeps C1 and C3 and adds downstream links from them, reinforcing that the reviewer did not accept the original redundancy framing for those condition nodes.",
+    "The updated graph includes an additional liquid-phase-to-vapor-cloud edge not present in the revision plan; it is outside the reviewed suggestion set and does not affect the mapped review decisions.",
+    "The updated graph includes extra condition-to-primary-explosion edges not traceable to the reviewed suggestion list, so they were not treated as reviewed outcomes.",
+    "UPDATED_CAUSAL_GRAPH_JSON contains an extra added edge from the liquid-phase condition to the boiling event that was not part of the mapped reviewed suggestions."
+  ],
+  "unresolved_decisions": [
+    {
+      "decision_key": "edge_deletion_0",
+      "status": "unknown",
+      "note": "Planned deletion of edge raffinate splitter tower -> overhead vapor line has no explicit review_decisions entry, but it appears in deleted_edges and is absent from the updated graph, suggesting implicit coverage.",
+      "source_file": "batch_3/3/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "edge_addition_0",
+      "status": "unknown",
+      "note": "The planned addition of C2 -> H1 (enables) has no explicit review decision. A related C2 -> H1 edge appears in the updated graph, but with relation 'has' rather than the proposed 'enables', so the reviewed outcome cannot be matched exactly.",
+      "source_file": "batch_5/2/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "edge_addition_0",
+      "status": "unknown",
+      "note": "The planned combustibility-to-consequence edge has no explicit review decision in the review state and was not implemented in the updated graph.",
+      "source_file": "batch_6/7/review_feedback_analysis_output.json"
+    }
+  ],
+  "deduped_takeaways": {
+    "planning": [
+      {
+        "takeaway": "Reject redundancy deletions that rely only on cross-type semantic overlap.",
+        "count": 2
+      },
+      {
+        "takeaway": "Reject dependent edge deletions if the related node deletion was not accepted.",
+        "count": 2
+      },
+      {
+        "takeaway": "If a condition is kept but its owning equipment is missing, accept the smallest evidence-grounded entity addition that anchors that condition.",
+        "count": 1
+      },
+      {
+        "takeaway": "If a combustible condition is retained without a represented material, accept a material-node addition that anchors the condition to the identified hazardous mixture.",
+        "count": 1
+      },
+      {
+        "takeaway": "When a kept condition is explicitly the local state behind a nearby event, add the direct condition-to-event link rather than leaving the condition structurally idle.",
+        "count": 1
+      },
+      {
+        "takeaway": "If a retained condition describes a material or system state, attach it to that entity so the condition is not left unanchored.",
+        "count": 1
+      },
+      {
+        "takeaway": "Anchor retained operating-state conditions to the equipment or location they belong to instead of leaving them free-standing.",
+        "count": 1
+      },
+      {
+        "takeaway": "Before deleting a node for redundancy, check whether the overlap is truly same-role duplication rather than cross-type restatement.",
+        "count": 1
+      },
+      {
+        "takeaway": "A component/location node can be removed when nearby retained events already capture its only function in the accident sequence.",
+        "count": 1
+      },
+      {
+        "takeaway": "If a location adds no independent causal role beyond a retained event, delete the location node rather than keeping duplicate structure.",
+        "count": 1
+      },
+      {
+        "takeaway": "Delete location nodes that only restate the setting of an already explicit event mechanism.",
+        "count": 1
+      },
+      {
+        "takeaway": "When a condition is retained, ground it on the relevant equipment instead of leaving it structurally unanchored.",
+        "count": 1
+      },
+      {
+        "takeaway": "Attach retained state conditions to the equipment they describe to complete the local causal structure.",
+        "count": 1
+      },
+      {
+        "takeaway": "If a phase or state condition is kept, link it to the immediate mechanism it directly supports.",
+        "count": 1
+      },
+      {
+        "takeaway": "After deleting a redundant node, also delete its attached structural edges so duplicate locality is not preserved indirectly.",
+        "count": 1
+      },
+      {
+        "takeaway": "Reject node deletions when the redundancy claim depends mainly on cross-type similarity rather than clear structural nonuse.",
+        "count": 1
+      },
+      {
+        "takeaway": "Accept deletion of isolated descriptive conditions when they do not contribute to the supported causal pathway.",
+        "count": 1
+      },
+      {
+        "takeaway": "Reject deletion of a condition if it helps explain release, dispersion, or accumulation in the local mechanism.",
+        "count": 1
+      },
+      {
+        "takeaway": "Keep attachment edges when the associated node remains valid and the redundancy rationale is not structurally supported.",
+        "count": 1
+      },
+      {
+        "takeaway": "Accept edge deletion as a direct follow-on when the connected node is correctly deleted.",
+        "count": 1
+      },
+      {
+        "takeaway": "If a node remains in scope, keep its grounding edge unless there is a separate reason to remove it.",
+        "count": 1
+      },
+      {
+        "takeaway": "Accept direct cloud-to-fire links when the cloud itself is the burning hazard in the final consequence.",
+        "count": 1
+      },
+      {
+        "takeaway": "Accept removal of edges that incorrectly make material flammability a parent of the ignition source.",
+        "count": 1
+      },
+      {
+        "takeaway": "Accept removal of cloud-to-ignition-source edges when the cloud is fuel for the fire, not the source of ignition.",
+        "count": 1
+      },
+      {
+        "takeaway": "If a retained condition is causally used but locally unattached, add the missing descriptive link.",
+        "count": 1
+      },
+      {
+        "takeaway": "Before deleting a state node for redundancy, confirm true functional duplication rather than overlap with an event of a different type.",
+        "count": 1
+      },
+      {
+        "takeaway": "Remove a state node when it only restates phase information already carried by explicit release and dispersion events.",
+        "count": 1
+      },
+      {
+        "takeaway": "Keep a supporting descriptive edge when the underlying state node is still considered valid.",
+        "count": 1
+      },
+      {
+        "takeaway": "When a node is correctly removed as redundant, remove its sole supporting attachment edge as follow-on cleanup.",
+        "count": 1
+      },
+      {
+        "takeaway": "If an event name mixes event occurrence and later propagation, narrow the existing node to one stage and leave the other stage to a separate node.",
+        "count": 1
+      },
+      {
+        "takeaway": "When the narrative names a distinct primary event that triggers later effects, represent that event explicitly in the graph.",
+        "count": 1
+      },
+      {
+        "takeaway": "Do not delete a condition node just because an entity node implies a similar property; first show true same-role redundancy.",
+        "count": 1
+      },
+      {
+        "takeaway": "If a condition is kept as part of the scenario, add its missing material-property attachment rather than leaving it structurally isolated.",
+        "count": 1
+      },
+      {
+        "takeaway": "When a retained condition lacks pathway function, connect it to the nearest supported downstream event.",
+        "count": 1
+      },
+      {
+        "takeaway": "Do not delete a condition node just because it looks descriptively similar to another node of a different type.",
+        "count": 1
+      },
+      {
+        "takeaway": "Keep a property edge when the connected condition is still considered valid and the only deletion basis is cross-type redundancy.",
+        "count": 1
+      },
+      {
+        "takeaway": "If an explicit intermediate event already carries the mechanism, delete the direct shortcut edge to the consequence.",
+        "count": 1
+      },
+      {
+        "takeaway": "Add a direct consequence link when a retained cloud node is itself part of the explosion mechanism.",
+        "count": 1
+      },
+      {
+        "takeaway": "Remove cloud-to-ignition edges when they imply the release mixture causes the ignition source.",
+        "count": 1
+      },
+      {
+        "takeaway": "Do not remove a condition node just because an event mentions the same state; redundancy must be shown within the same semantic role.",
+        "count": 1
+      },
+      {
+        "takeaway": "Delete an isolated phase node when a retained event already carries the same phase-transition meaning.",
+        "count": 1
+      },
+      {
+        "takeaway": "If a condition node is not validly redundant, keep its supporting material-condition edge.",
+        "count": 1
+      },
+      {
+        "takeaway": "After deleting a redundant node, also delete the edges that only existed to support that node.",
+        "count": 1
+      },
+      {
+        "takeaway": "Accept narrow schema-fix relabels that standardize node labels without changing pathway content.",
+        "count": 1
+      },
+      {
+        "takeaway": "When the evidence says blocked relief leaves vapor with no escape path, connect the blockage event directly to confinement.",
+        "count": 1
+      },
+      {
+        "takeaway": "If pressure rise is described as following blocked venting or relief, represent that local causal step explicitly.",
+        "count": 1
+      },
+      {
+        "takeaway": "Prefer the chain through the immediate failure or release step over a direct state-to-consequence shortcut.",
+        "count": 1
+      },
+      {
+        "takeaway": "Drop component or location nodes when their causal role is already captured elsewhere and they add no separate downstream function.",
+        "count": 1
+      },
+      {
+        "takeaway": "If a location node only labels where events occur and adds no distinct causal structure, remove it.",
+        "count": 1
+      },
+      {
+        "takeaway": "Remove equipment-part nodes when failure or ignition events already represent their causal role.",
+        "count": 1
+      },
+      {
+        "takeaway": "When both connected descriptor nodes are accepted for deletion, delete the purely descriptive edge between them too.",
+        "count": 1
+      },
+      {
+        "takeaway": "Do not remove phase information when it is needed as explanatory context for interpreting the material involved.",
+        "count": 1
+      },
+      {
+        "takeaway": "If a condition node stays, keep the edge that anchors that condition to the material unless there is a separate reason to remove it.",
+        "count": 1
+      }
+    ],
+    "diagnosis": [
+      {
+        "takeaway": "Diagnose missing owner entities for retained conditions as anchoring gaps that should be fixed without expanding the causal sequence.",
+        "count": 1
+      },
+      {
+        "takeaway": "Diagnose missing material anchors for retained hazard properties as support-node omissions rather than as missing downstream consequence logic.",
+        "count": 1
+      },
+      {
+        "takeaway": "Diagnose unlinked but relevant local states as missing-link problems when they have an explicit event-level role.",
+        "count": 1
+      },
+      {
+        "takeaway": "When a kept condition floats without an owning entity, diagnose anchoring incompleteness first.",
+        "count": 1
+      },
+      {
+        "takeaway": "Diagnose standalone operating-state nodes as incomplete unless they are tied to the equipment or location whose state they express.",
+        "count": 1
+      },
+      {
+        "takeaway": "Diagnose redundancy only when two nodes duplicate the same causal role, not merely the same subject matter.",
+        "count": 1
+      },
+      {
+        "takeaway": "If a component node only repeats where an already-retained action happened, diagnose it as redundant rather than essential structure.",
+        "count": 1
+      },
+      {
+        "takeaway": "Diagnose redundant structure when a location node only restates where an already-retained event occurs.",
+        "count": 1
+      },
+      {
+        "takeaway": "Treat separate location nodes as redundant when event nodes already carry the local causal meaning.",
+        "count": 1
+      },
+      {
+        "takeaway": "Diagnose ungrounded condition nodes as a completeness problem, especially for equipment states like pressure or temperature.",
+        "count": 1
+      },
+      {
+        "takeaway": "When diagnosing graph quality, check whether retained state conditions are explicitly anchored to the equipment they describe.",
+        "count": 1
+      },
+      {
+        "takeaway": "If a condition is retained, diagnose missing direct links to the mechanism it enables as structural incompleteness.",
+        "count": 1
+      },
+      {
+        "takeaway": "Diagnose duplicate locality at the node level and then remove inherited structural edges that only keep that redundancy alive.",
+        "count": 1
+      },
+      {
+        "takeaway": "Do not diagnose a node as redundant solely because an event, entity, and condition express related ideas.",
+        "count": 1
+      },
+      {
+        "takeaway": "Diagnose isolated descriptive attributes as low-value graph detail rather than mechanism.",
+        "count": 1
+      },
+      {
+        "takeaway": "When a condition helps explain how the hazard environment forms, diagnose it as mechanism, not description.",
+        "count": 1
+      },
+      {
+        "takeaway": "Do not diagnose support edges as deletable unless the connected node is first validly diagnosed as redundant.",
+        "count": 1
+      },
+      {
+        "takeaway": "After diagnosing a node as removable background detail, diagnose its attachment edge as removable too.",
+        "count": 1
+      },
+      {
+        "takeaway": "Do not diagnose an attachment edge as redundant when the connected condition remains part of the mechanism.",
+        "count": 1
+      },
+      {
+        "takeaway": "Diagnose flash-fire structure by checking whether the fuel cloud itself connects directly to the fire consequence.",
+        "count": 1
+      },
+      {
+        "takeaway": "Diagnose ignition-source errors by separating fire-enabling material properties from actual ignition-source causes.",
+        "count": 1
+      },
+      {
+        "takeaway": "Diagnose final fire stages by distinguishing combustible-cloud presence from whatever actually provides ignition.",
+        "count": 1
+      },
+      {
+        "takeaway": "Diagnose unattached retained condition nodes as local-link omissions.",
+        "count": 1
+      },
+      {
+        "takeaway": "Diagnose redundancy by functional duplication, not by condition-event similarity alone.",
+        "count": 1
+      },
+      {
+        "takeaway": "Diagnose downstream phase labels as redundant when the event chain already fully expresses that state.",
+        "count": 1
+      },
+      {
+        "takeaway": "If the node stays, its basic entity-to-condition attachment usually stays as well.",
+        "count": 1
+      },
+      {
+        "takeaway": "Treat edge cleanup as secondary to the underlying node redundancy diagnosis.",
+        "count": 1
+      },
+      {
+        "takeaway": "Flag over-merged nodes when they collapse event occurrence and later propagation into a single step.",
+        "count": 1
+      },
+      {
+        "takeaway": "Treat a named but unmodeled primary event as a diagnosis issue, especially when it bridges ignition and propagation.",
+        "count": 1
+      },
+      {
+        "takeaway": "Be cautious about labeling nodes redundant across type boundaries; check typed function, not just similar meaning.",
+        "count": 1
+      },
+      {
+        "takeaway": "Diagnose unattached retained conditions as incomplete local mechanism structure.",
+        "count": 1
+      },
+      {
+        "takeaway": "When a condition is kept but has no downstream effect, diagnose a missing local causal link.",
+        "count": 1
+      },
+      {
+        "takeaway": "Do not label a node redundant solely because it overlaps descriptively with a node of another type.",
+        "count": 1
+      },
+      {
+        "takeaway": "Only diagnose a supporting edge as removable when its target node is truly invalid or duplicate.",
+        "count": 1
+      },
+      {
+        "takeaway": "Diagnose direct links that skip represented mechanism steps as shortcut structure, not as needed parallel causation.",
+        "count": 1
+      },
+      {
+        "takeaway": "Diagnose VCE incompleteness when the exploding cloud exists in the graph but is not directly connected to the explosion consequence.",
+        "count": 1
+      },
+      {
+        "takeaway": "Diagnose cloud-to-ignition links as unsupported when they confuse fuel presence with ignition generation.",
+        "count": 1
+      },
+      {
+        "takeaway": "Be cautious diagnosing redundancy across node types; similar wording is not enough.",
+        "count": 1
+      },
+      {
+        "takeaway": "Diagnose a phase node as redundant only when its semantics are fully subsumed and it adds no separate pathway function.",
+        "count": 1
+      },
+      {
+        "takeaway": "In diagnosis, validate node redundancy before labeling its support edges redundant.",
+        "count": 1
+      },
+      {
+        "takeaway": "Diagnose attached support edges as derivative cleanup once their redundant target node is removed.",
+        "count": 1
+      },
+      {
+        "takeaway": "Diagnose schema naming problems separately from causal-structure problems.",
+        "count": 1
+      },
+      {
+        "takeaway": "Only diagnose redundancy when a node adds no distinct typed causal information.",
+        "count": 1
+      },
+      {
+        "takeaway": "Do not diagnose typed conditions as redundant just because related context appears elsewhere in the graph.",
+        "count": 1
+      },
+      {
+        "takeaway": "Diagnose derivative edge removals only after confirming the underlying node deletion is warranted.",
+        "count": 1
+      },
+      {
+        "takeaway": "Treat cleanup edge deletions as dependent on the correctness of the paired node-level diagnosis.",
+        "count": 1
+      },
+      {
+        "takeaway": "Diagnose unattached confinement states as missing local-link issues when the narrative ties them directly to blocked venting or relief.",
+        "count": 1
+      },
+      {
+        "takeaway": "If the text says relief blockage pressurized the vessel, diagnose the issue as a missing blockage-to-pressure link.",
+        "count": 1
+      },
+      {
+        "takeaway": "When an immediate release event is present, diagnose extra upstream-to-consequence links as shortcut edges.",
+        "count": 1
+      },
+      {
+        "takeaway": "Classify passive component details with no distinct causal role as redundant nodes rather than necessary pathway elements.",
+        "count": 1
+      },
+      {
+        "takeaway": "Diagnose equipment-location labels outside the mechanism as surplus description when event nodes already localize the pathway.",
+        "count": 1
+      },
+      {
+        "takeaway": "If an equipment-part node only restates where an event occurs, diagnose it as descriptive redundancy.",
+        "count": 1
+      },
+      {
+        "takeaway": "Diagnose descriptive edges as secondary redundancy when they only connect nodes that should not remain.",
+        "count": 1
+      },
+      {
+        "takeaway": "Be cautious diagnosing phase or property nodes as redundant when they help users understand the released material.",
+        "count": 1
+      },
+      {
+        "takeaway": "Do not diagnose a material-to-property link as redundant if the property node itself is still considered necessary.",
+        "count": 1
+      }
+    ]
+  },
+  "rule_frequency": {
+    "planning_matched_rules": [
+      {
+        "rule": "Remove standalone location nodes when the same local mechanism is already captured by retained event nodes.",
+        "count": 2
+      },
+      {
+        "rule": "Retained condition nodes should be attached to the equipment state they characterize.",
+        "count": 2
+      },
+      {
+        "rule": "Do not delete a typed node as redundant solely because similar context is expressed by a different node type.",
+        "count": 2
+      },
+      {
+        "rule": "Do not remove an edge when its only deletion rationale was cleanup for a node that remains in the graph.",
+        "count": 2
+      },
+      {
+        "rule": "Add a supporting entity node when a retained condition is explicitly described as belonging to specific equipment and otherwise lacks a valid incoming characterization link.",
+        "count": 1
+      },
+      {
+        "rule": "Add a supporting material node when a retained combustibility condition is explicitly tied to a specific hazardous mixture and otherwise lacks a valid incoming characterization link.",
+        "count": 1
+      },
+      {
+        "rule": "Retained local conditions should be linked to the specific event they directly enable.",
+        "count": 1
+      },
+      {
+        "rule": "Retained condition nodes should be anchored by an incoming entity-state link to the material or system they characterize.",
+        "count": 1
+      },
+      {
+        "rule": "Retained pressure or state conditions should be attached to the location or equipment they characterize.",
+        "count": 1
+      },
+      {
+        "rule": "Do not treat semantic overlap across different node types as automatic redundancy when the nodes may represent different causal roles.",
+        "count": 1
+      },
+      {
+        "rule": "Remove a node when its semantics are already fully carried by retained event nodes and it adds no independent causal role.",
+        "count": 1
+      },
+      {
+        "rule": "Retained condition nodes should connect to the local release stage they directly enable.",
+        "count": 1
+      },
+      {
+        "rule": "When a location node is redundant and removed, dependent containment edges to that node should also be removed.",
+        "count": 1
+      },
+      {
+        "rule": "Do not remove a node for redundancy based only on semantic overlap across different node types; remove only truly descriptive-only nodes with no needed causal role.",
+        "count": 1
+      },
+      {
+        "rule": "Remove descriptive-only condition nodes that add no necessary local causal role and have no downstream mechanism links.",
+        "count": 1
+      },
+      {
+        "rule": "Keep a condition when it has a supported downstream causal function; the descriptive-only deletion rule applies only when no mechanism role exists.",
+        "count": 1
+      },
+      {
+        "rule": "Do not remove an edge when the underlying redundancy claim for the connected node is unsupported, especially if based only on cross-type overlap.",
+        "count": 1
+      },
+      {
+        "rule": "Delete incident edges when their target descriptive-only node is removed.",
+        "count": 1
+      },
+      {
+        "rule": "Do not delete an attachment edge when the connected condition node is retained as causally relevant.",
+        "count": 1
+      },
+      {
+        "rule": "When the dispersed flammable cloud is the combustible body involved in the fire, add a direct local link from the cloud node to the fire consequence rather than routing that contribution only through an ignition-source node.",
+        "count": 1
+      },
+      {
+        "rule": "Do not model fuel flammability as a cause of the ignition source; treat it as a contributor to the fire consequence once ignition occurs.",
+        "count": 1
+      },
+      {
+        "rule": "Do not model the vapor cloud as creating the ignition source when the cloud is instead the fuel involved in the final fire consequence.",
+        "count": 1
+      },
+      {
+        "rule": "Add a local entity-to-condition link when a retained state node lacks attachment to the material it describes.",
+        "count": 1
+      },
+      {
+        "rule": "Do not remove a condition as redundant solely because a related event exists; redundancy requires no independent local causal role, and cross-type semantics are not automatically duplicates.",
+        "count": 1
+      },
+      {
+        "rule": "Delete a condition node when it adds no independent local causal role beyond the existing event chain.",
+        "count": 1
+      },
+      {
+        "rule": "Do not delete a descriptive edge when the connected condition is retained and cross-type redundancy has not been established.",
+        "count": 1
+      },
+      {
+        "rule": "Delete an edge that only supports a redundant node being removed.",
+        "count": 1
+      },
+      {
+        "rule": "When one event node merges an initiating explosion with a later dispersion stage, separate the stages so each local mechanism is represented distinctly.",
+        "count": 1
+      },
+      {
+        "rule": "Add a separate event node when a primary event is embedded inside a downstream propagation or dispersion node.",
+        "count": 1
+      },
+      {
+        "rule": "Redundant-node removal should be based on lack of a necessary supported local role, not only on semantic overlap across different node types.",
+        "count": 1
+      },
+      {
+        "rule": "Retained condition nodes should be fully integrated with their material-state links.",
+        "count": 1
+      },
+      {
+        "rule": "Retained condition nodes should have an explicit downstream role in the local mechanism.",
+        "count": 1
+      },
+      {
+        "rule": "Do not apply redundancy deletion when the claim depends only on cross-type overlap rather than true duplicate semantics.",
+        "count": 1
+      },
+      {
+        "rule": "Do not remove an edge based on a redundancy claim that is invalid across semantic types.",
+        "count": 1
+      },
+      {
+        "rule": "Remove shortcut edges that bypass an explicit intermediate event already representing the mechanism.",
+        "count": 1
+      },
+      {
+        "rule": "When the formed hazardous cloud is the exploding mixture, add a direct local link from the cloud node to the explosion consequence.",
+        "count": 1
+      },
+      {
+        "rule": "Do not model the hazardous cloud as locally causing the ignition source; they are separate contributors to the consequence.",
+        "count": 1
+      },
+      {
+        "rule": "Do not delete a condition node solely because an event elsewhere expresses related semantics; cross-type overlap alone is not valid redundancy.",
+        "count": 1
+      },
+      {
+        "rule": "A condition node can be removed when its meaning is fully captured by a retained event and it has no necessary independent pathway role.",
+        "count": 1
+      },
+      {
+        "rule": "Do not remove a material-state edge when the condition node is still valid; cross-type overlap does not justify severing a retained relation.",
+        "count": 1
+      },
+      {
+        "rule": "When a redundant node is removed, delete its attached support edges as cleanup.",
+        "count": 1
+      },
+      {
+        "rule": "When a node's causal meaning is correct but its label violates the schema, correct the label and retain the node.",
+        "count": 1
+      },
+      {
+        "rule": "Add missing local links when a blockage event directly creates a no-escape confinement state.",
+        "count": 1
+      },
+      {
+        "rule": "Add missing local links when loss of venting directly leads to pressure buildup.",
+        "count": 1
+      },
+      {
+        "rule": "Remove shortcut edges that bypass a more local final release event already represented in the graph.",
+        "count": 1
+      },
+      {
+        "rule": "Delete redundant nodes that do not carry an independent causal role or downstream use.",
+        "count": 1
+      },
+      {
+        "rule": "Delete standalone equipment or location descriptors when event nodes already carry the mechanism and the node has no needed supported causal role.",
+        "count": 1
+      },
+      {
+        "rule": "Delete descriptive component nodes that form an equipment island when the actual mechanism is already represented by event nodes.",
+        "count": 1
+      },
+      {
+        "rule": "Remove descriptive component edges when both endpoints are redundant descriptors rather than needed causal nodes.",
+        "count": 1
+      },
+      {
+        "rule": "Do not delete a material-condition descriptor when reviewers judge it necessary for understanding the released material, even if its direct causal role is limited.",
+        "count": 1
+      },
+      {
+        "rule": "Do not remove a defining descriptor edge when the connected descriptor node is retained.",
+        "count": 1
+      }
+    ],
+    "diagnosis_supporting_rules": [
+      {
+        "rule": "Separate location nodes are redundant when the same local mechanism is already expressed directly by event nodes.",
+        "count": 2
+      },
+      {
+        "rule": "Retained condition nodes are structurally incomplete if they are not fully linked to the equipment they characterize.",
+        "count": 2
+      },
+      {
+        "rule": "Redundancy should be diagnosed from lack of distinct causal role, not merely from semantic similarity across node types.",
+        "count": 2
+      },
+      {
+        "rule": "Remove support edges only when the node they only serve is actually removed.",
+        "count": 2
+      },
+      {
+        "rule": "When a report describes a condition as specific to named equipment, diagnosis should treat the missing equipment entity as needed support for that retained condition.",
+        "count": 1
+      },
+      {
+        "rule": "When a report identifies a specific flammable mixture, diagnosis should treat the missing material entity as required support for any retained combustibility condition.",
+        "count": 1
+      },
+      {
+        "rule": "Retained local conditions should connect to the event they directly enable.",
+        "count": 1
+      },
+      {
+        "rule": "Retained condition nodes should be anchored to the material or system they characterize.",
+        "count": 1
+      },
+      {
+        "rule": "Pressure or operating-state conditions should be attached to the equipment or location they characterize.",
+        "count": 1
+      },
+      {
+        "rule": "Do not diagnose redundancy solely from overlap across different node types.",
+        "count": 1
+      },
+      {
+        "rule": "A node is diagnostically redundant when retained events already capture its entire causal contribution.",
+        "count": 1
+      },
+      {
+        "rule": "Retained condition nodes are structurally incomplete if they are not fully linked to the mechanisms they describe.",
+        "count": 1
+      },
+      {
+        "rule": "When a location node is redundant because its role is already expressed by event nodes, attached containment edges to that node should also be removed.",
+        "count": 1
+      },
+      {
+        "rule": "Diagnose redundancy only for nodes that are descriptive-only and lack a necessary causal role.",
+        "count": 1
+      },
+      {
+        "rule": "Descriptive-only condition nodes with no necessary downstream mechanism links should be removed.",
+        "count": 1
+      },
+      {
+        "rule": "A condition is not redundant when it contributes a supported local causal role in the pathway.",
+        "count": 1
+      },
+      {
+        "rule": "Only nodes truly diagnosed as descriptive-only redundancy justify follow-on cleanup of their incident edges.",
+        "count": 1
+      },
+      {
+        "rule": "When a descriptive-only node is removed, its incident support edge should also be removed.",
+        "count": 1
+      },
+      {
+        "rule": "Retained causally relevant conditions should keep their grounding links.",
+        "count": 1
+      },
+      {
+        "rule": "Missing local links should be added when the combustible cloud directly participates in the hazard consequence.",
+        "count": 1
+      },
+      {
+        "rule": "Unsupported-edge diagnoses should flag property-to-ignition links when the property does not create the ignition source.",
+        "count": 1
+      },
+      {
+        "rule": "Unsupported-edge diagnoses should remove cloud-to-ignition links when the cloud is a co-contributor to the fire rather than a cause of ignition.",
+        "count": 1
+      },
+      {
+        "rule": "A retained material condition that enables an event should still be linked to the material whose state it describes.",
+        "count": 1
+      },
+      {
+        "rule": "Redundancy should be diagnosed only when a node lacks an independent local causal role, not merely because a nearby event expresses related meaning.",
+        "count": 1
+      },
+      {
+        "rule": "If a condition does not contribute an independent local causal role beyond the existing event chain, diagnose it as redundant.",
+        "count": 1
+      },
+      {
+        "rule": "Do not diagnose a descriptive attachment as redundant when the connected state remains a distinct retained description.",
+        "count": 1
+      },
+      {
+        "rule": "When a node is diagnosed as redundant, an edge that only serves that node is also redundant.",
+        "count": 1
+      },
+      {
+        "rule": "If a node compresses two distinct local stages, diagnose it as over-merged rather than leaving the mechanism implicit.",
+        "count": 1
+      },
+      {
+        "rule": "When the narrative identifies a distinct primary event that triggers later stages, diagnose its absence as a structural gap.",
+        "count": 1
+      },
+      {
+        "rule": "Do not diagnose redundancy from semantic similarity alone when the compared nodes serve different representational types.",
+        "count": 1
+      },
+      {
+        "rule": "Missing local links should be repaired when a retained condition is meaningful to the scenario.",
+        "count": 1
+      },
+      {
+        "rule": "A retained condition should connect to the event stage where it has a supported causal role.",
+        "count": 1
+      },
+      {
+        "rule": "Do not diagnose redundancy across different semantic types unless there is true duplicate meaning and no distinct role.",
+        "count": 1
+      },
+      {
+        "rule": "Do not diagnose a supporting edge as redundant when the connected node remains valid and cross-type redundancy is the only basis.",
+        "count": 1
+      },
+      {
+        "rule": "Direct edges that bypass an explicit intermediate mechanism should be diagnosed as shortcut edges.",
+        "count": 1
+      },
+      {
+        "rule": "If the graph already contains the hazardous cloud and the explosion consequence, diagnose the absence of the cloud-to-consequence link as a missing local link.",
+        "count": 1
+      },
+      {
+        "rule": "Formation of a flammable cloud does not directly create the ignition source; treat them as separate contributors.",
+        "count": 1
+      },
+      {
+        "rule": "Do not diagnose redundancy across different node types without showing that one node fully replaces the other's pathway role.",
+        "count": 1
+      },
+      {
+        "rule": "A phase condition is redundant when the retained event already expresses the same vaporization behavior and the condition does not contribute separately downstream.",
+        "count": 1
+      },
+      {
+        "rule": "Do not treat a supporting edge as redundant when the underlying condition node has not been validly shown redundant.",
+        "count": 1
+      },
+      {
+        "rule": "Edges that only support a deleted redundant node can be removed as consequential cleanup.",
+        "count": 1
+      },
+      {
+        "rule": "If the node meaning is valid and only the label is off-schema, frame the issue as a relabeling fix.",
+        "count": 1
+      },
+      {
+        "rule": "When blockage creates a no-escape condition, diagnose the gap as a missing local connection to confinement.",
+        "count": 1
+      },
+      {
+        "rule": "When blocked venting directly produces pressure rise, diagnose the gap as a missing local connection to pressure.",
+        "count": 1
+      },
+      {
+        "rule": "A direct state-to-consequence edge is a shortcut when a more local final event already explains the consequence.",
+        "count": 1
+      },
+      {
+        "rule": "Treat nodes without independent causal function as redundant.",
+        "count": 1
+      },
+      {
+        "rule": "Standalone equipment or location descriptors without needed supported causal roles should be diagnosed as redundancy.",
+        "count": 1
+      },
+      {
+        "rule": "Descriptive component nodes that do not add a distinct supported role should be diagnosed as redundant.",
+        "count": 1
+      },
+      {
+        "rule": "When connected nodes are redundant descriptors, the descriptive edge between them is also redundant.",
+        "count": 1
+      },
+      {
+        "rule": "A descriptor should only be diagnosed as redundant when it lacks a needed supported role; if it is needed to interpret the material involved, keep it in scope.",
+        "count": 1
+      },
+      {
+        "rule": "Remove a descriptor edge only when the descriptor it anchors is being removed as redundant.",
+        "count": 1
+      }
+    ]
+  }
+}

@@ -2,10 +2,12 @@
   "causal_edge_linking": {
     "template_file": "causal_edge_linking.txt",
     "required_vars": [
+      "incident_description",
       "causal_narrative_extraction_output",
       "edge_candidate_extraction_output",
       "edge_structure_validation_output",
-      "identify_accident_scenario_output"
+      "identify_accident_scenario_output",
+      "causal_edge_schema_definition"
     ],
     "optional_vars": [
       "few_shot_examples"
@@ -61,9 +63,12 @@
     "required_vars": [
       "accident_scenario_schema",
       "accident_scenario_schema_definition",
+      "causal_node_issue_definition",
+      "causal_issue_output_definition",
       "causal_narrative_extraction_output",
       "candidate_evidence_snippets",
       "identify_hazard_consequence_output",
+      "incident_description",
       "scenario_candidate_extraction_output"
     ],
     "optional_vars": [
@@ -77,6 +82,7 @@
       "accident_scenario_schema_definition",
       "causal_narrative_extraction_output",
       "identify_hazard_consequence_output",
+      "incident_description",
       "scenario_candidate_extraction_output",
       "scenario_structure_validation_output"
     ],
@@ -89,7 +95,8 @@
     "required_vars": [
       "causal_narrative_extraction_output",
       "identify_accident_scenario_output",
-      "incident_description"
+      "incident_description",
+      "causal_edge_schema_definition"
     ],
     "optional_vars": [
       "few_shot_examples"
@@ -98,10 +105,14 @@
   "edge_structure_validation": {
     "template_file": "edge_structure_validation.txt",
     "required_vars": [
+      "incident_description",
       "causal_narrative_extraction_output",
+      "causal_edge_issue_definition",
+      "causal_issue_output_definition",
       "edge_candidate_evidence_snippets",
       "edge_candidate_extraction_output",
-      "identify_accident_scenario_output"
+      "identify_accident_scenario_output",
+      "causal_edge_schema_definition"
     ],
     "optional_vars": [
       "few_shot_examples"
@@ -137,6 +148,10 @@
       "incident_description",
       "accident_scenario_schema",
       "accident_scenario_schema_definition",
+      "causal_node_issue_definition",
+      "causal_edge_schema_definition",
+      "causal_edge_issue_definition",
+      "causal_issue_output_definition",
       "causal_narrative_extraction_output",
       "causal_graph_json"
     ],
@@ -150,6 +165,7 @@
       "incident_description",
       "accident_scenario_schema",
       "accident_scenario_schema_definition",
+      "causal_edge_schema_definition",
       "causal_narrative_extraction_output",
       "causal_graph_json",
       "graph_diagnosis_output"

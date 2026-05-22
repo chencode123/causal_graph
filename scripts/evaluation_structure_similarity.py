@@ -15,6 +15,11 @@ import networkx as nx
 from grakel import Graph, GraphKernel
 from tqdm import tqdm
 
+try:
+    from scipy.optimize import linear_sum_assignment
+except ImportError:
+    linear_sum_assignment = None
+
 
 NODE_GROUP_KEYS = (
     "hazard_consequence_node",
@@ -24,6 +29,7 @@ NODE_GROUP_KEYS = (
 )
 
 CASE_SCORE_COLUMNS = [
+    "round",
     "batch_id",
     "case_id",
     "hazard_consequence_type",
@@ -35,30 +41,21 @@ CASE_SCORE_COLUMNS = [
     "graph_edit_distance_accept_all_vs_updated",
     "normalized_graph_edit_distance_accept_all_vs_updated",
     "graph_edit_similarity_accept_all_vs_updated",
-    "ged_node_insertion_count",
-    "ged_node_deletion_count",
-    "ged_node_substitution_count",
-    "ged_edge_insertion_count",
-    "ged_edge_deletion_count",
-    "ged_edge_substitution_count",
-    "ged_node_insertion_count_accept_all_vs_updated",
-    "ged_node_deletion_count_accept_all_vs_updated",
-    "ged_node_substitution_count_accept_all_vs_updated",
-    "ged_edge_insertion_count_accept_all_vs_updated",
-    "ged_edge_deletion_count_accept_all_vs_updated",
-    "ged_edge_substitution_count_accept_all_vs_updated",
-    "generated_node_count",
-    "accept_all_node_count",
-    "updated_node_count",
-    "generated_edge_count",
-    "accept_all_edge_count",
-    "updated_edge_count",
     "verified_construction_steps",
     "max_path_length",
     "method",
     "status",
     "warnings",
 ]
+
+GED_ALGORITHM_EXACT = "exact"
+GED_ALGORITHM_FAST = "fast"
+GED_ALGORITHM_BIPARTITE = "bipartite"
+GED_ALGORITHM_CHOICES = (
+    GED_ALGORITHM_EXACT,
+    GED_ALGORITHM_FAST,
+    GED_ALGORITHM_BIPARTITE,
+)
 
 BATCH_SCORE_COLUMNS = [
     "batch_id",
@@ -185,6 +182,18 @@ def parse_args() -> argparse.Namespace:
         ),
     )
     parser.add_argument(
+        "--compute-ged",
+        dest="compute_ged",
+        action="store_true",
+        help="Compute GED-based metrics such as graph_edit_distance and normalized_graph_edit_distance.",
+    )
+    parser.add_argument(
+        "--skip-ged",
+        dest="compute_ged",
+        action="store_false",
+        help="Skip GED-based metrics and leave GED-related CSV fields blank.",
+    )
+    parser.add_argument(
         "--compute-ged-operation-counts",
         dest="compute_ged_operation_counts",
         action="store_true",
@@ -209,16 +218,36 @@ def parse_args() -> argparse.Namespace:
         help="Hide the live tqdm progress bar and only print summary output.",
     )
     parser.add_argument(
+        "--ged-algorithm",
+        choices=GED_ALGORITHM_CHOICES,
+        default=GED_ALGORITHM_EXACT,
+        help=(
+            "GED algorithm to use: "
+            "'exact' exhausts candidates, "
+            "'fast' uses the first NetworkX candidate, "
+            "and 'bipartite' uses a faster structure-aware assignment approximation."
+        ),
+    )
+    parser.add_argument(
         "--exact-ged",
-        dest="exact_ged",
-        action="store_true",
-        help="Exhaust GED candidates and take the minimum value.",
+        dest="ged_algorithm",
+        action="store_const",
+        const=GED_ALGORITHM_EXACT,
+        help="Legacy alias for --ged-algorithm exact.",
     )
     parser.add_argument(
         "--fast-ged",
-        dest="exact_ged",
-        action="store_false",
-        help="Use only the first GED candidate for faster but less reliable results.",
+        dest="ged_algorithm",
+        action="store_const",
+        const=GED_ALGORITHM_FAST,
+        help="Legacy alias for --ged-algorithm fast.",
+    )
+    parser.add_argument(
+        "--bipartite-ged",
+        dest="ged_algorithm",
+        action="store_const",
+        const=GED_ALGORITHM_BIPARTITE,
+        help="Legacy alias for --ged-algorithm bipartite.",
     )
     parser.add_argument(
         "--ged-timeout",
@@ -229,20 +258,18 @@ def parse_args() -> argparse.Namespace:
             "When set, NetworkX returns the current best GED after the timeout."
         ),
     )
+    parser.set_defaults(compute_ged=True)
     parser.set_defaults(compute_ged_operation_counts=True)
     parser.set_defaults(show_progress=True)
-    parser.set_defaults(exact_ged=True)
     return parser.parse_args()
 
 
 def resolve_updated_graph_path(case_folder: Path) -> Path | None:
-    """Resolve the updated graph file with strict priority."""
+    """Resolve the updated graph file by exact filename only."""
     exact_path = case_folder / "updated_causal_graph.json"
     if exact_path.exists():
         return exact_path
-
-    fallback_candidates = sorted(case_folder.glob("updated_causal_graph*.json"))
-    return fallback_candidates[0] if fallback_candidates else None
+    return None
 
 
 def resolve_accept_all_graph_path(case_folder: Path) -> Path | None:
@@ -374,15 +401,253 @@ def edge_labels_match(left: Dict[str, Any], right: Dict[str, Any]) -> bool:
     return left_relation == right_relation
 
 
+def make_blank_operation_counts() -> Dict[str, int]:
+    """Return zeroed GED operation counts."""
+    return {
+        "ged_node_insertion_count": 0,
+        "ged_node_deletion_count": 0,
+        "ged_node_substitution_count": 0,
+        "ged_edge_insertion_count": 0,
+        "ged_edge_deletion_count": 0,
+        "ged_edge_substitution_count": 0,
+    }
+
+
+def compute_component_depths(graph: nx.DiGraph) -> Tuple[Dict[int, int], Dict[int, int], Dict[str, int]]:
+    """Compute SCC-level forward/backward depths for structure-aware matching."""
+    if graph.number_of_nodes() == 0:
+        return {}, {}, {}
+
+    condensation_graph = nx.condensation(graph)
+    component_by_node = condensation_graph.graph.get("mapping", {})
+    topological_nodes = list(nx.topological_sort(condensation_graph))
+    forward_depth = {node: 0 for node in topological_nodes}
+    for node in topological_nodes:
+        for successor in condensation_graph.successors(node):
+            forward_depth[successor] = max(forward_depth[successor], forward_depth[node] + 1)
+
+    backward_depth = {node: 0 for node in topological_nodes}
+    for node in reversed(topological_nodes):
+        for predecessor in condensation_graph.predecessors(node):
+            backward_depth[predecessor] = max(backward_depth[predecessor], backward_depth[node] + 1)
+
+    return forward_depth, backward_depth, component_by_node
+
+
+def compute_structural_node_profiles(graph: nx.DiGraph, iterations: int = 2) -> Dict[str, Dict[str, Any]]:
+    """Build structure-only node profiles for bipartite GED matching."""
+    forward_depth, backward_depth, component_by_node = compute_component_depths(graph)
+    scc_size_by_component: Dict[int, int] = {}
+    for component_id in component_by_node.values():
+        scc_size_by_component[component_id] = scc_size_by_component.get(component_id, 0) + 1
+    weak_component_by_node: Dict[str, int] = {}
+    for component_nodes in nx.weakly_connected_components(graph):
+        component_size = len(component_nodes)
+        for node in component_nodes:
+            weak_component_by_node[str(node)] = component_size
+
+    refinement_tokens = {
+        node: f"in{graph.in_degree(node)}|out{graph.out_degree(node)}"
+        for node in graph.nodes()
+    }
+    for _ in range(iterations):
+        next_tokens: Dict[str, str] = {}
+        for node in graph.nodes():
+            predecessor_tokens = sorted(refinement_tokens[pred] for pred in graph.predecessors(node))
+            successor_tokens = sorted(refinement_tokens[succ] for succ in graph.successors(node))
+            next_tokens[node] = (
+                f"{refinement_tokens[node]}|pred:{'|'.join(predecessor_tokens)}"
+                f"|succ:{'|'.join(successor_tokens)}"
+            )
+        refinement_tokens = next_tokens
+
+    profiles: Dict[str, Dict[str, Any]] = {}
+    for node in graph.nodes():
+        component_id = component_by_node.get(node, -1)
+        profiles[str(node)] = {
+            "in_degree": graph.in_degree(node),
+            "out_degree": graph.out_degree(node),
+            "total_degree": graph.in_degree(node) + graph.out_degree(node),
+            "scc_size": scc_size_by_component.get(component_id, 1),
+            "weak_component_size": weak_component_by_node.get(str(node), 1),
+            "forward_depth": forward_depth.get(component_id, 0),
+            "backward_depth": backward_depth.get(component_id, 0),
+            "signature": refinement_tokens[node],
+        }
+    return profiles
+
+
+def node_substitution_cost(
+    generated_profile: Dict[str, Any],
+    updated_profile: Dict[str, Any],
+) -> float:
+    """Return a structure-first substitution cost for bipartite GED."""
+    degree_cost = (
+        abs(int(generated_profile["in_degree"]) - int(updated_profile["in_degree"]))
+        + abs(int(generated_profile["out_degree"]) - int(updated_profile["out_degree"]))
+    )
+    topology_cost = (
+        abs(int(generated_profile["forward_depth"]) - int(updated_profile["forward_depth"]))
+        + abs(int(generated_profile["backward_depth"]) - int(updated_profile["backward_depth"]))
+    )
+    component_cost = abs(
+        int(generated_profile["weak_component_size"]) - int(updated_profile["weak_component_size"])
+    ) + abs(int(generated_profile["scc_size"]) - int(updated_profile["scc_size"]))
+    signature_cost = 0.0 if generated_profile["signature"] == updated_profile["signature"] else 0.75
+    return (
+        (0.35 * float(degree_cost))
+        + (0.2 * float(topology_cost))
+        + (0.1 * float(component_cost))
+        + signature_cost
+    )
+
+
+def compute_bipartite_operation_counts(
+    generated_graph: nx.DiGraph,
+    updated_graph: nx.DiGraph,
+) -> Dict[str, int]:
+    """Approximate GED edit operations using structure-aware bipartite matching."""
+    if linear_sum_assignment is None:
+        raise RuntimeError(
+            "Bipartite GED requires scipy. Install scipy or use --ged-algorithm exact/fast."
+        )
+
+    generated_nodes = list(generated_graph.nodes())
+    updated_nodes = list(updated_graph.nodes())
+    generated_count = len(generated_nodes)
+    updated_count = len(updated_nodes)
+
+    if generated_count == 0 and updated_count == 0:
+        return make_blank_operation_counts()
+
+    generated_profiles = compute_structural_node_profiles(generated_graph)
+    updated_profiles = compute_structural_node_profiles(updated_graph)
+    matrix_size = generated_count + updated_count
+    impossible_cost = float(
+        (
+            generated_count
+            + updated_count
+            + generated_graph.number_of_edges()
+            + updated_graph.number_of_edges()
+            + 1
+        )
+        * 1000
+    )
+    cost_matrix = [[0.0 for _ in range(matrix_size)] for _ in range(matrix_size)]
+
+    for row_index, generated_node in enumerate(generated_nodes):
+        for col_index, updated_node in enumerate(updated_nodes):
+            cost_matrix[row_index][col_index] = node_substitution_cost(
+                generated_profiles[str(generated_node)],
+                updated_profiles[str(updated_node)],
+            )
+        for deletion_dummy_index in range(generated_count):
+            cost_matrix[row_index][updated_count + deletion_dummy_index] = impossible_cost
+        cost_matrix[row_index][updated_count + row_index] = 1.0
+
+    for insertion_dummy_index in range(updated_count):
+        row_index = generated_count + insertion_dummy_index
+        for col_index in range(updated_count):
+            cost_matrix[row_index][col_index] = impossible_cost
+        cost_matrix[row_index][insertion_dummy_index] = 1.0
+        for deletion_dummy_index in range(generated_count):
+            cost_matrix[row_index][updated_count + deletion_dummy_index] = 0.0
+
+    row_ind, col_ind = linear_sum_assignment(cost_matrix)
+    assignment = {int(row): int(col) for row, col in zip(row_ind, col_ind)}
+
+    counts = make_blank_operation_counts()
+    generated_to_updated: Dict[str, str] = {}
+
+    for row_index, generated_node in enumerate(generated_nodes):
+        assigned_column = assignment[row_index]
+        if assigned_column < updated_count:
+            updated_node = updated_nodes[assigned_column]
+            generated_to_updated[generated_node] = updated_node
+        else:
+            counts["ged_node_deletion_count"] += 1
+
+    for insertion_dummy_index in range(updated_count):
+        assigned_column = assignment[generated_count + insertion_dummy_index]
+        if assigned_column < updated_count:
+            counts["ged_node_insertion_count"] += 1
+
+    matched_updated_edges = set()
+    for source, target in generated_graph.edges():
+        mapped_source = generated_to_updated.get(source)
+        mapped_target = generated_to_updated.get(target)
+        if mapped_source is None or mapped_target is None:
+            counts["ged_edge_deletion_count"] += 1
+            continue
+        if updated_graph.has_edge(mapped_source, mapped_target):
+            matched_updated_edges.add((mapped_source, mapped_target))
+        else:
+            counts["ged_edge_deletion_count"] += 1
+
+    for source, target in updated_graph.edges():
+        if (source, target) not in matched_updated_edges:
+            counts["ged_edge_insertion_count"] += 1
+
+    return counts
+
+
+def summarize_graph_edit_metrics(
+    generated_graph: nx.DiGraph,
+    updated_graph: nx.DiGraph,
+    graph_edit_distance: float,
+) -> Tuple[float, float, float]:
+    """Convert a raw GED value into normalized distance and similarity."""
+    size_denominator = (
+        generated_graph.number_of_nodes()
+        + updated_graph.number_of_nodes()
+        + generated_graph.number_of_edges()
+        + updated_graph.number_of_edges()
+    )
+    normalized_graph_edit_distance = (
+        graph_edit_distance / size_denominator if size_denominator > 0 else 0.0
+    )
+    graph_edit_similarity = max(0.0, 1.0 - normalized_graph_edit_distance)
+    return graph_edit_distance, normalized_graph_edit_distance, graph_edit_similarity
+
+
+def compute_bipartite_graph_edit_metrics(
+    generated_graph: nx.DiGraph,
+    updated_graph: nx.DiGraph,
+) -> Tuple[float, float, float, Dict[str, int]]:
+    """Compute bipartite GED metrics and return the reused operation counts."""
+    operation_counts = compute_bipartite_operation_counts(generated_graph, updated_graph)
+    graph_edit_distance = float(
+        operation_counts["ged_node_insertion_count"]
+        + operation_counts["ged_node_deletion_count"]
+        + operation_counts["ged_node_substitution_count"]
+        + operation_counts["ged_edge_insertion_count"]
+        + operation_counts["ged_edge_deletion_count"]
+    )
+    metrics = summarize_graph_edit_metrics(
+        generated_graph,
+        updated_graph,
+        graph_edit_distance,
+    )
+    return metrics[0], metrics[1], metrics[2], operation_counts
+
+
 def compute_graph_edit_metrics(
     generated_graph: nx.DiGraph,
     updated_graph: nx.DiGraph,
     *,
-    exact_ged: bool = True,
+    ged_algorithm: str = GED_ALGORITHM_EXACT,
     ged_timeout_seconds: float | None = None,
 ) -> Tuple[float, float, float]:
     """Compute GED, normalized GED, and GED-based similarity."""
-    if exact_ged and ged_timeout_seconds is not None:
+    if ged_algorithm == GED_ALGORITHM_BIPARTITE:
+        graph_edit_distance, normalized_graph_edit_distance, graph_edit_similarity, _ = (
+            compute_bipartite_graph_edit_metrics(
+                generated_graph,
+                updated_graph,
+            )
+        )
+        return graph_edit_distance, normalized_graph_edit_distance, graph_edit_similarity
+    elif ged_algorithm == GED_ALGORITHM_EXACT and ged_timeout_seconds is not None:
         graph_edit_distance_raw = nx.graph_edit_distance(
             generated_graph,
             updated_graph,
@@ -401,20 +666,18 @@ def compute_graph_edit_metrics(
             node_match=node_labels_match,
         )
         try:
-            graph_edit_distance = float(min(ged_candidates) if exact_ged else next(ged_candidates))
+            graph_edit_distance = float(
+                min(ged_candidates)
+                if ged_algorithm == GED_ALGORITHM_EXACT
+                else next(ged_candidates)
+            )
         except ValueError:
             graph_edit_distance = 0.0
-    size_denominator = (
-        generated_graph.number_of_nodes()
-        + updated_graph.number_of_nodes()
-        + generated_graph.number_of_edges()
-        + updated_graph.number_of_edges()
+    return summarize_graph_edit_metrics(
+        generated_graph,
+        updated_graph,
+        graph_edit_distance,
     )
-    normalized_graph_edit_distance = (
-        graph_edit_distance / size_denominator if size_denominator > 0 else 0.0
-    )
-    graph_edit_similarity = max(0.0, 1.0 - normalized_graph_edit_distance)
-    return graph_edit_distance, normalized_graph_edit_distance, graph_edit_similarity
 
 
 def compute_graph_edit_operation_counts(
@@ -562,16 +825,27 @@ def collect_numeric_values(rows: Iterable[Dict[str, Any]], key: str) -> List[flo
 def evaluate_case(
     case_folder: Path,
     parent_dir: Path,
+    compute_ged: bool = True,
     compute_ged_operation_counts: bool = True,
-    exact_ged: bool = True,
+    ged_algorithm: str = GED_ALGORITHM_EXACT,
     ged_timeout_seconds: float | None = None,
 ) -> Dict[str, Any]:
     """Evaluate one case folder and return a CSV-ready row."""
+    import re as _re
     case_id = case_folder.name
-    batch_id = infer_batch_id(case_folder, parent_dir)
-    method = "grakel_weisfeiler_lehman_n_iter_2_generated_vs_updated_label_only"
+    _parts = case_folder.relative_to(parent_dir).parts
+    if len(_parts) >= 3:
+        round_label = _parts[0]
+        batch_id = _re.sub(r"_output_round_\d+$", "", _parts[1])
+    else:
+        batch_id = infer_batch_id(case_folder, parent_dir)
+        _m = _re.search(r"(round_\d+)", str(batch_id))
+        round_label = _m.group(1) if _m else ""
+    ged_method = f"ged_{ged_algorithm}" if compute_ged else "ged_skipped"
+    method = "grakel_weisfeiler_lehman_n_iter_2_generated_vs_updated_label_only_" + ged_method
 
     row: Dict[str, Any] = {
+        "round": round_label,
         "case_id": case_id,
         "batch_id": batch_id,
         "hazard_consequence_type": "",
@@ -583,24 +857,6 @@ def evaluate_case(
         "graph_edit_distance_accept_all_vs_updated": "",
         "normalized_graph_edit_distance_accept_all_vs_updated": "",
         "graph_edit_similarity_accept_all_vs_updated": "",
-        "ged_node_insertion_count": "",
-        "ged_node_deletion_count": "",
-        "ged_node_substitution_count": "",
-        "ged_edge_insertion_count": "",
-        "ged_edge_deletion_count": "",
-        "ged_edge_substitution_count": "",
-        "ged_node_insertion_count_accept_all_vs_updated": "",
-        "ged_node_deletion_count_accept_all_vs_updated": "",
-        "ged_node_substitution_count_accept_all_vs_updated": "",
-        "ged_edge_insertion_count_accept_all_vs_updated": "",
-        "ged_edge_deletion_count_accept_all_vs_updated": "",
-        "ged_edge_substitution_count_accept_all_vs_updated": "",
-        "generated_node_count": "",
-        "accept_all_node_count": "",
-        "updated_node_count": "",
-        "generated_edge_count": "",
-        "accept_all_edge_count": "",
-        "updated_edge_count": "",
         "verified_construction_steps": "",
         "max_path_length": "",
         "method": method,
@@ -612,7 +868,7 @@ def evaluate_case(
         generated_data = load_json(case_folder / "causal_graph.json")
         updated_graph_path = resolve_updated_graph_path(case_folder)
         if updated_graph_path is None:
-            raise FileNotFoundError("No updated_causal_graph*.json file found.")
+            raise FileNotFoundError("No updated_causal_graph.json file found.")
         updated_data = load_json(updated_graph_path)
         accept_all_graph_path = resolve_accept_all_graph_path(case_folder)
 
@@ -625,19 +881,39 @@ def evaluate_case(
         updated_graph, updated_warnings = build_directed_graph(updated_nodes, updated_edges)
 
         similarity = compute_structural_similarity(generated_graph, updated_graph)
-        (
-            graph_edit_distance,
-            normalized_graph_edit_distance,
-            graph_edit_similarity,
-        ) = compute_graph_edit_metrics(
-            generated_graph,
-            updated_graph,
-            exact_ged=exact_ged,
-            ged_timeout_seconds=ged_timeout_seconds,
-        )
-        if compute_ged_operation_counts:
-            operation_counts = compute_graph_edit_operation_counts(generated_graph, updated_graph)
+        if compute_ged:
+            if ged_algorithm == GED_ALGORITHM_BIPARTITE:
+                (
+                    graph_edit_distance,
+                    normalized_graph_edit_distance,
+                    graph_edit_similarity,
+                    bipartite_operation_counts,
+                ) = compute_bipartite_graph_edit_metrics(
+                    generated_graph,
+                    updated_graph,
+                )
+                operation_counts = (
+                    bipartite_operation_counts if compute_ged_operation_counts else empty_operation_counts()
+                )
+            else:
+                (
+                    graph_edit_distance,
+                    normalized_graph_edit_distance,
+                    graph_edit_similarity,
+                ) = compute_graph_edit_metrics(
+                    generated_graph,
+                    updated_graph,
+                    ged_algorithm=ged_algorithm,
+                    ged_timeout_seconds=ged_timeout_seconds,
+                )
+                if compute_ged_operation_counts:
+                    operation_counts = compute_graph_edit_operation_counts(generated_graph, updated_graph)
+                else:
+                    operation_counts = empty_operation_counts()
         else:
+            graph_edit_distance = None
+            normalized_graph_edit_distance = None
+            graph_edit_similarity = None
             operation_counts = empty_operation_counts()
 
         accept_all_warnings: List[str] = []
@@ -659,33 +935,70 @@ def evaluate_case(
             accept_all_graph, accept_all_graph_warnings = build_directed_graph(accept_all_nodes, accept_all_edges)
             accept_all_warnings.extend(accept_all_graph_warnings)
             accept_all_similarity = compute_structural_similarity(accept_all_graph, updated_graph)
-            (
-                accept_all_graph_edit_distance,
-                accept_all_normalized_graph_edit_distance,
-                accept_all_graph_edit_similarity,
-            ) = compute_graph_edit_metrics(
-                accept_all_graph,
-                updated_graph,
-                exact_ged=exact_ged,
-                ged_timeout_seconds=ged_timeout_seconds,
-            )
-            if compute_ged_operation_counts:
-                raw_accept_all_operation_counts = compute_graph_edit_operation_counts(
-                    accept_all_graph,
-                    updated_graph,
-                )
-                accept_all_operation_counts = {
-                    f"{key}_accept_all_vs_updated": value
-                    for key, value in raw_accept_all_operation_counts.items()
-                }
+            if compute_ged:
+                if ged_algorithm == GED_ALGORITHM_BIPARTITE:
+                    (
+                        accept_all_graph_edit_distance,
+                        accept_all_normalized_graph_edit_distance,
+                        accept_all_graph_edit_similarity,
+                        raw_accept_all_operation_counts,
+                    ) = compute_bipartite_graph_edit_metrics(
+                        accept_all_graph,
+                        updated_graph,
+                    )
+                    accept_all_operation_counts = (
+                        {
+                            f"{key}_accept_all_vs_updated": value
+                            for key, value in raw_accept_all_operation_counts.items()
+                        }
+                        if compute_ged_operation_counts
+                        else empty_operation_counts("_accept_all_vs_updated")
+                    )
+                else:
+                    (
+                        accept_all_graph_edit_distance,
+                        accept_all_normalized_graph_edit_distance,
+                        accept_all_graph_edit_similarity,
+                    ) = compute_graph_edit_metrics(
+                        accept_all_graph,
+                        updated_graph,
+                        ged_algorithm=ged_algorithm,
+                        ged_timeout_seconds=ged_timeout_seconds,
+                    )
+                    if compute_ged_operation_counts:
+                        raw_accept_all_operation_counts = compute_graph_edit_operation_counts(
+                            accept_all_graph,
+                            updated_graph,
+                        )
+                        accept_all_operation_counts = {
+                            f"{key}_accept_all_vs_updated": value
+                            for key, value in raw_accept_all_operation_counts.items()
+                        }
+                    else:
+                        accept_all_operation_counts = empty_operation_counts("_accept_all_vs_updated")
             else:
+                accept_all_graph_edit_distance = None
+                accept_all_normalized_graph_edit_distance = None
+                accept_all_graph_edit_similarity = None
                 accept_all_operation_counts = empty_operation_counts("_accept_all_vs_updated")
             accept_all_metrics.update(
                 {
                     "structural_similarity_accept_all_vs_updated": f"{accept_all_similarity:.6f}",
-                    "graph_edit_distance_accept_all_vs_updated": f"{accept_all_graph_edit_distance:.6f}",
-                    "normalized_graph_edit_distance_accept_all_vs_updated": f"{accept_all_normalized_graph_edit_distance:.6f}",
-                    "graph_edit_similarity_accept_all_vs_updated": f"{accept_all_graph_edit_similarity:.6f}",
+                    "graph_edit_distance_accept_all_vs_updated": (
+                        f"{accept_all_graph_edit_distance:.6f}"
+                        if accept_all_graph_edit_distance is not None
+                        else ""
+                    ),
+                    "normalized_graph_edit_distance_accept_all_vs_updated": (
+                        f"{accept_all_normalized_graph_edit_distance:.6f}"
+                        if accept_all_normalized_graph_edit_distance is not None
+                        else ""
+                    ),
+                    "graph_edit_similarity_accept_all_vs_updated": (
+                        f"{accept_all_graph_edit_similarity:.6f}"
+                        if accept_all_graph_edit_similarity is not None
+                        else ""
+                    ),
                     "accept_all_node_count": accept_all_graph.number_of_nodes(),
                     "accept_all_edge_count": accept_all_graph.number_of_edges(),
                     **accept_all_operation_counts,
@@ -702,9 +1015,13 @@ def evaluate_case(
             {
                 "hazard_consequence_type": hazard_consequence_type,
                 "structural_similarity": f"{similarity:.6f}",
-                "graph_edit_distance": f"{graph_edit_distance:.6f}",
-                "normalized_graph_edit_distance": f"{normalized_graph_edit_distance:.6f}",
-                "graph_edit_similarity": f"{graph_edit_similarity:.6f}",
+                "graph_edit_distance": f"{graph_edit_distance:.6f}" if graph_edit_distance is not None else "",
+                "normalized_graph_edit_distance": (
+                    f"{normalized_graph_edit_distance:.6f}"
+                    if normalized_graph_edit_distance is not None
+                    else ""
+                ),
+                "graph_edit_similarity": f"{graph_edit_similarity:.6f}" if graph_edit_similarity is not None else "",
                 **operation_counts,
                 **accept_all_metrics,
                 "generated_node_count": generated_graph.number_of_nodes(),
@@ -718,10 +1035,11 @@ def evaluate_case(
                     generated_warnings
                     + updated_warnings
                     + accept_all_warnings
+                    + ([] if compute_ged else ["Skipped GED-based metrics."])
                     + (
                         []
-                        if updated_graph_path.name == "updated_causal_graph.json"
-                        else [f"Used fallback updated graph file: {updated_graph_path.name}."]
+                        if compute_ged or not compute_ged_operation_counts
+                        else ["Skipped GED operation counts because GED was disabled."]
                     )
                 ),
             }
@@ -735,8 +1053,9 @@ def evaluate_case(
 def evaluate_case_with_timing(
     case_folder: Path,
     parent_dir: Path,
+    compute_ged: bool = True,
     compute_ged_operation_counts: bool = True,
-    exact_ged: bool = True,
+    ged_algorithm: str = GED_ALGORITHM_EXACT,
     ged_timeout_seconds: float | None = None,
 ) -> Tuple[Dict[str, Any], float]:
     """Evaluate one case and return both the row and elapsed seconds."""
@@ -744,8 +1063,9 @@ def evaluate_case_with_timing(
     row = evaluate_case(
         case_folder,
         parent_dir,
+        compute_ged,
         compute_ged_operation_counts,
-        exact_ged=exact_ged,
+        ged_algorithm=ged_algorithm,
         ged_timeout_seconds=ged_timeout_seconds,
     )
     elapsed_seconds = time.perf_counter() - started_at
@@ -756,7 +1076,7 @@ def write_csv(path: Path, fieldnames: List[str], rows: List[Dict[str, Any]]) -> 
     """Write rows to a CSV file."""
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", encoding="utf-8-sig", newline="") as fp:
-        writer = csv.DictWriter(fp, fieldnames=fieldnames)
+        writer = csv.DictWriter(fp, fieldnames=fieldnames, extrasaction="ignore")
         writer.writeheader()
         writer.writerows(rows)
 
@@ -814,13 +1134,13 @@ def build_batch_rows(case_rows: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
                     [float(row["structural_similarity"]) for row in success_rows]
                 ),
                 "mean_graph_edit_distance": mean_or_blank(
-                    [float(row["graph_edit_distance"]) for row in success_rows]
+                    collect_numeric_values(success_rows, "graph_edit_distance")
                 ),
                 "mean_normalized_graph_edit_distance": mean_or_blank(
-                    [float(row["normalized_graph_edit_distance"]) for row in success_rows]
+                    collect_numeric_values(success_rows, "normalized_graph_edit_distance")
                 ),
                 "mean_graph_edit_similarity": mean_or_blank(
-                    [float(row["graph_edit_similarity"]) for row in success_rows]
+                    collect_numeric_values(success_rows, "graph_edit_similarity")
                 ),
                 "mean_structural_similarity_accept_all_vs_updated": mean_or_blank(
                     collect_numeric_values(success_rows, "structural_similarity_accept_all_vs_updated")
@@ -949,13 +1269,13 @@ def build_overall_summary(case_rows: List[Dict[str, Any]], batch_rows: List[Dict
                 [float(row["structural_similarity"]) for row in success_rows]
             ),
             "overall_mean_graph_edit_distance": mean_or_blank(
-                [float(row["graph_edit_distance"]) for row in success_rows]
+                collect_numeric_values(success_rows, "graph_edit_distance")
             ),
             "overall_mean_normalized_graph_edit_distance": mean_or_blank(
-                [float(row["normalized_graph_edit_distance"]) for row in success_rows]
+                collect_numeric_values(success_rows, "normalized_graph_edit_distance")
             ),
             "overall_mean_graph_edit_similarity": mean_or_blank(
-                [float(row["graph_edit_similarity"]) for row in success_rows]
+                collect_numeric_values(success_rows, "graph_edit_similarity")
             ),
             "overall_mean_structural_similarity_accept_all_vs_updated": mean_or_blank(
                 collect_numeric_values(success_rows, "structural_similarity_accept_all_vs_updated")
@@ -1092,9 +1412,10 @@ def evaluate_cases_with_progress(
     case_folders: List[Path],
     parent_dir: Path,
     workers: int | None = None,
+    compute_ged: bool = True,
     compute_ged_operation_counts: bool = True,
     show_progress: bool = True,
-    exact_ged: bool = True,
+    ged_algorithm: str = GED_ALGORITHM_EXACT,
     ged_timeout_seconds: float | None = None,
 ) -> List[Dict[str, Any]]:
     """Evaluate all cases with a progress bar and runtime summary."""
@@ -1117,8 +1438,9 @@ def evaluate_cases_with_progress(
             row, elapsed_seconds = evaluate_case_with_timing(
                 folder,
                 parent_dir,
+                compute_ged,
                 compute_ged_operation_counts,
-                exact_ged=exact_ged,
+                ged_algorithm=ged_algorithm,
                 ged_timeout_seconds=ged_timeout_seconds,
             )
             case_rows.append(row)
@@ -1153,8 +1475,9 @@ def evaluate_cases_with_progress(
                     evaluate_case_with_timing,
                     folder,
                     parent_dir,
+                    compute_ged,
                     compute_ged_operation_counts,
-                    exact_ged,
+                    ged_algorithm,
                     ged_timeout_seconds,
                 )
                 futures[future] = index
@@ -1242,9 +1565,10 @@ def main() -> Path:
         case_folders,
         parent_dir,
         args.workers,
+        compute_ged=args.compute_ged,
         compute_ged_operation_counts=args.compute_ged_operation_counts,
         show_progress=args.show_progress,
-        exact_ged=args.exact_ged,
+        ged_algorithm=args.ged_algorithm,
         ged_timeout_seconds=args.ged_timeout,
     )
     batch_rows = build_batch_rows(case_rows)

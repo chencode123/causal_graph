@@ -7,6 +7,9 @@ INPUT DATA
 IDENTIFIED_HAZARD_CONSEQUENCE
 {identify_hazard_consequence_output}
 
+INCIDENT_DESCRIPTION
+{incident_description}
+
 CAUSAL_NARRATIVE_EXTRACTION
 {causal_narrative_extraction_output}
 
@@ -33,49 +36,44 @@ scenario output that will be used for edge linking.
 You must strictly follow the provided SCHEMA and SCHEMA_DEFINITION.
 Use SCENARIO_CANDIDATE_EXTRACTION_OUTPUT as the candidate pool and
 SCENARIO_STRUCTURE_VALIDATION_OUTPUT as the normalization guide.
+The goal is a single primary-pathway, minimally sufficient, normalized node set.
 
 EXTRACTION RULES
+
+NORMALIZATION BASIS
 
   1. Use SCENARIO_CANDIDATE_EXTRACTION_OUTPUT as the candidate source and
      SCENARIO_STRUCTURE_VALIDATION_OUTPUT as the primary normalization guide.
 
-  2. The hazard_consequence must copy the node provided in IDENTIFIED_HAZARD_CONSEQUENCE.
+  2. Use INCIDENT_DESCRIPTION as the factual source for confirming that final node choices
+     remain directly supported when applying the normalization guidance.
  
   3. Preserve evidence and explanation from supported candidate nodes whenever possible.
 
   4. Do not invent new unsupported nodes beyond what is justified by the candidate
      extraction and validation guidance.
 
-  5. If SCENARIO_STRUCTURE_VALIDATION_OUTPUT marks a candidate as over-merged, split it in
-     the final output if the candidate pool already provides the required local roles.
+  5. Do not preserve alternative hypothesis branches in the final normalized scenario
+     unless the SCENARIO_STRUCTURE_VALIDATION_OUTPUT explicitly requires them.
 
-  6. If SCENARIO_STRUCTURE_VALIDATION_OUTPUT marks a step as missing and the candidate pool
-     already contains an adequate node for that local role, include it in the final output.
+SELECTION AND COVERAGE
 
-  7. Retain only causally reusable condition nodes. Remove purely descriptive or redundant
-     candidate conditions.
+  6. Use SCENARIO_STRUCTURE_VALIDATION_OUTPUT as the action guide for final normalization.
+     Apply its issue definitions and normalization guidance when deciding what to split,
+     include, remove, retain, merge, or materialize in the final node set.
 
-  8. The final node set should be coherent, minimally sufficient, and stable for downstream
-     edge linking.
+  7. When normalization guidance identifies a supported missing role that is not adequately
+     represented in the candidate pool, use INCIDENT_DESCRIPTION only to confirm and
+     materialize the minimal directly supported node needed to satisfy that guidance.
+     Treat must_add_nodes as the guidance field for these required additions.
 
-  9. Each final event node should represent one local causal role only. Do not let one event
-     node simultaneously represent an operational action, a physical release, an ignition
-     step, and a downstream accident consequence.
+  8. Prefer the smallest node set that still preserves the required local mechanism chain.
+     If multiple candidate nodes express the same local causal role, retain one normalized
+     node rather than multiple near-duplicates.
 
-  10. If the candidate pool already separates release, transport or dispersion, ignition,
-      flame propagation or flashback, and final consequence, preserve that separation unless
-      validation guidance explicitly supports merging.
- 
-  11. Represent release and dispersion as event nodes rather than condition
-      nodes.
-      When the report distinguishes release mode, prefer event labels such as
-      "InstantRelease" or "ContinuousRelease".
-
-  12. Only merge candidates when they are tightly coupled and jointly define the same local
-      mechanism. Do not merge across different causal stages.
-
-  13. Keep the final output grounded in the candidate evidence and aligned with the causal
-      narrative.
+  9. Normalize to one coherent pathway from upstream mechanism to hazard consequence.
+     Do not retain side branches, witness-chronology variants, or descriptive-only nodes
+     once the main pathway is adequately represented.
 
 Source rules
 
@@ -94,35 +92,10 @@ The output must:
 - Use only the allowed values specified in the SCHEMA
 - Include evidence quotes whenever required
 - Use "Not specified" if the information cannot be determined
-
-In addition to the SCHEMA fields, include a top-level object:
-
-{{
-  "structure_checks": {{
-    "action_vs_result_separated": {{
-      "passed": true,
-      "reason": "string"
-    }},
-    "release_dispersion_ignition_distinct": {{
-      "passed": true,
-      "reason": "string"
-    }},
-    "conditions_are_causally_relevant": {{
-      "passed": true,
-      "reason": "string"
-    }},
-    "no_event_overcompression": {{
-      "passed": true,
-      "reason": "string"
-    }}
-  }}
-}}
-
-For each structure_checks item:
-  - set passed to true or false
-  - if passed is false, reason must briefly state what was merged, omitted, or
-    over-compressed
-  - if passed is true, keep reason brief and specific
+- Preserve only nodes that serve a necessary causal role or a necessary supporting
+  has-relationship in the final normalized pathway
+- Prefer stable normalized wording over incident-specific paraphrase variants when
+  two candidates represent the same causal role
 
 OUTPUT FORMAT
 

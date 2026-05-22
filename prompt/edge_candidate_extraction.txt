@@ -13,6 +13,9 @@ CAUSAL_NARRATIVE_EXTRACTION
 IDENTIFY_ACCIDENT_SCENARIO_OUTPUT
 {identify_accident_scenario_output}
 
+CAUSAL_EDGE_SCHEMA_DEFINITION
+{causal_edge_schema_definition}
+
 TASK
 
 Based on the identified scenario nodes, extract a high-recall set of candidate causal edges that may be needed to represent the accident progression.
@@ -25,6 +28,7 @@ EXTRACTION RULES
   1. Use INCIDENT_DESCRIPTION as the primary factual source.
   2. Use CAUSAL_NARRATIVE_EXTRACTION to understand the intended accident progression.
   3. Generate edges only between existing node IDs from IDENTIFY_ACCIDENT_SCENARIO_OUTPUT.
+  3a. Use CAUSAL_EDGE_SCHEMA_DEFINITION as the authoritative edge-semantics guide.
   4. Prefer capturing local mechanism candidates rather than jumping directly to distant
      downstream nodes.
   5. Prefer candidate edges that preserve local mechanism chains over direct jumps to
@@ -33,12 +37,10 @@ EXTRACTION RULES
      local chain already representable by the current node set.
   7. If the text clearly supports multiple parallel contributors to one downstream node,
      include them in parallel.
-  8. Use relation has only for relatively stable entity-property or entity-state links.
-  9. Use relation enables for causal contribution between conditions, events, and hazard
-     consequence nodes.
-  10. If the text supports release, transport or dispersion, ignition, flashback or
-      propagation, and consequence as distinct local stages, prefer candidate edges that
-      preserve those stages.
+  8. Use relation has and relation enables only in ways allowed by
+     CAUSAL_EDGE_SCHEMA_DEFINITION.
+  9. Do not invent edge patterns disallowed by CAUSAL_EDGE_SCHEMA_DEFINITION.
+  10. Keep the hazard consequence as the downstream end of the accident chain.
   11. Do not invent unsupported candidate edges.
 
 OUTPUT REQUIREMENTS
@@ -55,10 +57,6 @@ Return one JSON object with this structure:
       "explanation": "brief explanation of the local candidate relationship"
     }}
   ],
-  "candidate_notes": {{
-    "possible_shortcuts": ["string"],
-    "possible_missing_local_links": ["string"]
-  }}
 }}
 
 OUTPUT FORMAT

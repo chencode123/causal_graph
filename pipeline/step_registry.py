@@ -101,12 +101,19 @@ STEP_REGISTRY: Dict[str, Dict[str, Any]] = {
             "identify_hazard_consequence_output": (
                 "folder:identify_hazard_consequence_output.json"
             ),
+            "incident_description": "folder:identify_incident_output.json",
             "causal_narrative_extraction_output": (
                 "folder:causal_narrative_extraction_output.json"
             ),
             "accident_scenario_schema": "project:scheme/accident_scenario_schema.json",
             "accident_scenario_schema_definition": (
                 "project:scheme/accident_scenario_scheme_definition.txt"
+            ),
+            "causal_node_issue_definition": (
+                "project:scheme/causal_node_issue_definition.txt"
+            ),
+            "causal_issue_output_definition": (
+                "project:scheme/causal_issue_output_definition.txt"
             ),
             "scenario_candidate_extraction_output": (
                 "folder:scenario_candidate_extraction_output.json"
@@ -128,6 +135,7 @@ STEP_REGISTRY: Dict[str, Dict[str, Any]] = {
             "identify_hazard_consequence_output": (
                 "folder:identify_hazard_consequence_output.json"
             ),
+            "incident_description": "folder:identify_incident_output.json",
             "causal_narrative_extraction_output": (
                 "folder:causal_narrative_extraction_output.json"
             ),
@@ -159,6 +167,9 @@ STEP_REGISTRY: Dict[str, Dict[str, Any]] = {
             "identify_accident_scenario_output": (
                 "folder:identify_accident_scenario_output.json"
             ),
+            "causal_edge_schema_definition": (
+                "project:scheme/causal_edge_schema_definition.txt"
+            ),
         },
         "default_params": {
             "enabled": True,
@@ -170,17 +181,27 @@ STEP_REGISTRY: Dict[str, Dict[str, Any]] = {
     "edge_structure_validation": {
         "output_file": "edge_structure_validation_output.json",
         "required_vars": {
+            "incident_description": "folder:identify_incident_output.json",
             "causal_narrative_extraction_output": (
                 "folder:causal_narrative_extraction_output.json"
             ),
             "identify_accident_scenario_output": (
                 "folder:identify_accident_scenario_output.json"
             ),
+            "causal_edge_issue_definition": (
+                "project:scheme/causal_edge_issue_definition.txt"
+            ),
+            "causal_issue_output_definition": (
+                "project:scheme/causal_issue_output_definition.txt"
+            ),
             "edge_candidate_extraction_output": (
                 "folder:edge_candidate_extraction_output.json"
             ),
             "edge_candidate_evidence_snippets": (
                 "folder:edge_candidate_extraction_output.json"
+            ),
+            "causal_edge_schema_definition": (
+                "project:scheme/causal_edge_schema_definition.txt"
             ),
         },
         "default_params": {
@@ -193,6 +214,7 @@ STEP_REGISTRY: Dict[str, Dict[str, Any]] = {
     "causal_edge_linking": {
         "output_file": "causal_edge_linking_output.json",
         "required_vars": {
+            "incident_description": "folder:identify_incident_output.json",
             "causal_narrative_extraction_output": (
                 "folder:causal_narrative_extraction_output.json"
             ),
@@ -204,6 +226,9 @@ STEP_REGISTRY: Dict[str, Dict[str, Any]] = {
             ),
             "edge_structure_validation_output": (
                 "folder:edge_structure_validation_output.json"
+            ),
+            "causal_edge_schema_definition": (
+                "project:scheme/causal_edge_schema_definition.txt"
             ),
         },
         "default_params": {
@@ -245,6 +270,18 @@ STEP_REGISTRY: Dict[str, Dict[str, Any]] = {
             "accident_scenario_schema_definition": (
                 "project:scheme/accident_scenario_scheme_definition.txt"
             ),
+            "causal_node_issue_definition": (
+                "project:scheme/causal_node_issue_definition.txt"
+            ),
+            "causal_edge_schema_definition": (
+                "project:scheme/causal_edge_schema_definition.txt"
+            ),
+            "causal_edge_issue_definition": (
+                "project:scheme/causal_edge_issue_definition.txt"
+            ),
+            "causal_issue_output_definition": (
+                "project:scheme/causal_issue_output_definition.txt"
+            ),
             "causal_narrative_extraction_output": (
                 "folder:causal_narrative_extraction_output.json"
             ),
@@ -264,6 +301,9 @@ STEP_REGISTRY: Dict[str, Dict[str, Any]] = {
             "accident_scenario_schema": "project:scheme/accident_scenario_schema.json",
             "accident_scenario_schema_definition": (
                 "project:scheme/accident_scenario_scheme_definition.txt"
+            ),
+            "causal_edge_schema_definition": (
+                "project:scheme/causal_edge_schema_definition.txt"
             ),
             "causal_narrative_extraction_output": (
                 "folder:causal_narrative_extraction_output.json"

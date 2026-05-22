@@ -13,6 +13,9 @@ ACCIDENT_SCENARIO_SCHEMA
 ACCIDENT_SCENARIO_SCHEMA_DEFINITION
 {accident_scenario_schema_definition}
 
+CAUSAL_EDGE_SCHEMA_DEFINITION
+{causal_edge_schema_definition}
+
 CAUSAL_NARRATIVE_EXTRACTION_OUTPUT
 {causal_narrative_extraction_output}
 
@@ -31,108 +34,147 @@ Use GRAPH_DIAGNOSIS_OUTPUT.issues_summary as the only formal source of revision-
 issues.
 Use GRAPH_DIAGNOSIS_OUTPUT.case_assessment.main_problems only as a high-level summary, not
 as an independent basis for proposing new revisions.
-Use GRAPH_DIAGNOSIS_OUTPUT.issue_type_checks only as a consistency check, not as an
-independent source of revisions.
 Do not re-diagnose the graph from scratch unless a diagnosis item is clearly inconsistent
 with the provided evidence.
 
 PLANNING RULES
 
+SCOPE
+
   1. Use the INCIDENT_DESCRIPTION as the primary factual basis.
 
   2. Use GRAPH_DIAGNOSIS_OUTPUT as the primary reference for what should be fixed.
+
+  2a. Use CAUSAL_EDGE_SCHEMA_DEFINITION as the authoritative guide for whether a
+      proposed edge addition, deletion, or relation update is semantically valid.
 
   3. Every recommended change must explicitly map to at least one issue already listed in
      GRAPH_DIAGNOSIS_OUTPUT. Do not propose a change that cannot be traced to a diagnosis
      issue.
 
-  4. Prefer the smallest necessary set of changes that materially improves the causal graph.
+  4. If no material changes are needed, return empty change lists.
 
-  5. Prefer renaming or updating an existing node over deleting and re-adding it, unless the
-     current node is fundamentally incorrect.
+  5. If GRAPH_DIAGNOSIS_OUTPUT contains no material supported issues, do not invent
+     revisions. Return empty change lists and keep issues_summary empty.
 
-  6. Prefer connecting a weakly connected node to existing nodes before recommending a new
-     node.
+  6. Do not add a new HazardConsequence node. Treat the hazard consequence inventory as
+     fixed by CAUSAL_GRAPH_JSON.
 
-  7. Only recommend a new node when the missing causal role cannot be adequately represented
-     by the existing nodes.
+  7. If GRAPH_DIAGNOSIS_OUTPUT appears to imply a missing or changed hazard consequence,
+     convert that into node updates, edge updates, edge additions, edge deletions, or no
+     change. Do not emit a HazardConsequence entry in node_additions.
 
-  8. Delete a node only when it is unsupported, redundant, or cannot be validly connected
-     with evidence support.
+  8. Do not introduce any new problem statement that is not already covered by
+     GRAPH_DIAGNOSIS_OUTPUT. Planning may refine how to fix a diagnosis item, but it must
+     not expand the problem list beyond the diagnosed issues.
 
-  9. Avoid recommending transitive edges. If there is already a more direct causal chain A
-     -> B -> C, do not recommend an additional edge A -> C unless the incident description
-     explicitly supports a separate direct causal relationship.
+  9. Use stable diagnosis issue references based on the order of
+      GRAPH_DIAGNOSIS_OUTPUT.issues_summary:
+      the first issue is "issue_1", the second is "issue_2", and so on.
+      Use these refs consistently in issues_summary and in every change entry.
 
-  10. Except HazardConsequence nodes, every retained node should have at least one outgoing
-     edge.
+  9a. Apply this default mapping unless the diagnosis evidence clearly requires otherwise:
+      - redundant_node -> prefer node_deletions
+      - schema_mismatch at node level -> prefer node_updates, node_deletions, or replacement
+      - wrong_relation -> prefer edge_updates
+      - missing_local_link -> prefer edge_additions
+      - shortcut_edge or unsupported_edge -> prefer edge_deletions
+      - missing_node -> prefer node_additions only if no existing node can represent the role
 
-  11. Every retained Condition node should have both at least one incoming edge and at least
-      one outgoing edge.
+DECISION
 
-  12. For each link inside node_additions, provide link-specific explanation and evidence
-      for that exact edge.
+  10. For each diagnosis issue, choose the smallest evidence-grounded revision that directly
+      addresses that issue_type. Do not re-diagnose the graph using new problem categories in
+      this step.
 
-  13. If no material changes are needed, return empty change lists.
+  11. For node-structure issues such as overmerged_node, redundant_node, and schema_mismatch
+      at node level, prefer node-level revisions when they address the root problem more
+      directly than edge-only changes.
 
-  13a. If GRAPH_DIAGNOSIS_OUTPUT contains no material supported issues, do not invent
-      revisions. Return empty change lists and keep issues_summary empty.
+  12. For edge-structure issues such as missing_local_link, shortcut_edge, wrong_relation,
+      unsupported_edge, and schema_mismatch at edge level, prefer edge-level revisions unless the diagnosis
+      evidence shows that the edge problem is downstream of a more primary node-structure
+      problem.
 
-  14. Treat shortcut_edge as an edge that bypasses a necessary or strongly supported
-      intermediate causal step and makes the graph overly direct. If the evidence supports a
+  13. Apply connectivity requirements only after deciding which diagnosed nodes should be
+      retained, updated, deleted, or replaced.
+
+  14. Retain a Condition node only when it has a specific supported role in the selected
+      accident pathway. Do not add a Condition -> HazardConsequence edge unless the
+      incident description explicitly supports that condition as a direct contributing factor
+      to the final consequence.
+
+REVISION PRIORITY
+
+  15. Prefer the smallest necessary set of changes that materially improves the causal
+      graph.
+
+  16. Prefer this intervention order when several options are plausible:
+      edge update, edge add, edge delete, node update, node addition, node deletion,
+      except when the diagnosis issue is redundant_node, in which case
+      prefer deletion of the offending node as the default fix.
+
+  17. Prefer renaming or updating an existing node over deleting and re-adding it only when
+      the diagnosed problem is primarily naming, labeling, or typing, and the node's core
+      causal role should be retained.
+
+  18. If the diagnosed issue is overmerged_node or redundant_node, do not
+      prefer rename or retype when deletion, replacement, splitting, or re-linking would more
+      directly resolve the structural problem.
+
+  19. Prefer revisions that resolve the root diagnosed structural problem rather than only
+      repairing a downstream symptom. Do not use edge additions or relation updates as the
+      primary fix when the diagnosis shows that the main problem is node over-merging,
+      redundancy, or schema-level node mismatch.
+
+  20. Add a new node only when the missing causal role is explicitly or strongly supported
+      by the evidence and cannot be adequately represented by any existing node.
+
+  21. If the necessary causal semantics are already present in existing nodes, prefer
+      adding, deleting, or updating edges rather than creating a new node.
+
+  22. Any newly added node should have a clear upstream and/or downstream causal role
+      justified by the evidence. Do not create a new node that remains structurally invalid
+      or insufficiently integrated after the proposed revision.
+
+  23. For every recommended node or edge change, explicitly state which diagnosis issue or
+      issues it addresses.
+
+EDGE SEMANTICS
+
+  24. Avoid recommending transitive edges. If there is already a more direct causal chain A
+      -> B -> C, do not recommend an additional edge A -> C unless the incident description
+      explicitly supports a separate direct causal relationship.
+
+  25. Treat shortcut_edge as an edge that bypasses a necessary or strongly supported
+      intermediate causal node and makes the graph overly direct. If the evidence supports a
       more local chain A -> B -> C, then a direct edge A -> C should normally be removed or
       replaced with the more local chain unless the incident description explicitly supports
       a separate direct relationship from A to C.
 
-  15. Add a new node only when the missing causal role is explicitly or strongly supported
-      by the evidence and cannot be adequately represented by any existing node.
-
-  16. If the necessary causal semantics are already present in existing nodes, prefer
-      adding, deleting, or updating edges rather than creating a new node.
-
-  17. If an edge is diagnosed as a shortcut_edge and a more local supported chain can be
+  26. If an edge is diagnosed as a shortcut_edge and a more local supported chain can be
       represented using existing or newly justified nodes, prefer deleting that shortcut
       edge.
 
-  18. Before recommending any edge addition, check whether the proposed new edge would
-      bypass a necessary or strongly supported intermediate local step. If it would create a
+  27. Before recommending any edge addition, check whether the proposed new edge would
+      bypass a necessary or strongly supported intermediate local node. If it would create a
       shortcut edge, do not recommend adding that edge. Prefer preserving, restoring, or
       introducing the more local chain instead.
 
-  19. Delete a node only when it is unsupported, redundant, or cannot be repaired into a
-      valid causal role with evidence-supported connections.
+  28. Do not add a new enables edge merely to attach a node to the main graph.
+      Every added enables edge must represent a specifically supported local causal
+      contribution, not a generic association or a post hoc property of the consequence.
 
-  20. Prefer this intervention order when several options are plausible: edge update or edge
-      add or edge delete, then node update, then node addition, then node deletion.
+  29. For each link inside node_additions, provide link-specific explanation and evidence
+      for that exact edge.
 
-  21. Any newly added node should have a clear upstream and/or downstream causal role
-      justified by the evidence. Do not create a new node that remains weakly connected or
-      structurally invalid after the proposed revision.
+STRUCTURAL VALIDITY
 
-  22. Do not add a new HazardConsequence node. Treat the hazard consequence inventory as
-      fixed by CAUSAL_GRAPH_JSON.
+  30. Except HazardConsequence nodes, every retained node should have at least one outgoing
+      edge.
 
-  23. If GRAPH_DIAGNOSIS_OUTPUT appears to imply a missing or changed hazard consequence,
-      convert that into node updates, edge updates, edge additions, edge deletions, or no
-      change. Do not emit a HazardConsequence entry in node_additions.
-
-  24. Do not introduce any new problem statement that is not already covered by
-      GRAPH_DIAGNOSIS_OUTPUT. Planning may refine how to fix a diagnosis item, but it must
-      not expand the problem list beyond the diagnosed issues.
-
-  25. Do not propose a revision from issue_type_checks alone unless the same problem is
-      also represented in issues_summary.
-
-  26. Do not propose a revision for any issue_type marked not_present in
-      GRAPH_DIAGNOSIS_OUTPUT.issue_type_checks.
-
-  27. For every recommended node or edge change, explicitly state which diagnosis issue or
-      issues it addresses.
-
-  28. Use stable diagnosis issue references based on the order of
-      GRAPH_DIAGNOSIS_OUTPUT.issues_summary:
-      the first issue is "issue_1", the second is "issue_2", and so on.
-      Use these refs consistently in issues_summary and in every change entry.
+  31. Every retained Condition node should have both at least one incoming edge and at least
+      one outgoing edge.
 
 OUTPUT REQUIREMENTS
 
@@ -302,7 +344,7 @@ Return one JSON object with the following structure:
   "issues_summary": [
     {{
       "diagnosis_issue_ref": "string",
-      "issue_type": "missing_step | duplicate_node | weak_edge | shortcut_edge | wrong_direction | wrong_relation | unsupported_node | unsupported_edge | disconnected_node | schema_mismatch | other",
+      "issue_type": "overmerged_node | missing_node | redundant_node | shortcut_edge | missing_local_link | wrong_relation | unsupported_edge | schema_mismatch | other",
       "description": "string",
       "severity": "high | medium | low"
     }}

@@ -277,7 +277,7 @@ Return one JSON object with the following structure:
   ],
   "issues_summary": [
     {{
-      "issue_type": "missing_step | duplicate_node | weak_edge | shortcut_edge | wrong_direction | wrong_relation | unsupported_node | unsupported_edge | disconnected_node | schema_mismatch | other",
+      "issue_type": "missing_step | weak_edge | shortcut_edge | wrong_direction | wrong_relation | unsupported_node | unsupported_edge | disconnected_node | schema_mismatch | other",
       "description": "string",
       "severity": "high | medium | low"
     }}

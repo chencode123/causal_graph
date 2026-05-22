@@ -9,6 +9,7 @@ from typing import Any, Dict, List
 from openai import OpenAI
 from tqdm import tqdm
 
+import utils.prompt_manager as prompt_manager
 from utils.prompt_validator import assert_prompt_step_configuration_valid
 
 from .io_utils import (
@@ -34,6 +35,7 @@ def _mask(key: str | None) -> str:
 
 
 def _load_required_prompts() -> Dict[str, str]:
+<<<<<<< Updated upstream
     """Load only the prompt files required by the current pipeline."""
     prompt_paths = {
         "identify_hazard_consequence": Path("prompt/identify_hazard_consequence.txt"),
@@ -60,6 +62,10 @@ def _load_required_prompts() -> Dict[str, str]:
         if path.exists():
             loaded[key] = path.read_text(encoding="utf-8")
     return loaded
+=======
+    """Load prompt templates from the shared manifest-backed prompt manager."""
+    return prompt_manager.prompts.load_all()
+>>>>>>> Stashed changes
 
 
 def poll_batch_until_done(

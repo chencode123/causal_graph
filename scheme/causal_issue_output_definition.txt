@@ -1,0 +1,200 @@
+CAUSAL ISSUE OUTPUT DEFINITION
+
+This file defines the shared output-style conventions for validation- and
+diagnosis-style steps that report structural issues in accident scenario graphs.
+
+GENERAL STRUCTURE
+
+1. A validation- or diagnosis-style output should contain:
+   - one assessment object summarizing the overall result
+   - one issue list describing the concrete structural problems
+
+2. The exact top-level key names may vary by step, for example:
+   - validation_summary or case_assessment for the assessment object
+   - issues or issues_summary for the issue list
+
+3. For the steps explicitly defined below, this file is authoritative for the
+   exact top-level JSON structure and field names.
+
+ASSESSMENT OBJECT
+
+1. The assessment object should summarize:
+   - overall quality
+   - a brief textual summary
+
+2. If a step supports a "main problems" field, it should contain only the
+   highest-value structural problems, not a restatement of every issue entry.
+
+ISSUE LIST
+
+1. Every issue entry should contain:
+   - issue_type
+   - description
+   - severity
+
+2. Every issue entry should also include the smallest affected scope needed by
+   the step, such as:
+   - affected_node_ids
+   - affected_edges
+   - or both
+
+3. Do not attach broad regions of the graph when the problem is local.
+
+4. Order issues from highest-value finding to lowest-value finding, based on
+   severity and structural importance.
+
+STEP-SPECIFIC SCOPE
+
+1. Node-validation steps may report only node-focused affected scope.
+2. Edge-validation steps may report only edge-focused affected scope.
+3. Whole-graph diagnosis steps may report both node-focused and edge-focused
+   affected scope.
+
+OUTPUT DISCIPLINE
+
+1. If no material supported issue exists, the issue list should be empty.
+2. Do not manufacture issues simply to avoid an empty issue list.
+3. Keep issue descriptions specific, evidence-grounded, and structurally
+   focused.
+
+STEP-SPECIFIC OUTPUT STRUCTURES
+
+--------------------------------------------------
+scenario_structure_validation
+--------------------------------------------------
+
+Use this exact JSON structure:
+
+{
+  "validation_summary": {
+    "overall_quality": "good | acceptable | weak",
+    "summary": "string"
+  },
+  "issues": [
+    {
+      "issue_type": "overmerged_node | missing_node | redundant_node | wrong_node_type | schema_mismatch | other",
+      "description": "string",
+      "severity": "high | medium | low",
+      "affected_node_ids": ["string"]
+    }
+  ],
+  "normalization_guidance": {
+    "must_split": ["string"],
+    "must_add_nodes": ["string"],
+    "must_remove_nodes": ["string"],
+    "must_retype_nodes": ["string"]
+  }
+}
+
+Additional constraints:
+- If issues is empty, validation_summary.overall_quality should be "good".
+- normalization_guidance.must_split should contain candidate nodes or compressed
+  local mechanisms that should be represented as multiple distinct local causal
+  nodes in the final normalized scenario.
+- normalization_guidance.must_add_nodes should contain only missing local roles
+  on the primary pathway. Do not use it to preserve or expand alternative
+  hypothesis branches.
+- normalization_guidance.must_remove_nodes should contain candidate nodes that
+  should not be retained in the final normalized scenario because they are
+  redundant, non-essential, or structurally misleading.
+- normalization_guidance.must_retype_nodes should contain candidate nodes whose
+  content is broadly appropriate but whose current node type is incorrect in
+  the final normalized scenario.
+
+--------------------------------------------------
+edge_structure_validation
+--------------------------------------------------
+
+Use this exact JSON structure:
+
+{
+  "validation_summary": {
+    "overall_quality": "good | acceptable | weak",
+    "summary": "string"
+  },
+  "issues": [
+    {
+      "issue_type": "shortcut_edge | missing_local_link | wrong_relation | unsupported_edge | other",
+      "description": "string",
+      "severity": "high | medium | low",
+      "affected_edges": [
+        {
+          "source": "node_id",
+          "target": "node_id",
+          "relation": "has | enables | unknown"
+        }
+      ]
+    }
+  ],
+  "normalization_guidance": {
+    "must_remove_edges": [
+      {
+        "source": "node_id",
+        "target": "node_id",
+        "relation": "has | enables"
+      }
+    ],
+    "must_add_local_links": [
+      {
+        "source": "node_id",
+        "target": "node_id",
+        "preferred_relation": "has | enables"
+      }
+    ],
+    "relation_corrections": [
+      {
+        "source": "node_id",
+        "target": "node_id",
+        "from_relation": "has | enables",
+        "to_relation": "has | enables"
+      }
+    ]
+  }
+}
+
+Additional constraints:
+- If issues is empty, validation_summary.overall_quality should be "good".
+- normalization_guidance.must_remove_edges should contain candidate edges that
+  should not appear in the final edge set because they are shortcut,
+  unsupported, or otherwise structurally invalid.
+- normalization_guidance.must_add_local_links should contain direct local
+  connections that should appear in the final edge set between existing
+  supported node semantics.
+- normalization_guidance.relation_corrections should contain edges whose
+  endpoints are appropriate but whose current relation type should be changed
+  in the final edge set.
+
+--------------------------------------------------
+graph_diagnosis
+--------------------------------------------------
+
+Use this exact JSON structure:
+
+{
+  "case_assessment": {
+    "overall_quality": "good | acceptable | weak",
+    "summary": "string",
+    "main_problems": [
+      "string"
+    ]
+  },
+  "issues_summary": [
+    {
+      "issue_type": "overmerged_node | missing_node | redundant_node | shortcut_edge | missing_local_link | wrong_relation | unsupported_edge | schema_mismatch | other",
+      "description": "string",
+      "severity": "high | medium | low",
+      "affected_node_ids": ["node_id"],
+      "affected_edges": [
+        {
+          "source": "node_id",
+          "target": "node_id",
+          "relation": "has | enables"
+        }
+      ]
+    }
+  ]
+}
+
+Additional constraints:
+- If issues_summary is empty, case_assessment.main_problems must be [].
+- If issues_summary is empty, case_assessment.overall_quality must be "good".

@@ -1,3 +1,8 @@
+# python
+__pycache__/
+*.pyc
+*.pyo
+
 # datasets
 dataset/
 
@@ -7,10 +12,13 @@ runs/
 # figures
 figures/
 
-# Python caches
-__pycache__/
-*.py[cod]
-*$py.class
+# py
+batch_main_tamu.py
 
-# Test/tool caches
-.pytest_cache/
+# environment and secrets
+.env
+.env.*
+.env_openai
+.env_tamu
+api_key_list
+api.txt

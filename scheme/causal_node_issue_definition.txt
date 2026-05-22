@@ -1,0 +1,135 @@
+NODE ISSUE DEFINITIONS
+
+This file defines the standard meanings of node-related structural issue types
+used when validating, diagnosing, and revising accident scenario graphs.
+
+GENERAL PRINCIPLES
+
+1. Prefer diagnosing the smallest root node problem that explains the observed
+   structural defect.
+2. Do not use multiple node issue types to restate the same underlying problem.
+3. Distinguish node problems from edge problems:
+   - if the needed semantics are missing entirely, prefer a node-level issue
+   - if the needed semantics already exist in current nodes but are not linked
+     correctly, prefer an edge-level issue
+
+--------------------------------------------------
+overmerged_node
+--------------------------------------------------
+
+Definition
+Use `overmerged_node` when one node combines multiple distinct local causal
+stages, roles, or accident-process nodes that should remain separate.
+
+Use when
+- one node compresses multiple event stages into a single event
+- one node merges distinct causal roles that should appear as separate nodes
+- one node obscures a necessary local mechanism by combining several steps
+
+Do not use when
+- the issue is only that two different nodes overlap in meaning
+- the main problem is incorrect edge linkage rather than merged node content
+
+--------------------------------------------------
+missing_node
+--------------------------------------------------
+
+Definition
+Use `missing_node` when the textual pathway supports an independent local role
+that is absent from the current candidate set or graph.
+
+Use when
+- a necessary local mechanism is not represented at all
+- an independent causal role cannot be adequately expressed by any existing node
+
+Do not use when
+- the needed semantics are already present in existing nodes and only a link is
+  missing
+- the desired addition would only add stylistic detail rather than a necessary
+  supported role
+
+--------------------------------------------------
+redundant_node
+--------------------------------------------------
+
+Definition
+Use `redundant_node` when a node does not contribute a necessary local causal
+role and its supported meaning is already adequately captured elsewhere by a
+retained node of the same node_type in the same pathway, or the node is purely
+descriptive without needed retained state semantics.
+
+Use when
+- the node adds no needed causal role and no needed retained state semantics
+- the node's meaning is already adequately represented elsewhere in the same
+  graph without relying on a node of a different node_type
+- the node can be removed without losing necessary pathway semantics
+
+Do not use when
+- the node is weakly connected but still expresses an independent supported role
+  that should instead be connected by edges
+- the node provides a meaningful retained state description for an Entity,
+  Event, or local mechanism, even if it does not itself advance the causal
+  chain
+- the apparent overlap is only across mismatched node types
+- the apparent overlap is between a Condition node and an Event or Entity node
+  that expresses a different structural role
+- the problem is primarily duplication between same-role nodes
+
+Retention note
+Condition nodes such as phase, confinement, temperature, and similar local
+state descriptors may be retained when they provide supported state information
+for a retained Entity, Event, or mechanism stage, even if they do not
+themselves advance the main causal chain. If retained, they should normally
+participate in a supported downstream relationship to the node or mechanism
+they characterize.
+
+--------------------------------------------------
+wrong_node_type
+--------------------------------------------------
+
+Definition
+Use `wrong_node_type` when a node's content is broadly appropriate but it is
+represented using the wrong node type.
+
+Use when
+- an event-like development is represented as a Condition
+- a relatively stable state or property is represented as an Event
+- the node's semantics are valid but typed incorrectly
+
+Do not use when
+- the node should not exist at all
+- the node merges several roles and should instead be split
+
+--------------------------------------------------
+schema_mismatch
+--------------------------------------------------
+
+Definition
+Use `schema_mismatch` when a node's label, node_type, or meaning conflicts with
+ACCIDENT_SCENARIO_SCHEMA or ACCIDENT_SCENARIO_SCHEMA_DEFINITION.
+
+Use when
+- the node uses a label outside the allowed schema semantics
+- the node meaning conflicts with the intended schema definition
+- the node is structurally incompatible with the schema even if it is textually
+  grounded
+
+Do not use when
+- the main problem is better captured as wrong_node_type
+- the node is merely weakly connected or redundant rather than schema-invalid
+
+--------------------------------------------------
+other
+--------------------------------------------------
+
+Definition
+Use `other` only for a material node-related diagnosis problem that does not fit
+any listed node issue type.
+
+Use when
+- the node problem is real and material
+- none of overmerged_node, missing_node, redundant_node, wrong_node_type, or
+  schema_mismatch captures it adequately
+
+Do not use when
+- a listed node issue type already captures the problem with reasonable accuracy

@@ -4,6 +4,9 @@
 
 INPUT:
 
+INCIDENT_DESCRIPTION
+{incident_description}
+
 CAUSAL_NARRATIVE_EXTRACTION
 {causal_narrative_extraction_output}
 
@@ -16,6 +19,9 @@ EDGE_CANDIDATE_EXTRACTION_OUTPUT
 EDGE_STRUCTURE_VALIDATION_OUTPUT
 {edge_structure_validation_output}
 
+CAUSAL_EDGE_SCHEMA_DEFINITION
+{causal_edge_schema_definition}
+
 TASK:
 
 Your task is to normalize the final causal edges between the given nodes to form an accident causal graph.
@@ -24,101 +30,25 @@ The nodes are already finalized.
 The candidate edge set and validation guidance are already provided.
 Use them to produce the final standardized edge set.
 
-Allowed edge relations:
-  1. has Used when a material possesses a property or state.
-   Example:
-   Material -> Volatility
-   Material -> Conductivity
-   Material -> Combustibility
-   Material -> Temperature
-   Material -> Pressure
-
-  2. enables enables = directly contributes to the occurrence of the downstream event AND
-     represents a causal mechanism, not just a necessary condition or context
-   Example:
-   ignition source -> flash fire
-
 Linking rules:
+
   1. Treat EDGE_CANDIDATE_EXTRACTION_OUTPUT as the starting pool of candidate edges, not as
      the final answer.
-  2. Treat EDGE_STRUCTURE_VALIDATION_OUTPUT as normalization guidance for what to remove,
-     add, or correct.
-  3. Follow the general causal hierarchy: Entity -> Condition -> Event -> HazardConsequence.
-     However, the structure is not strictly linear. Multiple events may occur in parallel
-     and may connect to the same downstream node.
-  4. Material may link to its properties only.
-   Example:
-   Material -> Volatility
-   Material -> Combustibility
-   Material -> Conductivity
-   Use relation: has
-  5. Conditions or events may connect to conditions or events when they have clear has or
-     enable relationship.
-  6. IgnitionSource must be treated as an independent triggering event.
 
-Do NOT create edges pointing TO IgnitionSource unless:
-  - The source node physically generates or triggers the ignition mechanism.
+  2. Use EDGE_STRUCTURE_VALIDATION_OUTPUT as the action guide for final edge normalization.
+     Apply its issue definitions and normalization guidance when deciding what to remove,
+     add, retain, or correct in the final edge set.
+     Use CAUSAL_EDGE_SCHEMA_DEFINITION as the authoritative relation-semantics guide.
 
-Allowed examples:
-  - Mechanical spark -> IgnitionSource
-  - Electrical discharge -> IgnitionSource
+  3. Use INCIDENT_DESCRIPTION as the primary factual source for confirming that final edge
+     choices remain directly supported when applying the validation guidance.
 
-Not allowed:
-  - Vapor cloud -> IgnitionSource
-  - Combustibility -> IgnitionSource
-  - Location -> IgnitionSource
+  4. Do not re-open node extraction in this step. Only normalize the final edge set over
+     the provided nodes.
 
-If the text describes a vapor cloud reaching or encountering an ignition source,
-this represents contact, not causation. Do NOT create an edge from the vapor cloud to the ignition source.
-
-  7. If multiple nodes influence the same downstream node, connect them in parallel, not in
-     a chain, unless the narrative explicitly describes a sequence.
-  8. The hazard consequence should be the last node, if any nodes happened after the hazard
-     consequence, don't include them in the causal chains.
-  9. Avoid transitive edges. Edges should only represent direct relationships between nodes.
-     If there is a path A -> B -> C -> ... -> X, do not create edges from A to any
-     downstream node beyond B. If there is already a supported local chain A -> B -> C, do
-     not keep or add a direct edge A -> C. Treat A -> C as a shortcut/transitive edge and
-     remove it.
-  10. Exclude nodes that represent non-occurring or unspecified conditions.
-
-If a node label indicates that the condition did not occur (e.g., "Not dispersed") or that the information is unavailable (e.g., "Not specified"), do not include this node in the causal graph.
-
-Such nodes must not appear in the node list and must not be connected by any edges.
-
-  11. Release-dispersion priority rule (soft constraint): In most accident mechanisms,
-      a dispersion event is downstream of a release event. If both release and dispersion
-      events are present and supported by the narrative and node set, prefer adding a
-      direct local edge from the release event to the dispersion event. If this edge is not
-      added, explain briefly in the edge explanations why another mechanism or path is more
-      direct in this specific case.
-
-  12. Local mechanism explicitness principle: If the narrative and validation guidance
-      support a local causal chain, prefer representing that local chain directly instead of
-      jumping to a more downstream node.
-
-  13. Typical local mechanism priority: When explicitly supported by the narrative and node
-      set, prefer local chains such as release event -> dispersion event, dispersion event
-      -> ignition event, IgnitionSource -> ignition event, ignition event -> flame
-      propagation or flashback event, and flame propagation or flashback event ->
-      HazardConsequence.
-
-  14. Define shortcut edges during linking: An edge is too direct if it bypasses a necessary
-      or strongly supported intermediate local mechanism that is already present as a node
-      or should clearly be represented in the current node set.
-
-  15. Relation priority: Use has for relatively stable material property or material state
-      relationships, and use enables for local causal contribution between conditions,
-      events, and hazard consequence nodes.
-
-  16. Do not let a condition connect directly to a distant downstream consequence when the
-      text supports a more local intermediate event. Prefer the local event chain.
-
-  17. If an explicit ignition event is represented or clearly implied by the node set,
-      prefer connecting IgnitionSource to that ignition event rather than directly to a
-      later flashback or hazard consequence node.
-  18. Do not re-open node extraction in this step. Only normalize the final edge set over
-      the provided nodes.
+  5. Keep final edges local and direct. Follow the validation guidance on shortcut edges,
+     missing local links, unsupported edges, and relation corrections.
+     Do not emit any edge pattern disallowed by CAUSAL_EDGE_SCHEMA_DEFINITION.
 
 Output requirements:
 Generate only edges between existing node IDs.
@@ -155,28 +85,5 @@ Return the result in JSON format:
          "explanation": "brief explanation of why the direct edge exists"
       }}
    ],
-   "linking_checks": {{
-      "has_only_for_entity_property": {{
-         "passed": true,
-         "reason": "string"
-      }},
-      "used_local_mechanisms_when_supported": {{
-         "passed": true,
-         "reason": "string"
-      }},
-      "avoided_shortcut_edges": {{
-         "passed": true,
-         "reason": "string"
-      }},
-      "release_to_dispersion_event_link_checked": {{
-        "passed": true,
-        "reason": "string"
-      }}
-   }}
 }}
 
-For each linking_checks item:
-  - set passed to true or false
-  - if passed is false, reason must briefly state which edge pattern or local mechanism
-    requirement was violated
-  - if passed is true, keep reason brief and specific

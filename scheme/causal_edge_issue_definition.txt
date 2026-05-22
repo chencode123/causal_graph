@@ -1,0 +1,90 @@
+EDGE ISSUE DEFINITIONS
+
+This file defines the standard meanings of edge-related structural issue types
+used when validating, diagnosing, and revising accident scenario graphs.
+
+GENERAL PRINCIPLES
+
+1. Prefer diagnosing the smallest root edge problem that explains the observed
+   structural defect.
+2. Do not use multiple edge issue types to restate the same underlying problem.
+3. Distinguish edge problems from node problems:
+   - if the needed semantics already exist in current nodes but are linked
+     incorrectly or incompletely, prefer an edge-level issue
+   - if the needed semantics are absent entirely, prefer a node-level issue
+
+--------------------------------------------------
+shortcut_edge
+--------------------------------------------------
+
+Definition
+Use `shortcut_edge` when the current edge set already supports a more local
+chain between two nodes, but also includes a more direct edge that skips one or
+more intermediate local nodes in that chain.
+
+Use when
+- A -> C is present while A -> B -> C already captures the local mechanism
+- a direct edge bypasses one or more necessary intermediate steps
+
+Do not use when
+- the direct edge expresses a separate independently supported causal relation
+- the graph lacks the intermediate node or intermediate connection entirely
+
+--------------------------------------------------
+missing_local_link
+--------------------------------------------------
+
+Definition
+Use `missing_local_link` when the narrative clearly supports a direct local
+mechanism between existing node semantics but the current edge set does not
+represent it.
+
+Use when
+- two existing nodes already represent adjacent local mechanism roles
+- the graph needs one direct local connection to preserve the intended pathway
+- a retained Condition node expresses supported local state semantics but is
+  not connected to the retained Event, Entity, or mechanism stage that it
+  should characterize or locally enable
+
+Do not use when
+- the needed semantics are absent because a node is missing
+- the desired edge would be transitive or would bypass a necessary intermediate
+  node
+
+--------------------------------------------------
+wrong_relation
+--------------------------------------------------
+
+Definition
+Use `wrong_relation` when the edge endpoints may be appropriate but the chosen
+relation type is semantically incorrect.
+
+Use when
+- the endpoints are valid but `has` should be `enables`
+- the endpoints are valid but `enables` should be `has`
+- the edge violates relation-direction or relation-pattern constraints defined
+  by CAUSAL_EDGE_SCHEMA_DEFINITION while still pointing between otherwise
+  appropriate nodes
+
+Do not use when
+- the edge should not exist at all
+- the edge is a shortcut and should be removed rather than relabeled
+
+--------------------------------------------------
+unsupported_edge
+--------------------------------------------------
+
+Definition
+Use `unsupported_edge` when the incident description, causal narrative, and
+allowed schema semantics do not adequately support the claimed edge at all.
+
+Use when
+- there is insufficient evidence for a direct local relationship
+- the edge is only speculative, weakly associated, or purely completeness-driven
+- the edge is not justified as either a valid `has` relation or a valid
+  `enables` relation
+
+Do not use when
+- the main problem is that the relation type is wrong but the endpoints are
+  still appropriate
+- the edge is better diagnosed as a shortcut that bypasses a supported chain

@@ -1,0 +1,98 @@
+{
+  "case_summary": {
+    "accepted_count": 1,
+    "rejected_count": 4,
+    "unresolved_count": 0,
+    "summary": "The reviewer accepted the schema relabel of the hazard consequence node, but rejected both redundancy-based condition deletions and their paired edge deletions. The accepted change was implemented in the updated graph, while the questioned condition nodes and their original has-edges were kept."
+  },
+  "planning_patterns": [
+    {
+      "decision_key": "node_update_0",
+      "proposed_change": "Relabel the hazard consequence node from \"VCE\" to \"HazardConsequence\".",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "When a node's causal meaning is correct but its label violates the schema, correct the label and retain the node.",
+      "few_shot_takeaway": "Accept narrow schema-fix relabels that standardize node labels without changing pathway content."
+    },
+    {
+      "decision_key": "node_deletion_0",
+      "proposed_change": "Delete the condition node \"Liquid\" as a redundant descriptive state.",
+      "decision": "rejected",
+      "reviewer_reason": "don't identify redundancy accross types",
+      "matched_rule": "Do not delete a typed node as redundant solely because similar context is expressed by a different node type.",
+      "few_shot_takeaway": "Reject redundancy deletions that rely only on cross-type semantic overlap."
+    },
+    {
+      "decision_key": "node_deletion_1",
+      "proposed_change": "Delete the condition node \"Low confinement\" as a redundant descriptive state.",
+      "decision": "rejected",
+      "reviewer_reason": "don't identify redundancy accross types",
+      "matched_rule": "Do not delete a typed node as redundant solely because similar context is expressed by a different node type.",
+      "few_shot_takeaway": "Reject redundancy deletions that rely only on cross-type semantic overlap."
+    },
+    {
+      "decision_key": "edge_deletion_0",
+      "proposed_change": "Delete the has-edge from the material node to the \"Liquid\" condition node.",
+      "decision": "rejected",
+      "reviewer_reason": "th enode was not deleted",
+      "matched_rule": "Do not remove an edge when its only deletion rationale was cleanup for a node that remains in the graph.",
+      "few_shot_takeaway": "Reject dependent edge deletions if the related node deletion was not accepted."
+    },
+    {
+      "decision_key": "edge_deletion_1",
+      "proposed_change": "Delete the has-edge from the location node to the \"Low confinement\" condition node.",
+      "decision": "rejected",
+      "reviewer_reason": "the node was not deleted",
+      "matched_rule": "Do not remove an edge when its only deletion rationale was cleanup for a node that remains in the graph.",
+      "few_shot_takeaway": "Reject dependent edge deletions if the related node deletion was not accepted."
+    }
+  ],
+  "diagnosis_patterns": [
+    {
+      "derived_from_decision_key": "node_update_0",
+      "decision": "accepted",
+      "observed_pattern": "Correct consequence concept with a schema-noncompliant label.",
+      "diagnosis_interpretation": "This should be diagnosed as a labeling/schema mismatch rather than a substantive error in the consequence pathway.",
+      "supporting_rule": "If the node meaning is valid and only the label is off-schema, frame the issue as a relabeling fix.",
+      "few_shot_takeaway": "Diagnose schema naming problems separately from causal-structure problems."
+    },
+    {
+      "derived_from_decision_key": "node_deletion_0",
+      "decision": "rejected",
+      "observed_pattern": "A condition node overlaps descriptively with event or material context across node types.",
+      "diagnosis_interpretation": "Cross-type overlap alone is not sufficient grounds to diagnose the condition as redundant.",
+      "supporting_rule": "Redundancy should be diagnosed from lack of distinct causal role, not merely from semantic similarity across node types.",
+      "few_shot_takeaway": "Only diagnose redundancy when a node adds no distinct typed causal information."
+    },
+    {
+      "derived_from_decision_key": "node_deletion_1",
+      "decision": "rejected",
+      "observed_pattern": "A condition node overlaps descriptively with location or release context across node types.",
+      "diagnosis_interpretation": "The issue should not be framed as redundancy unless the condition truly lacks its own supported typed role.",
+      "supporting_rule": "Redundancy should be diagnosed from lack of distinct causal role, not merely from semantic similarity across node types.",
+      "few_shot_takeaway": "Do not diagnose typed conditions as redundant just because related context appears elsewhere in the graph."
+    },
+    {
+      "derived_from_decision_key": "edge_deletion_0",
+      "decision": "rejected",
+      "observed_pattern": "An edge-removal proposal is purely derivative of a proposed node deletion.",
+      "diagnosis_interpretation": "This should be diagnosed as contingent cleanup, not as an independent edge defect, unless the node-level redundancy claim is validated first.",
+      "supporting_rule": "Remove support edges only when the node they only serve is actually removed.",
+      "few_shot_takeaway": "Diagnose derivative edge removals only after confirming the underlying node deletion is warranted."
+    },
+    {
+      "derived_from_decision_key": "edge_deletion_1",
+      "decision": "rejected",
+      "observed_pattern": "An edge-removal proposal is purely derivative of a proposed node deletion.",
+      "diagnosis_interpretation": "The edge should not be diagnosed as independently problematic when its stated basis depends on a node that is retained.",
+      "supporting_rule": "Remove support edges only when the node they only serve is actually removed.",
+      "few_shot_takeaway": "Treat cleanup edge deletions as dependent on the correctness of the paired node-level diagnosis."
+    }
+  ],
+  "coverage_notes": [
+    "The accepted relabel was carried through in the updated graph: H1 now uses the schema label \"HazardConsequence\".",
+    "Both rejected edge deletions were implicitly covered by the rejection of the paired node deletions; the updated graph retains the original has-edges because the target nodes were kept.",
+    "The updated graph also keeps C1 and C3 and adds downstream links from them, reinforcing that the reviewer did not accept the original redundancy framing for those condition nodes."
+  ],
+  "unresolved_decisions": []
+}

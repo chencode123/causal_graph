@@ -4,11 +4,20 @@
 
 INPUT DATA
 
+INCIDENT_DESCRIPTION
+{incident_description}
+
 CAUSAL_NARRATIVE_EXTRACTION
 {causal_narrative_extraction_output}
 
 IDENTIFY_ACCIDENT_SCENARIO_OUTPUT
 {identify_accident_scenario_output}
+
+CAUSAL_EDGE_ISSUE_DEFINITION
+{causal_edge_issue_definition}
+
+CAUSAL_ISSUE_OUTPUT_DEFINITION
+{causal_issue_output_definition}
 
 EDGE_CANDIDATE_EXTRACTION_OUTPUT
 {edge_candidate_extraction_output}
@@ -16,77 +25,66 @@ EDGE_CANDIDATE_EXTRACTION_OUTPUT
 EDGE_CANDIDATE_EVIDENCE_SNIPPETS
 {edge_candidate_evidence_snippets}
 
+CAUSAL_EDGE_SCHEMA_DEFINITION
+{causal_edge_schema_definition}
+
 TASK
 
 Validate the structure of EDGE_CANDIDATE_EXTRACTION_OUTPUT.
 Do not create the final normalized edge set in this step.
-Your job is to identify shortcut edges, missing local links, weak or unsupported candidate edges, and relation normalization guidance needed for the final edge output.
+Your job is to identify shortcut edges, missing local links, unsupported candidate edges,
+and relation normalization guidance needed for the final edge output.
 
 VALIDATION RULES
 
+VALIDATION BASIS
+
   1. Use CAUSAL_NARRATIVE_EXTRACTION as the primary reference for the intended accident
      progression.
-  2. Use EDGE_CANDIDATE_EVIDENCE_SNIPPETS only as supporting evidence anchors.
-  3. Treat a candidate edge as a shortcut if it bypasses a necessary or strongly supported
-     intermediate local mechanism.
-  4. If there is already a supported local chain A -> B -> C, then a direct edge A -> C must
-     be treated as a shortcut/transitive edge and should be removed.
-  5. Treat a local link as missing if the narrative clearly supports a direct local
-     mechanism between existing node semantics and the candidate edge set does not represent
-     it.
-  6. Prefer marking missing or weak edges only when the relevant node semantics already
-     exist in IDENTIFY_ACCIDENT_SCENARIO_OUTPUT.
-  7. Do not recommend adding brand-new nodes in this step.
-  8. Do not recommend purely stylistic changes.
+  2. Use INCIDENT_DESCRIPTION as the primary factual source for checking whether candidate
+     edges and missing local links are directly supported.
+  3. Use EDGE_CANDIDATE_EVIDENCE_SNIPPETS only as supporting evidence anchors, not as the
+     only basis for validation.
+  3a. Use CAUSAL_EDGE_SCHEMA_DEFINITION as the authoritative guide for relation meaning
+      and allowed edge patterns.
+  3b. Use CAUSAL_EDGE_ISSUE_DEFINITION as the authoritative guide for edge-related issue
+      meanings.
+  3c. Use CAUSAL_ISSUE_OUTPUT_DEFINITION as the authoritative guide for shared
+      validation-style output structure.
+  3d. Evaluate edge problems in this order:
+      (1) missing_local_link and other required local connectivity gaps,
+      (2) wrong_relation,
+      (3) unsupported_edge,
+      (4) shortcut_edge.
+      Diagnose shortcut_edge only after first determining that the necessary
+      supported local edge structure is already present.
+
+ISSUE DEFINITIONS
+
+  4. Use shortcut_edge, missing_local_link, wrong_relation, and unsupported_edge
+     only in ways consistent with CAUSAL_EDGE_ISSUE_DEFINITION.
+  5. Apply the allowed and disallowed relation patterns defined in
+     CAUSAL_EDGE_SCHEMA_DEFINITION when judging wrong_relation or unsupported_edge.
+  6. Use other only for a material structural edge problem that does not fit the categories
+      above.
+
+STRUCTURAL CHECKS
+
+  7. Check the candidate edge set against the definitions above and report the validation
+      results using the defined issue types.
+  7a. If a retained Condition node carries supported state semantics but is not connected
+      to the retained Event, Entity, or mechanism stage that it should characterize or
+      locally enable, prefer diagnosing missing_local_link rather than leaving the
+      retained Condition disconnected.
+SCOPE LIMIT
+
+  8. Do not recommend adding brand-new nodes in this step.
+  9. Do not recommend purely stylistic changes.
 
 OUTPUT REQUIREMENTS
 
-Return one JSON object with this structure:
-
-{{
-  "validation_summary": {{
-    "overall_quality": "good | acceptable | weak",
-    "summary": "string"
-  }},
-  "issues": [
-    {{
-      "issue_type": "shortcut_edge | missing_local_link | weak_edge | wrong_relation | unsupported_edge | duplicate_edge | other",
-      "description": "string",
-      "severity": "high | medium | low",
-      "affected_edges": [
-        {{
-          "source": "node_id",
-          "target": "node_id",
-          "relation": "has | enables | unknown"
-        }}
-      ]
-    }}
-  ],
-  "normalization_guidance": {{
-    "must_remove_edges": [
-      {{
-        "source": "node_id",
-        "target": "node_id",
-        "relation": "has | enables"
-      }}
-    ],
-    "must_add_local_links": [
-      {{
-        "source": "node_id",
-        "target": "node_id",
-        "preferred_relation": "has | enables"
-      }}
-    ],
-    "relation_corrections": [
-      {{
-        "source": "node_id",
-        "target": "node_id",
-        "from_relation": "has | enables",
-        "to_relation": "has | enables"
-      }}
-    ]
-  }}
-}}
+Return one JSON object using the exact `edge_structure_validation`
+output structure defined in CAUSAL_ISSUE_OUTPUT_DEFINITION.
 
 OUTPUT FORMAT
 

@@ -18,7 +18,6 @@ from openai import OpenAI
 from tqdm import tqdm
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-
 NODE_GROUP_KEYS = (
     "hazard_consequence_node",
     "entity_nodes",
@@ -26,8 +25,8 @@ NODE_GROUP_KEYS = (
     "event_nodes",
 )
 
-DEFAULT_PARENT_DIR = Path(r"runs\stability_test\batch_4_without_few_shot_reruns")
-DEFAULT_CAUSAL_NARRATIVE_REFERENCE_DIR = Path(r"runs\stability_test\batch_4_without_few_shot")
+DEFAULT_PARENT_DIR = Path(r"runs\stability_test\rounds")
+DEFAULT_CAUSAL_NARRATIVE_REFERENCE_DIR = None
 DEFAULT_EMBEDDING_MODEL = "text-embedding-3-small"
 
 CASE_SCORE_COLUMNS = [
@@ -307,8 +306,14 @@ def resolve_causal_narrative_reference_path(
 ) -> Path | None:
     if reference_dir is None:
         return None
-    candidate = reference_dir / case_folder.name / "causal_narrative_extraction_output.json"
-    return candidate if candidate.exists() else None
+    candidate_paths = [
+        reference_dir / case_folder.name / "causal_narrative_extraction_output.json",
+        reference_dir / case_folder.parent.name / case_folder.name / "causal_narrative_extraction_output.json",
+    ]
+    for candidate in candidate_paths:
+        if candidate.exists():
+            return candidate
+    return None
 
 
 def l2_norm(vector: Iterable[float]) -> float:

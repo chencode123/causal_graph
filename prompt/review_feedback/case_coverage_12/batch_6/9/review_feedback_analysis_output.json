@@ -1,0 +1,98 @@
+{
+  "case_summary": {
+    "accepted_count": 3,
+    "rejected_count": 2,
+    "unresolved_count": 0,
+    "summary": "Three low-to-medium severity structural cleanup proposals were accepted: two missing local links were added and one shortcut edge was removed. Two liquid-phase redundancy removals were rejected because the reviewer did not accept redundancy claims across different semantic types."
+  },
+  "planning_patterns": [
+    {
+      "decision_key": "edge_addition_0",
+      "proposed_change": "Add material-to-pressure link: alkylate -> high pressure.",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "Retained condition nodes should be fully integrated with their material-state links.",
+      "few_shot_takeaway": "If a condition is kept as part of the scenario, add its missing material-property attachment rather than leaving it structurally isolated."
+    },
+    {
+      "decision_key": "edge_addition_1",
+      "proposed_change": "Add temperature-to-ignition link: high temperature -> ignition.",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "Retained condition nodes should have an explicit downstream role in the local mechanism.",
+      "few_shot_takeaway": "When a retained condition lacks pathway function, connect it to the nearest supported downstream event."
+    },
+    {
+      "decision_key": "node_deletion_0",
+      "proposed_change": "Delete the liquid-phase condition node.",
+      "decision": "rejected",
+      "reviewer_reason": "don't identify redundancy accross different types",
+      "matched_rule": "Do not apply redundancy deletion when the claim depends only on cross-type overlap rather than true duplicate semantics.",
+      "few_shot_takeaway": "Do not delete a condition node just because it looks descriptively similar to another node of a different type."
+    },
+    {
+      "decision_key": "edge_deletion_0",
+      "proposed_change": "Delete the material-to-liquid edge because the liquid node was proposed for deletion.",
+      "decision": "rejected",
+      "reviewer_reason": "don't identify redundancy accross different types",
+      "matched_rule": "Do not remove an edge based on a redundancy claim that is invalid across semantic types.",
+      "few_shot_takeaway": "Keep a property edge when the connected condition is still considered valid and the only deletion basis is cross-type redundancy."
+    },
+    {
+      "decision_key": "edge_deletion_1",
+      "proposed_change": "Delete the direct combustibility -> jet fire edge.",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "Remove shortcut edges that bypass an explicit intermediate event already representing the mechanism.",
+      "few_shot_takeaway": "If an explicit intermediate event already carries the mechanism, delete the direct shortcut edge to the consequence."
+    }
+  ],
+  "diagnosis_patterns": [
+    {
+      "derived_from_decision_key": "edge_addition_0",
+      "decision": "accepted",
+      "observed_pattern": "Retained pressure condition lacked its incoming material-property link.",
+      "diagnosis_interpretation": "This was correctly framed as a local completeness issue for a retained condition, not as a node quality problem requiring deletion.",
+      "supporting_rule": "Missing local links should be repaired when a retained condition is meaningful to the scenario.",
+      "few_shot_takeaway": "Diagnose unattached retained conditions as incomplete local mechanism structure."
+    },
+    {
+      "derived_from_decision_key": "edge_addition_1",
+      "decision": "accepted",
+      "observed_pattern": "Retained temperature condition lacked a downstream causal connection.",
+      "diagnosis_interpretation": "The issue was appropriately diagnosed as an incomplete mechanism around an otherwise valid condition node.",
+      "supporting_rule": "A retained condition should connect to the event stage where it has a supported causal role.",
+      "few_shot_takeaway": "When a condition is kept but has no downstream effect, diagnose a missing local causal link."
+    },
+    {
+      "derived_from_decision_key": "node_deletion_0",
+      "decision": "rejected",
+      "observed_pattern": "A descriptive condition was kept despite a prior redundant-node diagnosis.",
+      "diagnosis_interpretation": "The review implies the redundancy framing was too aggressive because it treated different semantic types as interchangeable duplicates.",
+      "supporting_rule": "Do not diagnose redundancy across different semantic types unless there is true duplicate meaning and no distinct role.",
+      "few_shot_takeaway": "Do not label a node redundant solely because it overlaps descriptively with a node of another type."
+    },
+    {
+      "derived_from_decision_key": "edge_deletion_0",
+      "decision": "rejected",
+      "observed_pattern": "The material-to-condition property link was preserved along with the condition.",
+      "diagnosis_interpretation": "The review suggests the original redundancy diagnosis should not cascade into edge removal when the retained condition is still considered meaningful.",
+      "supporting_rule": "Do not diagnose a supporting edge as redundant when the connected node remains valid and cross-type redundancy is the only basis.",
+      "few_shot_takeaway": "Only diagnose a supporting edge as removable when its target node is truly invalid or duplicate."
+    },
+    {
+      "derived_from_decision_key": "edge_deletion_1",
+      "decision": "accepted",
+      "observed_pattern": "A direct condition-to-consequence link bypassed an explicit ignition step.",
+      "diagnosis_interpretation": "This was correctly framed as a shortcut-edge issue because the intermediate event already captured the mechanism.",
+      "supporting_rule": "Direct edges that bypass an explicit intermediate mechanism should be diagnosed as shortcut edges.",
+      "few_shot_takeaway": "Diagnose direct links that skip represented mechanism steps as shortcut structure, not as needed parallel causation."
+    }
+  ],
+  "coverage_notes": [
+    "The missing-local-link issue for retained conditions was fully covered by the two accepted edge additions; no node changes were needed for pressure or temperature.",
+    "The proposed deletion of the material-to-liquid edge depended on deleting the liquid node; once the node deletion was rejected, keeping the edge was consistent.",
+    "The updated graph also introduced a new liquid-to-release edge outside the reviewed planning list, giving the retained liquid-phase node an explicit downstream role after review."
+  ],
+  "unresolved_decisions": []
+}

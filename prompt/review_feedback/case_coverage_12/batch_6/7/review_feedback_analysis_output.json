@@ -1,0 +1,73 @@
+{
+  "case_summary": {
+    "accepted_count": 2,
+    "rejected_count": 1,
+    "unresolved_count": 1,
+    "summary": "Reviewer accepted the structural split of the over-merged explosion/lofting stage, rejected deletion of the phase condition on cross-type redundancy grounds, and left the planned combustibility edge addition without an explicit decision."
+  },
+  "planning_patterns": [
+    {
+      "decision_key": "node_update_0",
+      "proposed_change": "Rename the dust-lofting event so it represents only post-primary-explosion dispersion, not the primary explosion itself.",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "When one event node merges an initiating explosion with a later dispersion stage, separate the stages so each local mechanism is represented distinctly.",
+      "few_shot_takeaway": "If an event name mixes event occurrence and later propagation, narrow the existing node to one stage and leave the other stage to a separate node."
+    },
+    {
+      "decision_key": "node_addition_0",
+      "proposed_change": "Add an explicit intermediate event for the primary dust explosion, linked from explosible dust accumulation and ignition and linked forward to dust lofting.",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "Add a separate event node when a primary event is embedded inside a downstream propagation or dispersion node.",
+      "few_shot_takeaway": "When the narrative names a distinct primary event that triggers later effects, represent that event explicitly in the graph."
+    },
+    {
+      "decision_key": "node_deletion_0",
+      "proposed_change": "Delete the generic 'Solid' phase condition node.",
+      "decision": "rejected",
+      "reviewer_reason": "don't identify redundancy accross different types",
+      "matched_rule": "Redundant-node removal should be based on lack of a necessary supported local role, not only on semantic overlap across different node types.",
+      "few_shot_takeaway": "Do not delete a condition node just because an entity node implies a similar property; first show true same-role redundancy."
+    }
+  ],
+  "diagnosis_patterns": [
+    {
+      "derived_from_decision_key": "node_update_0",
+      "decision": "accepted",
+      "observed_pattern": "One event node mixes the primary event with a later dispersion stage.",
+      "diagnosis_interpretation": "This should be diagnosed as an over-merged local mechanism, with the downstream node framed as the later dispersion step only.",
+      "supporting_rule": "If a node compresses two distinct local stages, diagnose it as over-merged rather than leaving the mechanism implicit.",
+      "few_shot_takeaway": "Flag over-merged nodes when they collapse event occurrence and later propagation into a single step."
+    },
+    {
+      "derived_from_decision_key": "node_addition_0",
+      "decision": "accepted",
+      "observed_pattern": "The chain jumps from explosible conditions and ignition directly to later propagation without an explicit primary event.",
+      "diagnosis_interpretation": "This should be framed as a missing intermediate event in the local accident mechanism.",
+      "supporting_rule": "When the narrative identifies a distinct primary event that triggers later stages, diagnose its absence as a structural gap.",
+      "few_shot_takeaway": "Treat a named but unmodeled primary event as a diagnosis issue, especially when it bridges ignition and propagation."
+    },
+    {
+      "derived_from_decision_key": "node_deletion_0",
+      "decision": "rejected",
+      "observed_pattern": "A condition node overlaps semantically with material nodes but remains a different node type.",
+      "diagnosis_interpretation": "This decision suggests that cross-type overlap alone should not be diagnosed as redundancy; redundancy needs stronger evidence that the retained typed node has no distinct supported role.",
+      "supporting_rule": "Do not diagnose redundancy from semantic similarity alone when the compared nodes serve different representational types.",
+      "few_shot_takeaway": "Be cautious about labeling nodes redundant across type boundaries; check typed function, not just similar meaning."
+    }
+  ],
+  "coverage_notes": [
+    "The accepted rename and accepted primary-explosion node addition jointly implement the single structural fix for the over-merged explosion-to-lofting pathway.",
+    "The rejected deletion means the low-severity phase-condition redundancy diagnosis was not adopted; the phase node remains in the graph.",
+    "The planned combustibility edge addition to the hazard consequence was not explicitly reviewed and is not present in the updated graph.",
+    "The updated graph includes extra condition-to-primary-explosion edges not traceable to the reviewed suggestion list, so they were not treated as reviewed outcomes."
+  ],
+  "unresolved_decisions": [
+    {
+      "decision_key": "edge_addition_0",
+      "status": "unknown",
+      "note": "The planned combustibility-to-consequence edge has no explicit review decision in the review state and was not implemented in the updated graph."
+    }
+  ]
+}

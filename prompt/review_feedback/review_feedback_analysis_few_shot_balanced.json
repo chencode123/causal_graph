@@ -1,0 +1,271 @@
+{
+  "source_root": "G:/Other computers/My computer/project C/gen ai/code/llm/runs/stability_test/batch_4_5_6",
+  "source_aggregated_file": "runs/few-shot/review_feedback/review_feedback_analysis_aggregated.json",
+  "derived_from": "runs/few-shot/review_feedback/review_feedback_analysis_few_shot_curated.json",
+  "curation_notes": {
+    "selection_strategy": "Balanced prompt-ready subset with reject examples front-loaded, family diversity preserved, and one representative example per core decision family when possible.",
+    "intended_use": "Pattern-file few-shot injection for graph_diagnosis and graph_revision_planning.",
+    "ordering_policy": [
+      "rejected patterns first",
+      "dependent-cleanup rejections adjacent to parent rejection",
+      "then accepted patterns grouped by common review families"
+    ]
+  },
+  "summary": {
+    "planning_pattern_count": 13,
+    "diagnosis_pattern_count": 13,
+    "accepted_planning_pattern_count": 8,
+    "rejected_planning_pattern_count": 5,
+    "accepted_diagnosis_pattern_count": 8,
+    "rejected_diagnosis_pattern_count": 5,
+    "retained_source_files": [
+      "batch_5/1/review_feedback_analysis_output.json",
+      "batch_5/2/review_feedback_analysis_output.json",
+      "batch_5/5/review_feedback_analysis_output.json",
+      "batch_5/8/review_feedback_analysis_output.json",
+      "batch_5/9/review_feedback_analysis_output.json",
+      "batch_6/2/review_feedback_analysis_output.json",
+      "batch_6/7/review_feedback_analysis_output.json",
+      "batch_6/8/review_feedback_analysis_output.json",
+      "batch_6/9/review_feedback_analysis_output.json"
+    ]
+  },
+  "planning_patterns": [
+    {
+      "decision_key": "node_deletion_0",
+      "proposed_change": "Delete the terminal hazard consequence node \"Confined explosion\".",
+      "decision": "rejected",
+      "reviewer_reason": "don't delete the only hazard consequence\nWater generated overpressure within the confined roller cavity, but the actual steam explosion occurred in the molten salt bath, which is an open yet partially confined environment.",
+      "matched_rule": "Do not delete the only terminal hazard node when the evidence still supports a real consequence and the issue is mainly mechanism or label alignment.",
+      "few_shot_takeaway": "If the endpoint is semantically imperfect but still represents the supported accident consequence, keep it rather than deleting the graph's only hazard outcome.",
+      "source_file": "batch_5/5/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "edge_deletion_0",
+      "proposed_change": "Delete the edge from rapid vaporization to the hazard consequence.",
+      "decision": "rejected",
+      "reviewer_reason": "the previous one was rejected",
+      "matched_rule": "Do not remove an attachment edge when its deletion was justified only by deletion of a node that is being retained.",
+      "few_shot_takeaway": "When a node-deletion proposal is rejected, reject dependent edge removals unless there is an independent edge-level diagnosis.",
+      "source_file": "batch_5/5/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "edge_deletion_1",
+      "proposed_change": "Delete the edge from the ignition-source node to ignition of spilled powder.",
+      "decision": "rejected",
+      "reviewer_reason": "The name is replaced, we still need ignition source for the following nodes",
+      "matched_rule": "After generalizing an uncertain ignition source, retain a generic causal link from the ignition-source node to the ignition event.",
+      "few_shot_takeaway": "Do not remove a required ignition-source-to-ignition link just because the ignition source has been renamed to reflect uncertainty.",
+      "source_file": "batch_6/2/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "node_deletion_0",
+      "proposed_change": "Delete the ignition-source node for the overheated bearing as redundant with the mechanical-failure node.",
+      "decision": "rejected",
+      "reviewer_reason": "The label ignition source cannot be deleted, since this is a ignition triggered explosion. Whith ignition source present, it can better represent the causal chain",
+      "matched_rule": "Do not delete a supported node when it preserves the explicit ignition stage in an ignition-triggered explosion chain.",
+      "few_shot_takeaway": "Treat apparent duplicates cautiously if one node carries a necessary ignition-stage role in the hazard sequence.",
+      "source_file": "batch_6/7/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "edge_addition_0",
+      "proposed_change": "Add a direct enables edge from the overheated-bearing mechanical failure to the primary dust explosion.",
+      "decision": "rejected",
+      "reviewer_reason": "The previous one was declined",
+      "matched_rule": "Do not add a direct replacement edge when its justification depends on a node deletion that was not approved.",
+      "few_shot_takeaway": "If an intermediate node is retained, avoid adding a bypass edge that only existed to replace it.",
+      "source_file": "batch_6/7/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "node_addition_0",
+      "proposed_change": "Add an intermediate event for inadequate dilution/mixing of concentrated feed in the vessel between feed introduction and decomposition.",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "Add the smallest evidence-grounded intermediate step when the source describes a distinct process transition between an upstream action and a downstream reaction.",
+      "few_shot_takeaway": "When the report explicitly describes an internal transition that explains why a later event occurred, represent it as its own node instead of collapsing it into adjacent events.",
+      "source_file": "batch_5/1/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "edge_deletion_0",
+      "proposed_change": "Delete the direct enables edge from feed introduction to decomposition after inserting the intermediate mixing/dilution step.",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "Delete a direct causal edge when a supported intermediate step lies between the same endpoints; keeping the direct link preserves the omission.",
+      "few_shot_takeaway": "If a new intermediate node makes an older direct link a shortcut, remove the shortcut so the graph reflects the full supported mechanism.",
+      "source_file": "batch_5/1/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "node_deletion_0",
+      "proposed_change": "Delete the low-confinement condition node because the cited text does not directly establish confinement as a supported condition.",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "Remove a condition node when the cited evidence does not directly establish that condition as a distinct supported state.",
+      "few_shot_takeaway": "Accept deletion of speculative condition nodes when the evidence supports exposure or outcome but not the asserted condition itself.",
+      "source_file": "batch_5/2/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "edge_addition_1",
+      "proposed_change": "Add enables edge from the high-pressure condition to the major loss-of-containment event.",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "Retained condition nodes should gain an evidence-backed downstream link or be removed.",
+      "few_shot_takeaway": "If a condition is kept, connect it to the nearest downstream event it materially shapes.",
+      "source_file": "batch_5/8/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "edge_addition_0",
+      "proposed_change": "Add a has edge from the discharge strainer entity to the dislodged-basket failure event.",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "Integrate an isolated equipment/entity node by linking it to the supported failure event it participates in.",
+      "few_shot_takeaway": "When an equipment node is stranded outside the main path, reconnect it to the specific failure event already supported by the narrative.",
+      "source_file": "batch_5/9/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "node_update_0",
+      "proposed_change": "Rename the ignition-source node from a specific hand-truck spark/friction source to \"Unknown ignition source.\"",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "When the exact ignition source is not definitively identified, model it as an uncertain ignition-source node rather than a specific mechanism.",
+      "few_shot_takeaway": "If the report confirms ignition but not the exact source, generalize the ignition-source node instead of committing the graph to one candidate source.",
+      "source_file": "batch_6/2/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "node_update_0",
+      "proposed_change": "Rename the existing node from \"Store's exterior back wall\" to \"Tank directly against store's exterior back wall.\"",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "Reuse an existing node to represent a missing causal circumstance when the evidence supports it, instead of adding a new node.",
+      "few_shot_takeaway": "If the graph already contains the right physical element but names it too narrowly, prefer a rename that captures the causal circumstance over creating another node.",
+      "source_file": "batch_6/8/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "node_update_1",
+      "proposed_change": "Relabel the release event from ContinuousRelease to InstantRelease.",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "Use the schema label that matches the cited event semantics; a sudden loss of containment should be typed as instantaneous.",
+      "few_shot_takeaway": "Correct event typing when the evidence clearly describes a sudden release rather than an ongoing discharge.",
+      "source_file": "batch_6/9/review_feedback_analysis_output.json"
+    }
+  ],
+  "diagnosis_patterns": [
+    {
+      "derived_from_decision_key": "node_deletion_0",
+      "decision": "rejected",
+      "observed_pattern": "Terminal consequence semantics are disputed, but an explosion consequence is still supported.",
+      "diagnosis_interpretation": "The issue should be framed as mismatch in consequence wording or confinement characterization, not as absence of a valid hazard endpoint. The reviewer treated the node as imperfectly labeled rather than unsupported enough to remove.",
+      "supporting_rule": "If evidence still supports the endpoint phenomenon, diagnose it as semantic misalignment before diagnosing it as removable unsupported content.",
+      "few_shot_takeaway": "Distinguish between a wrong consequence label and no supported consequence at all.",
+      "source_file": "batch_5/5/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "edge_deletion_0",
+      "decision": "rejected",
+      "observed_pattern": "The edge challenge was entirely dependent on the disputed terminal-node diagnosis.",
+      "diagnosis_interpretation": "This was not treated as an independent edge defect. The reviewer implicitly prioritized resolving the endpoint framing first, so the edge remained because the downstream consequence node remained.",
+      "supporting_rule": "Do not diagnose a dependent edge as separately removable when its only problem comes from a node diagnosis that is not accepted.",
+      "few_shot_takeaway": "Resolve node validity before escalating attached-edge deletions that have no stand-alone diagnostic basis.",
+      "source_file": "batch_5/5/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "edge_deletion_1",
+      "decision": "rejected",
+      "observed_pattern": "The ignition-source node stayed connected to the ignition event after being generalized.",
+      "diagnosis_interpretation": "The diagnosis should preserve the ignition function in the causal chain while relaxing only the source specificity.",
+      "supporting_rule": "Uncertain identification of the source does not remove the need to represent an ignition-source-to-ignition transition.",
+      "few_shot_takeaway": "Do not diagnose uncertainty about source identity as permission to disconnect ignition causation from the ignition event.",
+      "source_file": "batch_6/2/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "node_deletion_0",
+      "decision": "rejected",
+      "observed_pattern": "An apparent duplicate also served as the explicit ignition-stage representation.",
+      "diagnosis_interpretation": "Duplicate-node diagnoses should be limited when one node preserves the ignition stage in the core explosion narrative.",
+      "supporting_rule": "The main causal sequence includes a distinct dust-cloud-to-ignition-to-explosion progression.",
+      "few_shot_takeaway": "Do not frame every same-fact pair as removable duplication if one node captures a critical hazard stage such as ignition.",
+      "source_file": "batch_6/7/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "edge_addition_0",
+      "decision": "rejected",
+      "observed_pattern": "The proposed direct link was conditional on removing an intermediate ignition node.",
+      "diagnosis_interpretation": "This is not an independent missing-edge diagnosis; it only becomes relevant under an alternative node structure where the ignition-stage node is removed.",
+      "supporting_rule": "A direct replacement edge is only warranted after the duplicate ignition-source node is removed.",
+      "few_shot_takeaway": "Distinguish true missing edges from contingent replacement edges that only apply if the graph is restructured first.",
+      "source_file": "batch_6/7/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "node_addition_0",
+      "decision": "accepted",
+      "observed_pattern": "A distinct internal process step between an input action and a reaction event was missing.",
+      "diagnosis_interpretation": "The issue should be framed as a missing-step diagnosis: the causal narrative required an explicit intermediate state rather than a tighter direct link between existing nodes.",
+      "supporting_rule": "The graph skips a supported in-system poor-dilution/poor-mixing overconcentration step between feed entry and decomposition.",
+      "few_shot_takeaway": "Diagnose a missing-step problem when the source gives a separate mechanism-bearing transition that changes the state of the system before the next event.",
+      "source_file": "batch_5/1/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "edge_deletion_0",
+      "decision": "accepted",
+      "observed_pattern": "A direct edge was removed once an omitted intermediate mechanism was recognized.",
+      "diagnosis_interpretation": "The connectivity problem is best diagnosed as an omitted intermediate causal step, with the direct edge treated as a shortcut created by that omission.",
+      "supporting_rule": "The main connectivity problem is better characterized as a missing causal step rather than a separate weak-edge issue.",
+      "few_shot_takeaway": "When a direct edge only exists because an intermediate mechanism was omitted, diagnose the omission first and treat the edge as a shortcut artifact.",
+      "source_file": "batch_5/1/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "node_deletion_0",
+      "decision": "accepted",
+      "observed_pattern": "A condition is asserted from text that does not directly describe that state variable.",
+      "diagnosis_interpretation": "This should be diagnosed as an unsupported condition-node problem rather than as a missing causal step or consequence issue.",
+      "supporting_rule": "A node is unsupported when the incident text does not directly establish the asserted condition as a distinct supported state.",
+      "few_shot_takeaway": "If evidence describes who was affected or what happened, but not the claimed condition, diagnose unsupported condition semantics rather than a pathway gap.",
+      "source_file": "batch_5/2/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "edge_addition_1",
+      "decision": "accepted",
+      "observed_pattern": "Retained equipment condition needed downstream integration into the release sequence.",
+      "diagnosis_interpretation": "The diagnosis is lack of causal integration for an otherwise valid condition node, not invalid node content.",
+      "supporting_rule": "Terminal condition nodes need evidence-supported downstream integration or removal.",
+      "few_shot_takeaway": "When a condition is well supported but isolated, diagnose the problem as missing integration rather than node invalidity.",
+      "source_file": "batch_5/8/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "edge_addition_0",
+      "decision": "accepted",
+      "observed_pattern": "An equipment/entity node is present but not connected to the failure event involving that equipment.",
+      "diagnosis_interpretation": "The issue is best framed as poor integration of an existing node into the established event chain, rather than as absent accident content.",
+      "supporting_rule": "An isolated composition subgraph that does not connect to the failure/propagation sequence is a disconnected-node issue.",
+      "few_shot_takeaway": "When a physical asset is isolated from its own failure event, diagnose the problem as missing integration into the main path.",
+      "source_file": "batch_5/9/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "node_update_0",
+      "decision": "accepted",
+      "observed_pattern": "An over-specific ignition-source label was generalized while the ignition-source role was preserved.",
+      "diagnosis_interpretation": "The issue is best framed as uncertainty/schema handling, not as absence of an ignition-source concept.",
+      "supporting_rule": "If the report says the exact ignition source was not definitively identified, diagnose the problem as over-specific ignition-source modeling.",
+      "few_shot_takeaway": "Diagnose named candidate ignition sources as a schema-mismatch problem when the evidence supports ignition occurrence but not source certainty.",
+      "source_file": "batch_6/2/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "node_update_0",
+      "decision": "accepted",
+      "observed_pattern": "An existing node partially captures the missing circumstance but is framed too narrowly.",
+      "diagnosis_interpretation": "This should be diagnosed as a missing-step framing issue that can be resolved by recasting an existing node, not necessarily by adding a new one.",
+      "supporting_rule": "The missing causal circumstance can be made explicit by reusing an existing node to represent it.",
+      "few_shot_takeaway": "When evidence supports a broader causal reading of an existing node, diagnose the gap as weak framing of a missing step rather than missing extraction.",
+      "source_file": "batch_6/8/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "node_update_1",
+      "decision": "accepted",
+      "observed_pattern": "Event type does not match evidence semantics.",
+      "diagnosis_interpretation": "The problem is a schema-mismatch diagnosis about event classification rather than a missing-causality problem.",
+      "supporting_rule": "A sudden loss of containment should be classified with the schema-preferred instantaneous release type.",
+      "few_shot_takeaway": "When the sequence is intact but the event label conflicts with report wording, frame the issue as schema mismatch.",
+      "source_file": "batch_6/9/review_feedback_analysis_output.json"
+    }
+  ]
+}

@@ -1,0 +1,985 @@
+{
+  "source_root": "G:/Other computers/My computer/project C/gen ai/code/llm/runs/stability_test/batch_4_5_6",
+  "source_aggregated_file": "runs/few-shot/review_feedback/review_feedback_analysis_aggregated.json",
+  "curation_notes": {
+    "selection_strategy": "Retain only matched planning/diagnosis patterns from clean batch_5 and batch_6 cases recommended for future few-shot use. Exclude batch_4, unresolved decisions, untracked manual edits, legacy decisions, and implicitly covered suggestions.",
+    "retained_source_files": [
+      "batch_5/1/review_feedback_analysis_output.json",
+      "batch_5/2/review_feedback_analysis_output.json",
+      "batch_5/5/review_feedback_analysis_output.json",
+      "batch_5/8/review_feedback_analysis_output.json",
+      "batch_5/9/review_feedback_analysis_output.json",
+      "batch_6/2/review_feedback_analysis_output.json",
+      "batch_6/4/review_feedback_analysis_output.json",
+      "batch_6/7/review_feedback_analysis_output.json",
+      "batch_6/8/review_feedback_analysis_output.json",
+      "batch_6/9/review_feedback_analysis_output.json"
+    ],
+    "core_subset_source_files": [
+      "batch_5/1/review_feedback_analysis_output.json",
+      "batch_5/2/review_feedback_analysis_output.json",
+      "batch_5/5/review_feedback_analysis_output.json",
+      "batch_5/8/review_feedback_analysis_output.json",
+      "batch_5/9/review_feedback_analysis_output.json",
+      "batch_6/2/review_feedback_analysis_output.json",
+      "batch_6/7/review_feedback_analysis_output.json",
+      "batch_6/9/review_feedback_analysis_output.json"
+    ],
+    "excluded_categories": [
+      "unresolved decisions",
+      "untracked manual edits",
+      "legacy decisions",
+      "no matching suggestion exists",
+      "implicitly covered suggestions",
+      "batch_4 cases by default"
+    ]
+  },
+  "summary": {
+    "retained_file_count": 10,
+    "core_subset_file_count": 8,
+    "planning_pattern_count": 42,
+    "diagnosis_pattern_count": 42,
+    "accepted_planning_pattern_count": 37,
+    "rejected_planning_pattern_count": 5
+  },
+  "planning_patterns": [
+    {
+      "decision_key": "node_addition_0",
+      "proposed_change": "Add an intermediate event for inadequate dilution/mixing of concentrated feed in the vessel between feed introduction and decomposition.",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "Add the smallest evidence-grounded intermediate step when the source describes a distinct process transition between an upstream action and a downstream reaction.",
+      "few_shot_takeaway": "When the report explicitly describes an internal transition that explains why a later event occurred, represent it as its own node instead of collapsing it into adjacent events.",
+      "source_file": "batch_5/1/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "edge_deletion_0",
+      "proposed_change": "Delete the direct enables edge from feed introduction to decomposition after inserting the intermediate mixing/dilution step.",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "Delete a direct causal edge when a supported intermediate step lies between the same endpoints; keeping the direct link preserves the omission.",
+      "few_shot_takeaway": "If a new intermediate node makes an older direct link a shortcut, remove the shortcut so the graph reflects the full supported mechanism.",
+      "source_file": "batch_5/1/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "node_update_0",
+      "proposed_change": "Relabel the hazard node so its label uses the schema-required value HazardConsequence rather than the hazard name.",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "Correct schema-only label mismatches while preserving the existing node meaning.",
+      "few_shot_takeaway": "When a node is semantically correct but structurally mislabeled, prefer a label fix over replacing the node or changing its meaning.",
+      "source_file": "batch_5/1/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "node_deletion_0",
+      "proposed_change": "Delete the low-confinement condition node because the cited text does not directly establish confinement as a supported condition.",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "Remove a condition node when the cited evidence does not directly establish that condition as a distinct supported state.",
+      "few_shot_takeaway": "Accept deletion of speculative condition nodes when the evidence supports exposure or outcome but not the asserted condition itself.",
+      "source_file": "batch_5/2/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "edge_addition_0",
+      "proposed_change": "Add a material-to-vapor-phase 'has' edge to give the vapor condition an incoming grounding connection.",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "Add a minimal grounding edge when a condition node is otherwise disconnected from supported upstream context.",
+      "few_shot_takeaway": "Accept the smallest edge addition that restores grounding for an under-integrated condition instead of expanding the graph with new nodes.",
+      "source_file": "batch_5/2/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "edge_deletion_0",
+      "proposed_change": "Delete the low-confinement-to-flash-fire edge because it depends on a condition that is not distinctly supported.",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "When a supporting condition is not distinctly supported, remove its dependent causal edge as well.",
+      "few_shot_takeaway": "Accept removal of edges that rely entirely on an unsupported node to keep the graph evidence-grounded.",
+      "source_file": "batch_5/2/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "node_deletion_0",
+      "proposed_change": "Delete the terminal hazard consequence node \"Confined explosion\".",
+      "decision": "rejected",
+      "reviewer_reason": "don't delete the only hazard consequence\nWater generated overpressure within the confined roller cavity, but the actual steam explosion occurred in the molten salt bath, which is an open yet partially confined environment.",
+      "matched_rule": "Do not delete the only terminal hazard node when the evidence still supports a real consequence and the issue is mainly mechanism or label alignment.",
+      "few_shot_takeaway": "If the endpoint is semantically imperfect but still represents the supported accident consequence, keep it rather than deleting the graph’s only hazard outcome.",
+      "source_file": "batch_5/5/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "edge_deletion_0",
+      "proposed_change": "Delete the edge from rapid vaporization to the hazard consequence.",
+      "decision": "rejected",
+      "reviewer_reason": "the previous one was rejected",
+      "matched_rule": "Do not remove an attachment edge when its deletion was justified only by deletion of a node that is being retained.",
+      "few_shot_takeaway": "When a node-deletion proposal is rejected, reject dependent edge removals unless there is an independent edge-level diagnosis.",
+      "source_file": "batch_5/5/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "node_deletion_1",
+      "proposed_change": "Delete the steam-venting event as a dead-end observation.",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "Remove supported but disconnected observations when they have no distinct downstream causal role.",
+      "few_shot_takeaway": "A factually supported event can still be removed if it only serves as a dead-end observation and does not advance the causal chain.",
+      "source_file": "batch_5/5/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "edge_deletion_1",
+      "proposed_change": "Delete the edge from boiling to the steam-venting event.",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "When deleting a dead-end node, also remove incident edges that only feed that deleted observation.",
+      "few_shot_takeaway": "Clean up edges attached solely to a deleted disconnected node.",
+      "source_file": "batch_5/5/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "edge_addition_0",
+      "proposed_change": "Add enables edge from the no-venting repair state to the pressure-buildup step.",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "When evidence shows a state affects pressure retention rather than leak formation, reconnect it to the pressure-buildup step.",
+      "few_shot_takeaway": "Fix unsupported causation by rerouting the edge to the specific downstream mechanism the evidence actually supports.",
+      "source_file": "batch_5/8/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "edge_deletion_0",
+      "proposed_change": "Delete the enables edge from the no-venting repair state to the internal leak event.",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "Delete edges that contradict the locally stated mechanism for how a leak path formed.",
+      "few_shot_takeaway": "If the narrative assigns a leak path to a different physical cause, remove the unsupported upstream edge.",
+      "source_file": "batch_5/8/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "node_deletion_0",
+      "proposed_change": "Delete the two-phase condition node.",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "Remove disconnected background conditions when no distinct downstream causal role is supported.",
+      "few_shot_takeaway": "Delete terminal condition stubs instead of forcing weak causal links.",
+      "source_file": "batch_5/8/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "edge_addition_1",
+      "proposed_change": "Add enables edge from the high-pressure condition to the major loss-of-containment event.",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "Retained condition nodes should gain an evidence-backed downstream link or be removed.",
+      "few_shot_takeaway": "If a condition is kept, connect it to the nearest downstream event it materially shapes.",
+      "source_file": "batch_5/8/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "edge_addition_2",
+      "proposed_change": "Add enables edge from the low-confinement condition to the dispersion event.",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "Retained release-environment conditions should be linked to the step they influence, such as dispersion.",
+      "few_shot_takeaway": "Use environmental condition nodes only when they are integrated into a supported release or dispersion mechanism.",
+      "source_file": "batch_5/8/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "edge_deletion_1",
+      "proposed_change": "Delete the has edge from the ACSR location to the two-phase condition.",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "When a disconnected condition node is removed, remove its dependent support edge as cleanup.",
+      "few_shot_takeaway": "After deleting a nonfunctional node, also delete the attachment edges that only existed to support it.",
+      "source_file": "batch_5/8/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "node_deletion_0",
+      "proposed_change": "Delete the standalone material node for steel wool.",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "Remove a standalone node when it lacks a separate evidence-grounded causal role and only preserves a disconnected subgraph.",
+      "few_shot_takeaway": "If a material-detail node does not contribute its own supported causal step, prefer deleting it rather than keeping an isolated side branch.",
+      "source_file": "batch_5/9/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "edge_addition_0",
+      "proposed_change": "Add a has edge from the discharge strainer entity to the dislodged-basket failure event.",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "Integrate an isolated equipment/entity node by linking it to the supported failure event it participates in.",
+      "few_shot_takeaway": "When an equipment node is stranded outside the main path, reconnect it to the specific failure event already supported by the narrative.",
+      "source_file": "batch_5/9/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "edge_addition_1",
+      "proposed_change": "Add an enables edge from mechanical-seal dry-running damage to the hot mechanical seal ignition-source event.",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "Give a dangling damage or observation node a supported downstream role when evidence ties it to an existing causal step.",
+      "few_shot_takeaway": "If a failure-evidence node ends the chain prematurely, connect it to the next supported event instead of leaving it as a terminal leaf.",
+      "source_file": "batch_5/9/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "edge_deletion_0",
+      "proposed_change": "Delete the has edge from the discharge strainer to the steel wool node.",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "Remove a composition edge when its only effect is to preserve an isolated subgraph after the dependent node is deleted.",
+      "few_shot_takeaway": "After deleting an unsupported standalone node, also remove any leftover composition edge that would keep the disconnected fragment alive.",
+      "source_file": "batch_5/9/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "node_update_0",
+      "proposed_change": "Rename the ignition-source node from a specific hand-truck spark/friction source to \"Unknown ignition source.\"",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "When the exact ignition source is not definitively identified, model it as an uncertain ignition-source node rather than a specific mechanism.",
+      "few_shot_takeaway": "If the report confirms ignition but not the exact source, generalize the ignition-source node instead of committing the graph to one candidate source.",
+      "source_file": "batch_6/2/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "edge_deletion_0",
+      "proposed_change": "Remove the edge from rain-driven relocation activity to the ignition-source node.",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "Do not anchor an uncertain ignition source to one specific upstream activity when the evidence lists multiple possible sources.",
+      "few_shot_takeaway": "Delete upstream links that force an uncertain ignition source into a single specific pathway unsupported by the report.",
+      "source_file": "batch_6/2/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "edge_deletion_1",
+      "proposed_change": "Delete the edge from the ignition-source node to ignition of spilled powder.",
+      "decision": "rejected",
+      "reviewer_reason": "The name is replaced, we still need ignition source for the following nodes",
+      "matched_rule": "After generalizing an uncertain ignition source, retain a generic causal link from the ignition-source node to the ignition event.",
+      "few_shot_takeaway": "Do not remove a required ignition-source-to-ignition link just because the ignition source has been renamed to reflect uncertainty.",
+      "source_file": "batch_6/2/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "edge_addition_1",
+      "proposed_change": "Add an edge from the Solid condition node to the powder spill event.",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "A condition node that is disconnected downstream should be linked to an evidence-supported mechanism step or else removed.",
+      "few_shot_takeaway": "When a condition node is causally unused, add the most directly supported downstream connection that gives it an active role in the mechanism.",
+      "source_file": "batch_6/2/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "node_addition_0",
+      "proposed_change": "Add an intermediate event for propagation from the Dry Grit Filter to other previously uninvolved process equipment before broader facility-wide explosions.",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "Add an intermediate node when the source material explicitly describes a distinct causal step that is currently collapsed into a broader transition.",
+      "few_shot_takeaway": "When a report names a separate propagation stage, represent it as its own event node rather than folding it into a downstream consequence.",
+      "source_file": "batch_6/4/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "edge_deletion_0",
+      "proposed_change": "Delete the direct enables edge from Dry Grit Filter propagation to multiple secondary dust explosions.",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "Remove a direct edge when an explicitly supported intermediate step should sit between the same source and target.",
+      "few_shot_takeaway": "If a direct link skips over a documented intermediate event, delete the shortcut edge after inserting the missing step.",
+      "source_file": "batch_6/4/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "edge_addition_0",
+      "proposed_change": "Add an enables edge from the solid-phase condition node to the dust-lofting event.",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "Connect a supported but disconnected condition node to a supported downstream event when that gives the condition an explicit causal role.",
+      "few_shot_takeaway": "Do not leave supported condition nodes isolated; attach them to a concrete downstream event if the evidence supports a causal contribution.",
+      "source_file": "batch_6/4/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "node_addition_0",
+      "proposed_change": "Add a housekeeping-failure event for inadequate housekeeping practices allowing sugar and dust accumulations to remain, linked to the accumulation event.",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "Add an explicit missing step when the source identifies a separate contributor that allowed hazardous accumulations to persist.",
+      "few_shot_takeaway": "When hazardous deposits are attributed to both release and failure to remove material, model housekeeping as its own causal step.",
+      "source_file": "batch_6/7/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "node_deletion_0",
+      "proposed_change": "Delete the ignition-source node for the overheated bearing as redundant with the mechanical-failure node.",
+      "decision": "rejected",
+      "reviewer_reason": "The label ignition source cannot be deleted, since this is a ignition triggered explosion. Whith ignition source present, it can better represent the causal chain",
+      "matched_rule": "Do not delete a supported node when it preserves the explicit ignition stage in an ignition-triggered explosion chain.",
+      "few_shot_takeaway": "Treat apparent duplicates cautiously if one node carries a necessary ignition-stage role in the hazard sequence.",
+      "source_file": "batch_6/7/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "edge_addition_0",
+      "proposed_change": "Add a direct enables edge from the overheated-bearing mechanical failure to the primary dust explosion.",
+      "decision": "rejected",
+      "reviewer_reason": "The previous one was declined",
+      "matched_rule": "Do not add a direct replacement edge when its justification depends on a node deletion that was not approved.",
+      "few_shot_takeaway": "If an intermediate node is retained, avoid adding a bypass edge that only existed to replace it.",
+      "source_file": "batch_6/7/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "edge_addition_1",
+      "proposed_change": "Add an enables edge from the solid-phase condition to the hazardous accumulation event.",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "Connect disconnected condition nodes to the operative event they enable when they otherwise remain dead ends.",
+      "few_shot_takeaway": "Use downstream links from condition nodes to integrate isolated material-property subgraphs into the main accident chain.",
+      "source_file": "batch_6/7/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "edge_addition_2",
+      "proposed_change": "Add an enables edge from combustibility to the secondary-explosion event.",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "Link a fuel-property condition to the explosion event where that property is functionally used as fuel.",
+      "few_shot_takeaway": "When combustibility is isolated, connect it to the explosion step it makes possible.",
+      "source_file": "batch_6/7/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "edge_deletion_0",
+      "proposed_change": "Delete the enables edge from the overheated-bearing mechanical-failure node to the overheated-bearing ignition-source node.",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "Remove an edge that exists only to support a redundant local duplication and is not needed for the retained chain structure.",
+      "few_shot_takeaway": "If two nearby nodes express nearly the same local fact, pruning the connecting edge can reduce redundancy even when both nodes stay.",
+      "source_file": "batch_6/7/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "edge_addition_0",
+      "proposed_change": "Add an enables edge from indoor flammable-mixture accumulation to the ignition event.",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "Restore a broken downstream chain by linking the accumulated hazardous state to the ignition event.",
+      "few_shot_takeaway": "When a key process event is a dead end just before the loss event, add the minimal downstream edge that reconnects the main sequence.",
+      "source_file": "batch_6/8/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "node_update_0",
+      "proposed_change": "Rename the existing node from \"Store's exterior back wall\" to \"Tank directly against store's exterior back wall.\"",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "Reuse an existing node to represent a missing causal circumstance when the evidence supports it, instead of adding a new node.",
+      "few_shot_takeaway": "If the graph already contains the right physical element but names it too narrowly, prefer a rename that captures the causal circumstance over creating another node.",
+      "source_file": "batch_6/8/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "edge_addition_1",
+      "proposed_change": "Add an enables edge from the tank-placement circumstance to propane entry into the store.",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "Make an already extracted causal circumstance explicit by connecting it to the event it enables.",
+      "few_shot_takeaway": "When an evidence-backed circumstance node already exists but is not in the chain, connect it to the affected event rather than adding parallel structure.",
+      "source_file": "batch_6/8/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "node_update_1",
+      "proposed_change": "Relabel the hazard consequence node from \"Confined explosion\" to \"HazardConsequence.\"",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "Hazard consequence nodes should use the schema label, with the specific consequence kept in the name field.",
+      "few_shot_takeaway": "Fix schema-only node errors with a relabel, without changing the underlying consequence meaning.",
+      "source_file": "batch_6/8/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "node_update_0",
+      "proposed_change": "Rename the suction-valve event to include the mistaken closed indication from wrench position while noting that the valve actually remained open.",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "If an explicit initiating mechanism is missing, refine the existing event node to capture it with minimal graph change.",
+      "few_shot_takeaway": "Prefer a precise rename over a new node when the omitted mechanism is a more specific explanation of an existing event.",
+      "source_file": "batch_6/9/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "node_update_1",
+      "proposed_change": "Relabel the release event from ContinuousRelease to InstantRelease.",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "Use the schema label that matches the cited event semantics; a sudden loss of containment should be typed as instantaneous.",
+      "few_shot_takeaway": "Correct event typing when the evidence clearly describes a sudden release rather than an ongoing discharge.",
+      "source_file": "batch_6/9/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "edge_addition_0",
+      "proposed_change": "Add an enables edge from liquid phase to the release event.",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "Condition nodes should not remain stranded descriptors; add downstream causal links when the condition participates in the accident sequence.",
+      "few_shot_takeaway": "When a condition is evidenced as part of the loss event, connect it downstream instead of leaving it only as a material attribute.",
+      "source_file": "batch_6/9/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "edge_addition_1",
+      "proposed_change": "Add an enables edge from high temperature to the release event.",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "Condition nodes should not remain stranded descriptors; add downstream causal links when the condition participates in the accident sequence.",
+      "few_shot_takeaway": "Give supported process conditions a causal role when they are currently disconnected from the event chain.",
+      "source_file": "batch_6/9/review_feedback_analysis_output.json"
+    },
+    {
+      "decision_key": "edge_addition_2",
+      "proposed_change": "Add an enables edge from combustibility to the jet-fire consequence.",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "Connect a condition node to the consequence it materially enables when ignition-and-burning evidence supports that role.",
+      "few_shot_takeaway": "Tie combustible or flammable properties to the fire consequence when they are otherwise left disconnected.",
+      "source_file": "batch_6/9/review_feedback_analysis_output.json"
+    }
+  ],
+  "diagnosis_patterns": [
+    {
+      "derived_from_decision_key": "node_addition_0",
+      "decision": "accepted",
+      "observed_pattern": "A distinct internal process step between an input action and a reaction event was missing.",
+      "diagnosis_interpretation": "The issue should be framed as a missing-step diagnosis: the causal narrative required an explicit intermediate state rather than a tighter direct link between existing nodes.",
+      "supporting_rule": "The graph skips a supported in-system poor-dilution/poor-mixing overconcentration step between feed entry and decomposition.",
+      "few_shot_takeaway": "Diagnose a missing-step problem when the source gives a separate mechanism-bearing transition that changes the state of the system before the next event.",
+      "source_file": "batch_5/1/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "edge_deletion_0",
+      "decision": "accepted",
+      "observed_pattern": "A direct edge was removed once an omitted intermediate mechanism was recognized.",
+      "diagnosis_interpretation": "The connectivity problem is best diagnosed as an omitted intermediate causal step, with the direct edge treated as a shortcut created by that omission.",
+      "supporting_rule": "The main connectivity problem is better characterized as a missing causal step rather than a separate weak-edge issue.",
+      "few_shot_takeaway": "When a direct edge only exists because an intermediate mechanism was omitted, diagnose the omission first and treat the edge as a shortcut artifact.",
+      "source_file": "batch_5/1/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "node_update_0",
+      "decision": "accepted",
+      "observed_pattern": "Node meaning stayed the same while only the schema label changed.",
+      "diagnosis_interpretation": "This should be diagnosed as a schema-mismatch issue, not as an unsupported hazard definition or a wrong hazard selection.",
+      "supporting_rule": "The hazard consequence node uses the hazard name as its label instead of the schema-required label HazardConsequence.",
+      "few_shot_takeaway": "If the content is right but the field value violates the schema, diagnose it as schema mismatch rather than as a substantive causal-model error.",
+      "source_file": "batch_5/1/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "node_deletion_0",
+      "decision": "accepted",
+      "observed_pattern": "A condition is asserted from text that does not directly describe that state variable.",
+      "diagnosis_interpretation": "This should be diagnosed as an unsupported condition-node problem rather than as a missing causal step or consequence issue.",
+      "supporting_rule": "A node is unsupported when the incident text does not directly establish the asserted condition as a distinct supported state.",
+      "few_shot_takeaway": "If evidence describes who was affected or what happened, but not the claimed condition, diagnose unsupported condition semantics rather than a pathway gap.",
+      "source_file": "batch_5/2/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "edge_addition_0",
+      "decision": "accepted",
+      "observed_pattern": "A condition participates only downstream and lacks any incoming grounding link.",
+      "diagnosis_interpretation": "This should be framed as a disconnected or under-integrated condition-layer issue, not as evidence that a new event or condition must be introduced.",
+      "supporting_rule": "A condition lacking an incoming grounding connection is a disconnected-node problem.",
+      "few_shot_takeaway": "When a condition is only used downstream, diagnose missing grounding connectivity before diagnosing a missing step.",
+      "source_file": "batch_5/2/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "edge_deletion_0",
+      "decision": "accepted",
+      "observed_pattern": "An edge is questionable only because its source condition is weakly supported.",
+      "diagnosis_interpretation": "This should be treated as derivative cleanup from an unsupported-node diagnosis rather than as a standalone edge-type, direction, or relation error.",
+      "supporting_rule": "No separate unsupported-edge diagnosis is needed when the edge problem follows from a speculative source condition.",
+      "few_shot_takeaway": "If an edge becomes invalid only because its source node is unsupported, diagnose the node first and treat the edge as secondary cleanup.",
+      "source_file": "batch_5/2/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "node_deletion_0",
+      "decision": "rejected",
+      "observed_pattern": "Terminal consequence semantics are disputed, but an explosion consequence is still supported.",
+      "diagnosis_interpretation": "The issue should be framed as mismatch in consequence wording or confinement characterization, not as absence of a valid hazard endpoint. The reviewer treated the node as imperfectly labeled rather than unsupported enough to remove.",
+      "supporting_rule": "If evidence still supports the endpoint phenomenon, diagnose it as semantic misalignment before diagnosing it as removable unsupported content.",
+      "few_shot_takeaway": "Distinguish between a wrong consequence label and no supported consequence at all.",
+      "source_file": "batch_5/5/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "edge_deletion_0",
+      "decision": "rejected",
+      "observed_pattern": "The edge challenge was entirely dependent on the disputed terminal-node diagnosis.",
+      "diagnosis_interpretation": "This was not treated as an independent edge defect. The reviewer implicitly prioritized resolving the endpoint framing first, so the edge remained because the downstream consequence node remained.",
+      "supporting_rule": "Do not diagnose a dependent edge as separately removable when its only problem comes from a node diagnosis that is not accepted.",
+      "few_shot_takeaway": "Resolve node validity before escalating attached-edge deletions that have no stand-alone diagnostic basis.",
+      "source_file": "batch_5/5/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "node_deletion_1",
+      "decision": "accepted",
+      "observed_pattern": "A supported event node has no downstream causal participation.",
+      "diagnosis_interpretation": "The reviewer accepted the diagnosis that a node can be evidentially true yet still be a disconnected-node problem if it functions only as an observation and not as part of a complete causal path.",
+      "supporting_rule": "A node with no supported downstream causal role is a disconnected observation and may be diagnosed as nonfunctional in the graph.",
+      "few_shot_takeaway": "Diagnose dead-end observations as structural disconnects even when the report explicitly mentions them.",
+      "source_file": "batch_5/5/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "edge_deletion_1",
+      "decision": "accepted",
+      "observed_pattern": "An incoming edge exists only to support a deleted dead-end observation.",
+      "diagnosis_interpretation": "Once the observation was diagnosed as nonfunctional, its feeder edge no longer represented a needed causal step. The accepted cleanup shows the diagnosis was centered on local connectivity, not on disputing the upstream event.",
+      "supporting_rule": "If a node is removed for lacking downstream causal role, remove the incident edge that only serves that disconnected node.",
+      "few_shot_takeaway": "After diagnosing a node as disconnected, treat its feeder edge as graph cleanup rather than as a separate causal mechanism.",
+      "source_file": "batch_5/5/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "edge_addition_0",
+      "decision": "accepted",
+      "observed_pattern": "Repair/isolation state was misattached to leak creation instead of pressure buildup.",
+      "diagnosis_interpretation": "This should be diagnosed as a local unsupported-edge problem: the condition affects retention and overpressure after leakage, not the origin of the leak path.",
+      "supporting_rule": "The no-venting repair state contributed to trapping and pressure buildup rather than to creation of the internal leak path.",
+      "few_shot_takeaway": "When a precursor changes what happens after leakage, diagnose it as pressure-buildup influence rather than leak causation.",
+      "source_file": "batch_5/8/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "edge_deletion_0",
+      "decision": "accepted",
+      "observed_pattern": "Leak event had the wrong immediate cause attached.",
+      "diagnosis_interpretation": "The issue is best framed as unsupported attribution of a mechanism, because the narrative names a different physical cause for the leak path.",
+      "supporting_rule": "If the report attributes leakage to a specific physical defect, competing causes should not be attached to that leak event without separate evidence.",
+      "few_shot_takeaway": "Diagnose wrongly attributed leak causes as unsupported edges, not as alternative parallel causes by default.",
+      "source_file": "batch_5/8/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "node_deletion_0",
+      "decision": "accepted",
+      "observed_pattern": "Descriptive service condition remained a terminal stub.",
+      "diagnosis_interpretation": "This is a disconnected-node issue, not an unsupported-node issue, because the condition is textually supported but not causally used.",
+      "supporting_rule": "Condition nodes that have only an incoming has edge and no downstream role do not function as meaningful causal conditions.",
+      "few_shot_takeaway": "Treat isolated descriptive conditions as removable background unless the record supports a concrete downstream effect.",
+      "source_file": "batch_5/8/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "edge_addition_1",
+      "decision": "accepted",
+      "observed_pattern": "Retained equipment condition needed downstream integration into the release sequence.",
+      "diagnosis_interpretation": "The diagnosis is lack of causal integration for an otherwise valid condition node, not invalid node content.",
+      "supporting_rule": "Terminal condition nodes need evidence-supported downstream integration or removal.",
+      "few_shot_takeaway": "When a condition is well supported but isolated, diagnose the problem as missing integration rather than node invalidity.",
+      "source_file": "batch_5/8/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "edge_addition_2",
+      "decision": "accepted",
+      "observed_pattern": "Release-area condition needed integration into dispersion.",
+      "diagnosis_interpretation": "This indicates the condition was relevant, but only if framed as shaping the released cloud's behavior rather than left as standalone context.",
+      "supporting_rule": "Release-setting conditions should participate in the downstream mechanism they influence, such as dispersion.",
+      "few_shot_takeaway": "Diagnose environmental condition nodes by asking which release or dispersion step they materially modify.",
+      "source_file": "batch_5/8/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "edge_deletion_1",
+      "decision": "accepted",
+      "observed_pattern": "Support edge disappeared because its condition node was removed.",
+      "diagnosis_interpretation": "This implies the deleted condition was treated as nonessential background, so its attachment edge was cleanup rather than an independent causal issue.",
+      "supporting_rule": "When a disconnected background condition lacks a strong downstream role and is deleted, its supporting attachment edge should also be removed.",
+      "few_shot_takeaway": "If a node is deleted for lacking causal function, diagnose its remaining support edges as cleanup artifacts.",
+      "source_file": "batch_5/8/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "node_deletion_0",
+      "decision": "accepted",
+      "observed_pattern": "A material-detail node exists only inside an isolated composition subgraph.",
+      "diagnosis_interpretation": "This should be diagnosed as a disconnected-node problem with an extraneous detail, not as a missing causal step in the accident sequence.",
+      "supporting_rule": "Nodes that do not participate in a valid supported path to the hazard function as isolated or dangling elements.",
+      "few_shot_takeaway": "Diagnose isolated descriptive details as removable connectivity artifacts when they lack an independent causal role.",
+      "source_file": "batch_5/9/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "edge_addition_0",
+      "decision": "accepted",
+      "observed_pattern": "An equipment/entity node is present but not connected to the failure event involving that equipment.",
+      "diagnosis_interpretation": "The issue is best framed as poor integration of an existing node into the established event chain, rather than as absent accident content.",
+      "supporting_rule": "An isolated composition subgraph that does not connect to the failure/propagation sequence is a disconnected-node issue.",
+      "few_shot_takeaway": "When a physical asset is isolated from its own failure event, diagnose the problem as missing integration into the main path.",
+      "source_file": "batch_5/9/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "edge_addition_1",
+      "decision": "accepted",
+      "observed_pattern": "A damage-evidence event appears as a terminal leaf despite evidence of later causal significance.",
+      "diagnosis_interpretation": "This should be diagnosed as an incomplete downstream linkage for an otherwise supported node, not as an unsupported extraction.",
+      "supporting_rule": "A dangling terminal node that does not lead to any further causal step indicates a connectivity defect.",
+      "few_shot_takeaway": "If observed damage is supported but causally stranded, diagnose missing downstream linkage before considering node removal.",
+      "source_file": "batch_5/9/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "edge_deletion_0",
+      "decision": "accepted",
+      "observed_pattern": "A leftover composition edge survives only as residue of an isolated side branch.",
+      "diagnosis_interpretation": "The diagnosis should treat such edges as part of the same disconnected-node cleanup, not as meaningful structure that deserves preservation.",
+      "supporting_rule": "Keeping an isolated composition edge preserves the disconnected subgraph rather than integrating the information into the main event chain.",
+      "few_shot_takeaway": "Diagnose residual composition links as cleanup targets when they only maintain disconnected fragments.",
+      "source_file": "batch_5/9/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "node_update_0",
+      "decision": "accepted",
+      "observed_pattern": "An over-specific ignition-source label was generalized while the ignition-source role was preserved.",
+      "diagnosis_interpretation": "The issue is best framed as uncertainty/schema handling, not as absence of an ignition-source concept.",
+      "supporting_rule": "If the report says the exact ignition source was not definitively identified, diagnose the problem as over-specific ignition-source modeling.",
+      "few_shot_takeaway": "Diagnose named candidate ignition sources as a schema-mismatch problem when the evidence supports ignition occurrence but not source certainty.",
+      "source_file": "batch_6/2/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "edge_deletion_0",
+      "decision": "accepted",
+      "observed_pattern": "A specific precursor activity was detached from an ignition source that remained uncertain.",
+      "diagnosis_interpretation": "The diagnostic problem is over-commitment of causation to one candidate precursor, not a missing causal step.",
+      "supporting_rule": "When multiple ignition sources are possible, do not diagnose one upstream activity as the definitive generator of the ignition source.",
+      "few_shot_takeaway": "Treat unjustified upstream anchoring of an uncertain ignition source as an over-specific diagnosis rather than as a connectivity gap.",
+      "source_file": "batch_6/2/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "edge_deletion_1",
+      "decision": "rejected",
+      "observed_pattern": "The ignition-source node stayed connected to the ignition event after being generalized.",
+      "diagnosis_interpretation": "The diagnosis should preserve the ignition function in the causal chain while relaxing only the source specificity.",
+      "supporting_rule": "Uncertain identification of the source does not remove the need to represent an ignition-source-to-ignition transition.",
+      "few_shot_takeaway": "Do not diagnose uncertainty about source identity as permission to disconnect ignition causation from the ignition event.",
+      "source_file": "batch_6/2/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "edge_addition_1",
+      "decision": "accepted",
+      "observed_pattern": "A previously downstream-disconnected condition was given a supported mechanism role.",
+      "diagnosis_interpretation": "The issue is a participation gap for a condition node, which should be framed as a disconnected-node problem when evidence supports a downstream effect.",
+      "supporting_rule": "If a condition node has no downstream causal use, diagnose it as disconnected unless it can be tied to an evidence-supported step.",
+      "few_shot_takeaway": "When a condition node is only descriptive and not mechanistic, diagnose a disconnected-node issue and seek a supported downstream link.",
+      "source_file": "batch_6/2/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "node_addition_0",
+      "decision": "accepted",
+      "observed_pattern": "A documented propagation sequence was compressed into a single broader transition.",
+      "diagnosis_interpretation": "This should be diagnosed as a missing intermediate step, not merely as a vague propagation edge.",
+      "supporting_rule": "Treat explicitly described local propagation stages as distinct missing-step issues when they are absent from the graph.",
+      "few_shot_takeaway": "When the narrative separates two propagation stages, diagnose the omission as a missing step.",
+      "source_file": "batch_6/4/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "edge_deletion_0",
+      "decision": "accepted",
+      "observed_pattern": "A direct causal edge bypassed a newly supported intermediate stage.",
+      "diagnosis_interpretation": "Once the intermediate stage is recognized, the original direct link is best framed as a shortcut structure rather than a complete causal representation.",
+      "supporting_rule": "Do not keep a direct edge that skips over an explicitly supported intermediate event in the same causal chain.",
+      "few_shot_takeaway": "If a direct edge survives only by skipping a documented step, diagnose the problem as structural compression.",
+      "source_file": "batch_6/4/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "edge_addition_0",
+      "decision": "accepted",
+      "observed_pattern": "A supported condition node had no downstream participation in the causal chain.",
+      "diagnosis_interpretation": "This should be framed as a disconnected-node issue where the condition is valid but under-integrated, not as an unsupported node problem.",
+      "supporting_rule": "When a condition is supported by evidence but unused in the mechanism, diagnose it as disconnected and link it only to a supported downstream event.",
+      "few_shot_takeaway": "A supported condition without causal participation is a connectivity diagnosis, not a support diagnosis.",
+      "source_file": "batch_6/4/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "node_addition_0",
+      "decision": "accepted",
+      "observed_pattern": "Independent accumulation-management failure was missing from the deposit pathway.",
+      "diagnosis_interpretation": "The accumulation problem should be diagnosed as incomplete because release alone does not explain why deposits remained and reached hazardous levels.",
+      "supporting_rule": "The graph omits the explicitly cited housekeeping contributor to hazardous accumulations.",
+      "few_shot_takeaway": "When the source separately blames poor housekeeping for hazardous deposits, diagnose it as a missing causal step.",
+      "source_file": "batch_6/7/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "node_deletion_0",
+      "decision": "rejected",
+      "observed_pattern": "An apparent duplicate also served as the explicit ignition-stage representation.",
+      "diagnosis_interpretation": "Duplicate-node diagnoses should be limited when one node preserves the ignition stage in the core explosion narrative.",
+      "supporting_rule": "The main causal sequence includes a distinct dust-cloud-to-ignition-to-explosion progression.",
+      "few_shot_takeaway": "Do not frame every same-fact pair as removable duplication if one node captures a critical hazard stage such as ignition.",
+      "source_file": "batch_6/7/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "edge_addition_0",
+      "decision": "rejected",
+      "observed_pattern": "The proposed direct link was conditional on removing an intermediate ignition node.",
+      "diagnosis_interpretation": "This is not an independent missing-edge diagnosis; it only becomes relevant under an alternative node structure where the ignition-stage node is removed.",
+      "supporting_rule": "A direct replacement edge is only warranted after the duplicate ignition-source node is removed.",
+      "few_shot_takeaway": "Distinguish true missing edges from contingent replacement edges that only apply if the graph is restructured first.",
+      "source_file": "batch_6/7/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "edge_addition_1",
+      "decision": "accepted",
+      "observed_pattern": "A condition node was a dead end relative to the accumulation event.",
+      "diagnosis_interpretation": "The disconnected-node issue is best framed as missing participation of material state in the event where deposited material actually accumulates.",
+      "supporting_rule": "The material/property subgraph was not integrated into the operative causal chain, and the condition nodes had no outgoing role.",
+      "few_shot_takeaway": "When a material-condition node has no downstream use, diagnose where that condition becomes operational in the event chain.",
+      "source_file": "batch_6/7/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "edge_addition_2",
+      "decision": "accepted",
+      "observed_pattern": "A fuel-property node was disconnected from the propagation event it powers.",
+      "diagnosis_interpretation": "The isolation of combustibility should be diagnosed as missing functional linkage to the explosion event, not as a problem with the property label itself.",
+      "supporting_rule": "The material/property subgraph was not integrated into the operative causal chain.",
+      "few_shot_takeaway": "If a fuel property is stranded, diagnose the event where that property is actually consumed as explosion fuel.",
+      "source_file": "batch_6/7/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "edge_deletion_0",
+      "decision": "accepted",
+      "observed_pattern": "Redundancy was handled at the edge level instead of by deleting a node.",
+      "diagnosis_interpretation": "The duplicate-mechanism concern can be framed as over-connection between near-equivalent local nodes even when both semantic labels are retained.",
+      "supporting_rule": "Remove the edge that exists only because of the redundant local duplication.",
+      "few_shot_takeaway": "If reviewers keep both nodes for semantic clarity, diagnose and prune only the redundant bridging edge.",
+      "source_file": "batch_6/7/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "edge_addition_0",
+      "decision": "accepted",
+      "observed_pattern": "A key process event ends without any path into ignition or loss.",
+      "diagnosis_interpretation": "This should be diagnosed as a broken main accident chain, not as an isolated ignition event.",
+      "supporting_rule": "A key event that has no outgoing connection to the ignition/explosion sequence is a disconnected-node problem.",
+      "few_shot_takeaway": "If a central pre-loss event does not feed the final outcome, diagnose missing chain continuity before searching for new content.",
+      "source_file": "batch_6/8/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "node_update_0",
+      "decision": "accepted",
+      "observed_pattern": "An existing node partially captures the missing circumstance but is framed too narrowly.",
+      "diagnosis_interpretation": "This should be diagnosed as a missing-step framing issue that can be resolved by recasting an existing node, not necessarily by adding a new one.",
+      "supporting_rule": "The missing causal circumstance can be made explicit by reusing an existing node to represent it.",
+      "few_shot_takeaway": "When evidence supports a broader causal reading of an existing node, diagnose the gap as weak framing of a missing step rather than missing extraction.",
+      "source_file": "batch_6/8/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "edge_addition_1",
+      "decision": "accepted",
+      "observed_pattern": "A documented contextual circumstance exists in the graph but does not participate in causation.",
+      "diagnosis_interpretation": "This should be diagnosed as an omitted causal link for an existing circumstance, rather than as absent evidence or absent nodes.",
+      "supporting_rule": "A causal circumstance that is already present but not connected leaves the major causal step effectively absent.",
+      "few_shot_takeaway": "If a supporting circumstance node is present but idle, diagnose the issue as missing integration into the chain.",
+      "source_file": "batch_6/8/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "node_update_1",
+      "decision": "accepted",
+      "observed_pattern": "The consequence meaning is correct, but the node label violates the schema.",
+      "diagnosis_interpretation": "This should be diagnosed as a schema-mismatch issue, not as a content-selection error.",
+      "supporting_rule": "The hazard consequence node should use the required generic label, while the specific consequence stays in the name field.",
+      "few_shot_takeaway": "Separate schema violations from causal-content problems; a correct concept in the wrong field is a schema diagnosis.",
+      "source_file": "batch_6/8/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "node_update_0",
+      "decision": "accepted",
+      "observed_pattern": "Initiating event is underspecified.",
+      "diagnosis_interpretation": "The issue is best framed as a missing initiating mechanism within an existing event, not as a separate new branch.",
+      "supporting_rule": "The explicit operator misidentification mechanism is missing from the initiation sequence.",
+      "few_shot_takeaway": "Diagnose omitted belief, indication, or position-reading details as missing-step refinement when they explain why an existing initiating event occurred.",
+      "source_file": "batch_6/9/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "node_update_1",
+      "decision": "accepted",
+      "observed_pattern": "Event type does not match evidence semantics.",
+      "diagnosis_interpretation": "The problem is a schema-mismatch diagnosis about event classification rather than a missing-causality problem.",
+      "supporting_rule": "A sudden loss of containment should be classified with the schema-preferred instantaneous release type.",
+      "few_shot_takeaway": "When the sequence is intact but the event label conflicts with report wording, frame the issue as schema mismatch.",
+      "source_file": "batch_6/9/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "edge_addition_0",
+      "decision": "accepted",
+      "observed_pattern": "Condition node has no downstream causal role.",
+      "diagnosis_interpretation": "The issue should be diagnosed as disconnected-node cleanup: the condition is supported, but it remains only descriptive until linked into the release sequence.",
+      "supporting_rule": "Supported condition nodes should participate downstream in the causal chain rather than remain attribute-only descriptors.",
+      "few_shot_takeaway": "Diagnose supported-but-stranded conditions as connectivity problems, not unsupported nodes.",
+      "source_file": "batch_6/9/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "edge_addition_1",
+      "decision": "accepted",
+      "observed_pattern": "Process condition is stranded as an attribute.",
+      "diagnosis_interpretation": "The temperature issue is best framed as missing downstream participation for a retained condition node, not as a need to delete the node.",
+      "supporting_rule": "Several condition nodes lack downstream participation in the causal chain.",
+      "few_shot_takeaway": "If a condition is evidenced and relevant, diagnose the problem as missing connectivity before considering removal.",
+      "source_file": "batch_6/9/review_feedback_analysis_output.json"
+    },
+    {
+      "derived_from_decision_key": "edge_addition_2",
+      "decision": "accepted",
+      "observed_pattern": "Hazard-relevant material property is disconnected from the consequence.",
+      "diagnosis_interpretation": "The combustibility issue is a diagnosis of missing consequence linkage for an otherwise supported condition node.",
+      "supporting_rule": "Connect retained hazard conditions to the event or consequence they materially enable when evidence shows participation.",
+      "few_shot_takeaway": "For fire scenarios, diagnose disconnected combustibility or flammability nodes as missing links to the fire consequence.",
+      "source_file": "batch_6/9/review_feedback_analysis_output.json"
+    }
+  ],
+  "deduped_takeaways": {
+    "planning": [
+      "When the report explicitly describes an internal transition that explains why a later event occurred, represent it as its own node instead of collapsing it into adjacent events.",
+      "If a new intermediate node makes an older direct link a shortcut, remove the shortcut so the graph reflects the full supported mechanism.",
+      "When a node is semantically correct but structurally mislabeled, prefer a label fix over replacing the node or changing its meaning.",
+      "Accept deletion of speculative condition nodes when the evidence supports exposure or outcome but not the asserted condition itself.",
+      "Accept the smallest edge addition that restores grounding for an under-integrated condition instead of expanding the graph with new nodes.",
+      "Accept removal of edges that rely entirely on an unsupported node to keep the graph evidence-grounded.",
+      "If the endpoint is semantically imperfect but still represents the supported accident consequence, keep it rather than deleting the graph’s only hazard outcome.",
+      "When a node-deletion proposal is rejected, reject dependent edge removals unless there is an independent edge-level diagnosis.",
+      "A factually supported event can still be removed if it only serves as a dead-end observation and does not advance the causal chain.",
+      "Clean up edges attached solely to a deleted disconnected node.",
+      "Fix unsupported causation by rerouting the edge to the specific downstream mechanism the evidence actually supports.",
+      "If the narrative assigns a leak path to a different physical cause, remove the unsupported upstream edge.",
+      "Delete terminal condition stubs instead of forcing weak causal links.",
+      "If a condition is kept, connect it to the nearest downstream event it materially shapes.",
+      "Use environmental condition nodes only when they are integrated into a supported release or dispersion mechanism.",
+      "After deleting a nonfunctional node, also delete the attachment edges that only existed to support it.",
+      "If a material-detail node does not contribute its own supported causal step, prefer deleting it rather than keeping an isolated side branch.",
+      "When an equipment node is stranded outside the main path, reconnect it to the specific failure event already supported by the narrative.",
+      "If a failure-evidence node ends the chain prematurely, connect it to the next supported event instead of leaving it as a terminal leaf.",
+      "After deleting an unsupported standalone node, also remove any leftover composition edge that would keep the disconnected fragment alive.",
+      "If the report confirms ignition but not the exact source, generalize the ignition-source node instead of committing the graph to one candidate source.",
+      "Delete upstream links that force an uncertain ignition source into a single specific pathway unsupported by the report.",
+      "Do not remove a required ignition-source-to-ignition link just because the ignition source has been renamed to reflect uncertainty.",
+      "When a condition node is causally unused, add the most directly supported downstream connection that gives it an active role in the mechanism.",
+      "When a report names a separate propagation stage, represent it as its own event node rather than folding it into a downstream consequence.",
+      "If a direct link skips over a documented intermediate event, delete the shortcut edge after inserting the missing step.",
+      "Do not leave supported condition nodes isolated; attach them to a concrete downstream event if the evidence supports a causal contribution.",
+      "When hazardous deposits are attributed to both release and failure to remove material, model housekeeping as its own causal step.",
+      "Treat apparent duplicates cautiously if one node carries a necessary ignition-stage role in the hazard sequence.",
+      "If an intermediate node is retained, avoid adding a bypass edge that only existed to replace it.",
+      "Use downstream links from condition nodes to integrate isolated material-property subgraphs into the main accident chain.",
+      "When combustibility is isolated, connect it to the explosion step it makes possible.",
+      "If two nearby nodes express nearly the same local fact, pruning the connecting edge can reduce redundancy even when both nodes stay.",
+      "When a key process event is a dead end just before the loss event, add the minimal downstream edge that reconnects the main sequence.",
+      "If the graph already contains the right physical element but names it too narrowly, prefer a rename that captures the causal circumstance over creating another node.",
+      "When an evidence-backed circumstance node already exists but is not in the chain, connect it to the affected event rather than adding parallel structure.",
+      "Fix schema-only node errors with a relabel, without changing the underlying consequence meaning.",
+      "Prefer a precise rename over a new node when the omitted mechanism is a more specific explanation of an existing event.",
+      "Correct event typing when the evidence clearly describes a sudden release rather than an ongoing discharge.",
+      "When a condition is evidenced as part of the loss event, connect it downstream instead of leaving it only as a material attribute.",
+      "Give supported process conditions a causal role when they are currently disconnected from the event chain.",
+      "Tie combustible or flammable properties to the fire consequence when they are otherwise left disconnected."
+    ],
+    "diagnosis": [
+      "Diagnose a missing-step problem when the source gives a separate mechanism-bearing transition that changes the state of the system before the next event.",
+      "When a direct edge only exists because an intermediate mechanism was omitted, diagnose the omission first and treat the edge as a shortcut artifact.",
+      "If the content is right but the field value violates the schema, diagnose it as schema mismatch rather than as a substantive causal-model error.",
+      "If evidence describes who was affected or what happened, but not the claimed condition, diagnose unsupported condition semantics rather than a pathway gap.",
+      "When a condition is only used downstream, diagnose missing grounding connectivity before diagnosing a missing step.",
+      "If an edge becomes invalid only because its source node is unsupported, diagnose the node first and treat the edge as secondary cleanup.",
+      "Distinguish between a wrong consequence label and no supported consequence at all.",
+      "Resolve node validity before escalating attached-edge deletions that have no stand-alone diagnostic basis.",
+      "Diagnose dead-end observations as structural disconnects even when the report explicitly mentions them.",
+      "After diagnosing a node as disconnected, treat its feeder edge as graph cleanup rather than as a separate causal mechanism.",
+      "When a precursor changes what happens after leakage, diagnose it as pressure-buildup influence rather than leak causation.",
+      "Diagnose wrongly attributed leak causes as unsupported edges, not as alternative parallel causes by default.",
+      "Treat isolated descriptive conditions as removable background unless the record supports a concrete downstream effect.",
+      "When a condition is well supported but isolated, diagnose the problem as missing integration rather than node invalidity.",
+      "Diagnose environmental condition nodes by asking which release or dispersion step they materially modify.",
+      "If a node is deleted for lacking causal function, diagnose its remaining support edges as cleanup artifacts.",
+      "Diagnose isolated descriptive details as removable connectivity artifacts when they lack an independent causal role.",
+      "When a physical asset is isolated from its own failure event, diagnose the problem as missing integration into the main path.",
+      "If observed damage is supported but causally stranded, diagnose missing downstream linkage before considering node removal.",
+      "Diagnose residual composition links as cleanup targets when they only maintain disconnected fragments.",
+      "Diagnose named candidate ignition sources as a schema-mismatch problem when the evidence supports ignition occurrence but not source certainty.",
+      "Treat unjustified upstream anchoring of an uncertain ignition source as an over-specific diagnosis rather than as a connectivity gap.",
+      "Do not diagnose uncertainty about source identity as permission to disconnect ignition causation from the ignition event.",
+      "When a condition node is only descriptive and not mechanistic, diagnose a disconnected-node issue and seek a supported downstream link.",
+      "When the narrative separates two propagation stages, diagnose the omission as a missing step.",
+      "If a direct edge survives only by skipping a documented step, diagnose the problem as structural compression.",
+      "A supported condition without causal participation is a connectivity diagnosis, not a support diagnosis.",
+      "When the source separately blames poor housekeeping for hazardous deposits, diagnose it as a missing causal step.",
+      "Do not frame every same-fact pair as removable duplication if one node captures a critical hazard stage such as ignition.",
+      "Distinguish true missing edges from contingent replacement edges that only apply if the graph is restructured first.",
+      "When a material-condition node has no downstream use, diagnose where that condition becomes operational in the event chain.",
+      "If a fuel property is stranded, diagnose the event where that property is actually consumed as explosion fuel.",
+      "If reviewers keep both nodes for semantic clarity, diagnose and prune only the redundant bridging edge.",
+      "If a central pre-loss event does not feed the final outcome, diagnose missing chain continuity before searching for new content.",
+      "When evidence supports a broader causal reading of an existing node, diagnose the gap as weak framing of a missing step rather than missing extraction.",
+      "If a supporting circumstance node is present but idle, diagnose the issue as missing integration into the chain.",
+      "Separate schema violations from causal-content problems; a correct concept in the wrong field is a schema diagnosis.",
+      "Diagnose omitted belief, indication, or position-reading details as missing-step refinement when they explain why an existing initiating event occurred.",
+      "When the sequence is intact but the event label conflicts with report wording, frame the issue as schema mismatch.",
+      "Diagnose supported-but-stranded conditions as connectivity problems, not unsupported nodes.",
+      "If a condition is evidenced and relevant, diagnose the problem as missing connectivity before considering removal.",
+      "For fire scenarios, diagnose disconnected combustibility or flammability nodes as missing links to the fire consequence."
+    ]
+  },
+  "rule_frequency": {
+    "planning_matched_rules": {
+      "Condition nodes should not remain stranded descriptors; add downstream causal links when the condition participates in the accident sequence.": 2,
+      "Add the smallest evidence-grounded intermediate step when the source describes a distinct process transition between an upstream action and a downstream reaction.": 1,
+      "Delete a direct causal edge when a supported intermediate step lies between the same endpoints; keeping the direct link preserves the omission.": 1,
+      "Correct schema-only label mismatches while preserving the existing node meaning.": 1,
+      "Remove a condition node when the cited evidence does not directly establish that condition as a distinct supported state.": 1,
+      "Add a minimal grounding edge when a condition node is otherwise disconnected from supported upstream context.": 1,
+      "When a supporting condition is not distinctly supported, remove its dependent causal edge as well.": 1,
+      "Do not delete the only terminal hazard node when the evidence still supports a real consequence and the issue is mainly mechanism or label alignment.": 1,
+      "Do not remove an attachment edge when its deletion was justified only by deletion of a node that is being retained.": 1,
+      "Remove supported but disconnected observations when they have no distinct downstream causal role.": 1,
+      "When deleting a dead-end node, also remove incident edges that only feed that deleted observation.": 1,
+      "When evidence shows a state affects pressure retention rather than leak formation, reconnect it to the pressure-buildup step.": 1,
+      "Delete edges that contradict the locally stated mechanism for how a leak path formed.": 1,
+      "Remove disconnected background conditions when no distinct downstream causal role is supported.": 1,
+      "Retained condition nodes should gain an evidence-backed downstream link or be removed.": 1,
+      "Retained release-environment conditions should be linked to the step they influence, such as dispersion.": 1,
+      "When a disconnected condition node is removed, remove its dependent support edge as cleanup.": 1,
+      "Remove a standalone node when it lacks a separate evidence-grounded causal role and only preserves a disconnected subgraph.": 1,
+      "Integrate an isolated equipment/entity node by linking it to the supported failure event it participates in.": 1,
+      "Give a dangling damage or observation node a supported downstream role when evidence ties it to an existing causal step.": 1,
+      "Remove a composition edge when its only effect is to preserve an isolated subgraph after the dependent node is deleted.": 1,
+      "When the exact ignition source is not definitively identified, model it as an uncertain ignition-source node rather than a specific mechanism.": 1,
+      "Do not anchor an uncertain ignition source to one specific upstream activity when the evidence lists multiple possible sources.": 1,
+      "After generalizing an uncertain ignition source, retain a generic causal link from the ignition-source node to the ignition event.": 1,
+      "A condition node that is disconnected downstream should be linked to an evidence-supported mechanism step or else removed.": 1,
+      "Add an intermediate node when the source material explicitly describes a distinct causal step that is currently collapsed into a broader transition.": 1,
+      "Remove a direct edge when an explicitly supported intermediate step should sit between the same source and target.": 1,
+      "Connect a supported but disconnected condition node to a supported downstream event when that gives the condition an explicit causal role.": 1,
+      "Add an explicit missing step when the source identifies a separate contributor that allowed hazardous accumulations to persist.": 1,
+      "Do not delete a supported node when it preserves the explicit ignition stage in an ignition-triggered explosion chain.": 1,
+      "Do not add a direct replacement edge when its justification depends on a node deletion that was not approved.": 1,
+      "Connect disconnected condition nodes to the operative event they enable when they otherwise remain dead ends.": 1,
+      "Link a fuel-property condition to the explosion event where that property is functionally used as fuel.": 1,
+      "Remove an edge that exists only to support a redundant local duplication and is not needed for the retained chain structure.": 1,
+      "Restore a broken downstream chain by linking the accumulated hazardous state to the ignition event.": 1,
+      "Reuse an existing node to represent a missing causal circumstance when the evidence supports it, instead of adding a new node.": 1,
+      "Make an already extracted causal circumstance explicit by connecting it to the event it enables.": 1,
+      "Hazard consequence nodes should use the schema label, with the specific consequence kept in the name field.": 1,
+      "If an explicit initiating mechanism is missing, refine the existing event node to capture it with minimal graph change.": 1,
+      "Use the schema label that matches the cited event semantics; a sudden loss of containment should be typed as instantaneous.": 1,
+      "Connect a condition node to the consequence it materially enables when ignition-and-burning evidence supports that role.": 1
+    },
+    "diagnosis_supporting_rules": {
+      "The graph skips a supported in-system poor-dilution/poor-mixing overconcentration step between feed entry and decomposition.": 1,
+      "The main connectivity problem is better characterized as a missing causal step rather than a separate weak-edge issue.": 1,
+      "The hazard consequence node uses the hazard name as its label instead of the schema-required label HazardConsequence.": 1,
+      "A node is unsupported when the incident text does not directly establish the asserted condition as a distinct supported state.": 1,
+      "A condition lacking an incoming grounding connection is a disconnected-node problem.": 1,
+      "No separate unsupported-edge diagnosis is needed when the edge problem follows from a speculative source condition.": 1,
+      "If evidence still supports the endpoint phenomenon, diagnose it as semantic misalignment before diagnosing it as removable unsupported content.": 1,
+      "Do not diagnose a dependent edge as separately removable when its only problem comes from a node diagnosis that is not accepted.": 1,
+      "A node with no supported downstream causal role is a disconnected observation and may be diagnosed as nonfunctional in the graph.": 1,
+      "If a node is removed for lacking downstream causal role, remove the incident edge that only serves that disconnected node.": 1,
+      "The no-venting repair state contributed to trapping and pressure buildup rather than to creation of the internal leak path.": 1,
+      "If the report attributes leakage to a specific physical defect, competing causes should not be attached to that leak event without separate evidence.": 1,
+      "Condition nodes that have only an incoming has edge and no downstream role do not function as meaningful causal conditions.": 1,
+      "Terminal condition nodes need evidence-supported downstream integration or removal.": 1,
+      "Release-setting conditions should participate in the downstream mechanism they influence, such as dispersion.": 1,
+      "When a disconnected background condition lacks a strong downstream role and is deleted, its supporting attachment edge should also be removed.": 1,
+      "Nodes that do not participate in a valid supported path to the hazard function as isolated or dangling elements.": 1,
+      "An isolated composition subgraph that does not connect to the failure/propagation sequence is a disconnected-node issue.": 1,
+      "A dangling terminal node that does not lead to any further causal step indicates a connectivity defect.": 1,
+      "Keeping an isolated composition edge preserves the disconnected subgraph rather than integrating the information into the main event chain.": 1,
+      "If the report says the exact ignition source was not definitively identified, diagnose the problem as over-specific ignition-source modeling.": 1,
+      "When multiple ignition sources are possible, do not diagnose one upstream activity as the definitive generator of the ignition source.": 1,
+      "Uncertain identification of the source does not remove the need to represent an ignition-source-to-ignition transition.": 1,
+      "If a condition node has no downstream causal use, diagnose it as disconnected unless it can be tied to an evidence-supported step.": 1,
+      "Treat explicitly described local propagation stages as distinct missing-step issues when they are absent from the graph.": 1,
+      "Do not keep a direct edge that skips over an explicitly supported intermediate event in the same causal chain.": 1,
+      "When a condition is supported by evidence but unused in the mechanism, diagnose it as disconnected and link it only to a supported downstream event.": 1,
+      "The graph omits the explicitly cited housekeeping contributor to hazardous accumulations.": 1,
+      "The main causal sequence includes a distinct dust-cloud-to-ignition-to-explosion progression.": 1,
+      "A direct replacement edge is only warranted after the duplicate ignition-source node is removed.": 1,
+      "The material/property subgraph was not integrated into the operative causal chain, and the condition nodes had no outgoing role.": 1,
+      "The material/property subgraph was not integrated into the operative causal chain.": 1,
+      "Remove the edge that exists only because of the redundant local duplication.": 1,
+      "A key event that has no outgoing connection to the ignition/explosion sequence is a disconnected-node problem.": 1,
+      "The missing causal circumstance can be made explicit by reusing an existing node to represent it.": 1,
+      "A causal circumstance that is already present but not connected leaves the major causal step effectively absent.": 1,
+      "The hazard consequence node should use the required generic label, while the specific consequence stays in the name field.": 1,
+      "The explicit operator misidentification mechanism is missing from the initiation sequence.": 1,
+      "A sudden loss of containment should be classified with the schema-preferred instantaneous release type.": 1,
+      "Supported condition nodes should participate downstream in the causal chain rather than remain attribute-only descriptors.": 1,
+      "Several condition nodes lack downstream participation in the causal chain.": 1,
+      "Connect retained hazard conditions to the event or consequence they materially enable when evidence shows participation.": 1
+    }
+  },
+  "unresolved_decisions": []
+}

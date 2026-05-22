@@ -1,0 +1,99 @@
+{
+  "case_summary": {
+    "accepted_count": 3,
+    "rejected_count": 2,
+    "unresolved_count": 0,
+    "summary": "Reviewer accepted the missing material-to-temperature link and the vapor-phase redundancy cleanup, but rejected deleting the liquid-phase condition and its edge because cross-type redundancy with events was not considered established."
+  },
+  "planning_patterns": [
+    {
+      "decision_key": "edge_addition_0",
+      "proposed_change": "Add a material-to-temperature edge from the solvent mixture to the high-temperature condition.",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "Add a local entity-to-condition link when a retained state node lacks attachment to the material it describes.",
+      "few_shot_takeaway": "If a retained condition is causally used but locally unattached, add the missing descriptive link."
+    },
+    {
+      "decision_key": "node_deletion_0",
+      "proposed_change": "Delete the liquid-phase condition node.",
+      "decision": "rejected",
+      "reviewer_reason": "Redundancy cannot be identified accross different types",
+      "matched_rule": "Do not remove a condition as redundant solely because a related event exists; redundancy requires no independent local causal role, and cross-type semantics are not automatically duplicates.",
+      "few_shot_takeaway": "Before deleting a state node for redundancy, confirm true functional duplication rather than overlap with an event of a different type."
+    },
+    {
+      "decision_key": "node_deletion_1",
+      "proposed_change": "Delete the vapor-phase condition node.",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "Delete a condition node when it adds no independent local causal role beyond the existing event chain.",
+      "few_shot_takeaway": "Remove a state node when it only restates phase information already carried by explicit release and dispersion events."
+    },
+    {
+      "decision_key": "edge_deletion_0",
+      "proposed_change": "Delete the material-to-liquid-phase descriptive edge.",
+      "decision": "rejected",
+      "reviewer_reason": "Redundancy cannot be identified accross different types",
+      "matched_rule": "Do not delete a descriptive edge when the connected condition is retained and cross-type redundancy has not been established.",
+      "few_shot_takeaway": "Keep a supporting descriptive edge when the underlying state node is still considered valid."
+    },
+    {
+      "decision_key": "edge_deletion_1",
+      "proposed_change": "Delete the material-to-vapor-phase descriptive edge.",
+      "decision": "accepted",
+      "reviewer_reason": "",
+      "matched_rule": "Delete an edge that only supports a redundant node being removed.",
+      "few_shot_takeaway": "When a node is correctly removed as redundant, remove its sole supporting attachment edge as follow-on cleanup."
+    }
+  ],
+  "diagnosis_patterns": [
+    {
+      "derived_from_decision_key": "edge_addition_0",
+      "decision": "accepted",
+      "observed_pattern": "A retained temperature condition was causally active but unattached to its material.",
+      "diagnosis_interpretation": "This should be diagnosed as a missing local descriptive link in state attribution, not as a gap in the main accident pathway.",
+      "supporting_rule": "A retained material condition that enables an event should still be linked to the material whose state it describes.",
+      "few_shot_takeaway": "Diagnose unattached retained condition nodes as local-link omissions."
+    },
+    {
+      "derived_from_decision_key": "node_deletion_0",
+      "decision": "rejected",
+      "observed_pattern": "An upstream phase condition was kept despite overlap with a related event.",
+      "diagnosis_interpretation": "The issue should not be framed as simple redundancy when a condition and an event are different semantic types and duplicate function has not been shown.",
+      "supporting_rule": "Redundancy should be diagnosed only when a node lacks an independent local causal role, not merely because a nearby event expresses related meaning.",
+      "few_shot_takeaway": "Diagnose redundancy by functional duplication, not by condition-event similarity alone."
+    },
+    {
+      "derived_from_decision_key": "node_deletion_1",
+      "decision": "accepted",
+      "observed_pattern": "A downstream phase label duplicated meaning already carried by the event sequence.",
+      "diagnosis_interpretation": "The issue is appropriately framed as node redundancy because the phase meaning is already captured by the boil, release, and accumulation pathway.",
+      "supporting_rule": "If a condition does not contribute an independent local causal role beyond the existing event chain, diagnose it as redundant.",
+      "few_shot_takeaway": "Diagnose downstream phase labels as redundant when the event chain already fully expresses that state."
+    },
+    {
+      "derived_from_decision_key": "edge_deletion_0",
+      "decision": "rejected",
+      "observed_pattern": "A descriptive attachment to a retained state node was preserved.",
+      "diagnosis_interpretation": "This suggests the diagnosis should not treat the edge as clutter, because the underlying condition was not accepted as redundant.",
+      "supporting_rule": "Do not diagnose a descriptive attachment as redundant when the connected state remains a distinct retained description.",
+      "few_shot_takeaway": "If the node stays, its basic entity-to-condition attachment usually stays as well."
+    },
+    {
+      "derived_from_decision_key": "edge_deletion_1",
+      "decision": "accepted",
+      "observed_pattern": "An attachment edge disappeared together with a redundant downstream phase node.",
+      "diagnosis_interpretation": "The edge issue is derivative of the node-level redundancy diagnosis rather than a separate structural defect.",
+      "supporting_rule": "When a node is diagnosed as redundant, an edge that only serves that node is also redundant.",
+      "few_shot_takeaway": "Treat edge cleanup as secondary to the underlying node redundancy diagnosis."
+    }
+  ],
+  "coverage_notes": [
+    "Acceptance of the vapor-phase node deletion implicitly covered deletion of its only descriptive edge.",
+    "Rejection of the liquid-phase node deletion also implied rejection of deleting its supporting descriptive edge.",
+    "The accepted material-to-temperature edge addition repaired the retained high-temperature condition after the phase-node review split outcome.",
+    "UPDATED_CAUSAL_GRAPH_JSON contains an extra added edge from the liquid-phase condition to the boiling event that was not part of the mapped reviewed suggestions."
+  ],
+  "unresolved_decisions": []
+}

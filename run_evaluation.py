@@ -10,7 +10,7 @@ Adjustable parameters:
 
 By default:
 - evaluation scans ``--folder``
-- results are written to ``<folder>/results``
+- results are written to ``<folder>/results``   
 
 ``--parent-dir`` is flexible and may point to:
 - the base folder itself,
@@ -29,11 +29,16 @@ PROJECT_ROOT = Path(__file__).resolve().parent
 SCRIPTS_DIR = PROJECT_ROOT / "scripts"
 STRUCTURE_EVAL_PATH = PROJECT_ROOT / "scripts" / "evaluation_structure_similarity.py"
 PLOT_EVAL_PATH = PROJECT_ROOT / "scripts" / "plot_evaluation_results.py"
+<<<<<<< Updated upstream
 DEFAULT_FOLDER = Path("runs/stability_test/batch_4_without_few_shot_reruns_cov")  # Default base folder for evaluation; can be overridden by --folder argument.
+=======
+DEFAULT_FOLDER = Path(r"runs\stability_test\rounds")  # Default base folder for evaluation; can be overridden by --folder argument.
+>>>>>>> Stashed changes
 SHOW_PROGRESS = True  # Default progress-bar visibility; can still be overridden by --show-progress/--hide-progress.
+COMPUTE_GED = True  # Whether to compute GED-based metrics by default.
 COMPUTE_GED_OPERATION_COUNTS = False  # Whether to run the expensive node/edge edit-operation counting step by default.
-DEFAULT_WORKERS = 2  # Safer default on Windows to avoid process-pool crashes from heavy native imports.
-USE_EXACT_GED = False  # True: exhaustive exact GED; False: fast first-candidate GED.
+DEFAULT_WORKERS = 8  # Safer default on Windows to avoid process-pool crashes from heavy native imports.
+DEFAULT_GED_ALGORITHM = "bipartite"  # Options: exact, fast, bipartite.
 GED_TIMEOUT_SECONDS = None  # Optional per-GED timeout in seconds. None keeps NetworkX default behavior.
 
 if str(SCRIPTS_DIR) not in sys.path:
@@ -86,6 +91,18 @@ def parse_args() -> argparse.Namespace:
         ),
     )
     parser.add_argument(
+        "--compute-ged",
+        dest="compute_ged",
+        action="store_true",
+        help="Compute GED-based metrics such as graph_edit_distance and normalized_graph_edit_distance.",
+    )
+    parser.add_argument(
+        "--skip-ged",
+        dest="compute_ged",
+        action="store_false",
+        help="Skip GED-based metrics and leave GED-related CSV fields blank.",
+    )
+    parser.add_argument(
         "--compute-ged-operation-counts",
         dest="compute_ged_operation_counts",
         action="store_true",
@@ -110,16 +127,36 @@ def parse_args() -> argparse.Namespace:
         help="Hide the live tqdm progress bar and only print summary output.",
     )
     parser.add_argument(
+        "--ged-algorithm",
+        choices=("exact", "fast", "bipartite"),
+        default=DEFAULT_GED_ALGORITHM,
+        help=(
+            "GED algorithm to use: "
+            "'exact' exhausts candidates, "
+            "'fast' uses the first NetworkX candidate, "
+            "and 'bipartite' uses a faster structure-aware assignment approximation."
+        ),
+    )
+    parser.add_argument(
         "--exact-ged",
-        dest="exact_ged",
-        action="store_true",
-        help="Exhaust GED candidates and take the minimum value.",
+        dest="ged_algorithm",
+        action="store_const",
+        const="exact",
+        help="Legacy alias for --ged-algorithm exact.",
     )
     parser.add_argument(
         "--fast-ged",
-        dest="exact_ged",
-        action="store_false",
-        help="Use only the first GED candidate for faster but less reliable results.",
+        dest="ged_algorithm",
+        action="store_const",
+        const="fast",
+        help="Legacy alias for --ged-algorithm fast.",
+    )
+    parser.add_argument(
+        "--bipartite-ged",
+        dest="ged_algorithm",
+        action="store_const",
+        const="bipartite",
+        help="Legacy alias for --ged-algorithm bipartite.",
     )
     parser.add_argument(
         "--ged-timeout",
@@ -130,9 +167,9 @@ def parse_args() -> argparse.Namespace:
             "If omitted, NetworkX runs without a per-GED timeout."
         ),
     )
+    parser.set_defaults(compute_ged=COMPUTE_GED)
     parser.set_defaults(compute_ged_operation_counts=COMPUTE_GED_OPERATION_COUNTS)
     parser.set_defaults(show_progress=SHOW_PROGRESS)
-    parser.set_defaults(exact_ged=USE_EXACT_GED)
     return parser.parse_args()
 
 
@@ -190,12 +227,15 @@ def main() -> None:
         ]
         if args.workers is not None:
             sys.argv.extend(["--workers", str(args.workers)])
+        if not args.compute_ged:
+            sys.argv.append("--skip-ged")
         if not args.compute_ged_operation_counts:
             sys.argv.append("--skip-ged-operation-counts")
         if not args.show_progress:
             sys.argv.append("--hide-progress")
-        if not args.exact_ged:
-            sys.argv.append("--fast-ged")
+        # Always forward the GED algorithm explicitly because the downstream
+        # script has its own defaults, which may differ from this wrapper.
+        sys.argv.extend(["--ged-algorithm", args.ged_algorithm])
         if args.ged_timeout is not None:
             sys.argv.extend(["--ged-timeout", str(args.ged_timeout)])
         results_dir = eval_module.main()

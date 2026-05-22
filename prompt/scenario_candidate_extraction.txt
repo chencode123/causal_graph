@@ -22,15 +22,18 @@ SCHEMA_DEFINITION
 TASK
 
 Based on the INCIDENT_DESCRIPTION, the IDENTIFIED_HAZARD_CONSEQUENCE, and the
-CAUSAL_NARRATIVE_EXTRACTION, extract a high-recall set of candidate accident
-scenario nodes that may be needed to explain how the identified hazard
-consequence occurs.
+CAUSAL_NARRATIVE_EXTRACTION, extract a candidate set of accident scenario nodes
+needed to represent the single primary accident pathway that leads to the
+identified hazard consequence.
 
 This step is candidate extraction, not final normalization.
-Prefer capturing explicitly supported local steps even if some candidates may
-later be merged, removed, or refined.
+Prefer capturing explicitly supported local steps for the primary pathway, but
+do not include alternative branches, side hypotheses, or background-only
+details unless they are explicitly required by the CAUSAL_NARRATIVE_EXTRACTION.
 
 EXTRACTION RULES
+
+EVIDENCE BOUNDARY
 
   1. Use the incident description as the primary source of information.
   2. The hazard consequence must copy the node provided in IDENTIFIED_HAZARD_CONSEQUENCE.
@@ -38,20 +41,65 @@ EXTRACTION RULES
      possible.
   4. Do not invent or fabricate evidence.
   5. If a candidate node is clearly unsupported, do not create it.
-  6. Prefer over-including clearly supported local causal steps rather than prematurely
-     merging them.
-  7. If the incident text explicitly distinguishes operational action, physical release,
-     transport or dispersion, ignition, flashback or propagation, and final consequence,
-     prefer representing them as separate candidate events.
-  8. Candidate condition nodes should be limited to causally reusable conditions such as
-     Phase, Combustibility, and Confinement when directly supported.
-  9. Treat release and dispersion primarily as event candidates.
-     If the text supports release timing or mode, use event labels such as
-     "InstantRelease" or "ContinuousRelease".
-     If the text supports spreading, transport, or cloud movement, represent
-     that as an event rather than a condition.
-  10. Do not treat a clearly described event as only a condition.
-  11. Use temporary or final-looking node IDs consistently within this output.
+
+RECALL AND GRANULARITY
+
+  6. Prefer including clearly supported local causal steps for the selected primary
+     pathway, but do not broaden the candidate set with parallel alternative
+     hypotheses that are not part of that selected pathway.
+
+  7. Each candidate event node should describe one local accident-process step only.
+     Do not combine multiple distinct actions or split one local role into multiple
+     event nodes unless the CAUSAL_NARRATIVE_EXTRACTION clearly separates them.
+
+  7a. Use the CAUSAL_NARRATIVE_EXTRACTION as the path anchor. If the incident report
+      discusses multiple plausible mechanisms, extract candidates only for the
+      mechanism most directly aligned with the narrative's selected progression.
+
+  7b. Prefer the smallest set of candidates that can still represent the local
+      mechanism chain. Do not create extra witness-chronology variants such as
+      separate "initial" and "subsequent" versions of the same causal stage unless
+      they play distinct causal roles.
+
+  7c. Only retain Condition nodes that are likely to participate in later causal
+      linking. Do not extract purely descriptive condition nodes that are not needed
+      to explain the accident progression.
+
+NODE-TYPE BOUNDARY
+
+  8. Definition of a condition
+     A Condition is a causally relevant state, property, or environmental/process setting
+     that can be reused in causal linking and that does not itself describe a discrete
+     change, transition, or accident-process step over time.
+
+     Use a Condition node for states or properties such as phase, pressure, temperature,
+     combustibility, confinement, or other comparable accident-relevant conditions.
+
+     Do not use a Condition node for releases, dispersion, ignition, failure progression,
+     pressure buildup, or other event-like developments. Represent those as Event nodes.
+
+  9. Definition of an event
+      An Event is a discrete accident-process step, change, transition, or occurrence
+      that happens over time and plays a local causal role in the accident pathway.
+
+      Use an Event node for operational actions, failures, releases, dispersion,
+      ignition, propagation, pressure buildup, or other event-like developments.
+
+      Do not use an Event node for relatively stable states, material properties, or
+      environmental/process settings that are better represented as Condition nodes.
+
+  9a. Treat pressure rise, gas generation, overpressure development, release,
+      dispersion, and similar unfolding mechanism stages as Event nodes, not
+      Condition nodes.
+
+  9b. When two wording options describe the same local causal role, prefer one
+      normalized candidate rather than multiple near-duplicate candidates.
+
+OUTPUT DISCIPLINE
+
+  11. Use node IDs consistently within this output.
+  12. Order candidate nodes in primary-pathway order as much as possible:
+      upstream mechanism first, downstream consequence last.
 
 OUTPUT REQUIREMENTS
 
