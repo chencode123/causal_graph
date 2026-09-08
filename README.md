@@ -10,7 +10,7 @@ Run from the repository root in a Python environment with the project dependenci
 pip install -e .
 ```
 
-The evaluation tools additionally require NumPy, SciPy, pandas, matplotlib, NetworkX, and GraKeL. The main pipeline runners currently use Windows `winsound`. The published dependency list is not a frozen environment lockfile.
+The evaluation tools additionally require NumPy, SciPy, pandas, matplotlib, NetworkX, and GraKeL. The published dependency list is not a frozen environment lockfile.
 
 Create a local `.env_openai` containing `OPENAI_API_KEY`. Credentials, experiment outputs under `runs/`, and local maintenance utilities are excluded from Git.
 
@@ -41,14 +41,23 @@ The causal-narrative prompt is the restored single-stage version. Historical can
 
 ## Configure before generation
 
-These entry points retain experiment-specific paths and recovery settings; they are not a turnkey fresh-corpus run:
+Both main-method runners generate rounds 1 through 5 from the same prepared source tree, defaulting to `runs/stability_test/batched_reports/batch_*/<case>/`. Each case must contain `identify_incident_output.json` and the fixed `identify_hazard_consequence_output.json`. Raw incident descriptions alone are insufficient for these nine-step runners. Obtain the prepared inputs used in the experiment; do not substitute newly generated hazard outputs when reproducing the frozen comparison.
 
-- `batch_main_runner.py` resumes few-shot Round 4 and then resumes or creates Round 5. Its feedback file is configured under the locally supplied `runs/few-shot/` tree.
-- `batch_main_runner_no_few_shot.py` uses Round 4 as the source for Round 5.
-- `baseline_single_pass_runner.py` prepares five runs from `runs/stability_test/batched_reports` and writes to `runs/single_pass_baseline_all_batches`. The final evaluator expects `runs/stability_test/single_pass_baseline_all_batches`; align these paths before running.
-- `no_revision_runner.py` defaults to dry-run. It reuses prepared scenario-candidate artifacts from the source rounds to execute the isolated edge-candidate stage. Consult `--help` for execution options.
+- `batch_main_runner_no_few_shot.py` writes Revision rounds to `runs/stability_test/rounds`.
+- `batch_main_runner.py` writes Revision + FS rounds to `runs/stability_test/rounds_with_few_shot`. It reads the committed compact feedback snapshot under `prompt/review_feedback/case_coverage_12/`; this file is byte-identical to the original experiment input.
+- `baseline_single_pass_runner.py` writes five runs to `runs/stability_test/single_pass_baseline_all_batches`, matching the final evaluator. Its source cases require incident descriptions, not the main method's hazard outputs.
+- `no_revision_runner.py` defaults to dry-run and uses scenario candidates from the corresponding completed Revision rounds. Run it after the no-few-shot main method. Consult `--help` to select API execution.
 
-Configure source and output folders, run counts, case selection, and few-shot input paths before launching. Supply the required prepared case inputs and reference graphs separately. Keep model, inference settings, prompt versions, and schemas fixed across retained runs. Generation invokes paid API requests, except for the No Revision dry-run.
+Check prepared inputs before launching the main methods:
+
+```bash
+python batch_main_runner_no_few_shot.py --dry-run
+python batch_main_runner.py --dry-run
+```
+
+These checks render the first active prompt for every selected case, validate prepared JSON inputs and feedback availability, and check existing round outputs. They do not invoke the API or write experiment artifacts. Both runners support `--source-dir` and `--output-root`. Existing complete rounds are skipped; incomplete rounds produce an error and are preserved. Use a new output root for a separate experiment. Availability checks do not certify historical prompt equivalence or scientific validity.
+
+After successful checks, run the same commands without `--dry-run` to generate the two main conditions, followed by the Single Pass and No Revision runners. Generation makes paid API requests. Keep the frozen model, inference settings, prompts, and schemas unchanged. Download and place the expert reference graphs separately; generated accept-all revisions are not expert references.
 
 ## Evaluation
 

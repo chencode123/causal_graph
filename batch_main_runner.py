@@ -24,27 +24,30 @@ Recommended usage:
 """
 
 from pathlib import Path
-import winsound
+import argparse
 
 from dotenv import load_dotenv
 
-from pipeline.entrypoint import run_single_or_multi_batch, run_with_stability
-from pipeline.step_registry import STEP_REGISTRY
-from utils.batch_pipeline_utils import PipelineConfig, discover_case_folders, iter_target_batch_dirs
+from pipeline.entrypoint import run_with_stability
+from pipeline.reproduction_preflight import preflight
+from utils.batch_pipeline_utils import PipelineConfig
 
-load_dotenv(dotenv_path=Path(__file__).with_name(".env_openai"), override=True)
+ENV_FILE = Path(__file__).with_name(".env_openai")
+load_dotenv(dotenv_path=ENV_FILE, override=True)
 
 # ================================================================
 # CONFIG
 # ================================================================
-STABILITY_OUTPUT_ROOT = Path(r"runs\stability_test\rounds_with_few_shot")
-ROUND4_DIR = STABILITY_OUTPUT_ROOT / "round_4"
-ROUND5_DIR = STABILITY_OUTPUT_ROOT / "round_5"
-EXECUTION_MODE = "batch"
+BASE_DIR = Path("runs/stability_test/batched_reports")
+EXECUTION_MODE = "batch"  # "batch" uses OpenAI Batch API; "responses" uses direct Responses API for faster iteration/debugging.
 RESPONSES_ASYNC_ENABLED = True  # Only applies when EXECUTION_MODE="responses"; when True, folders within each step run concurrently.
 UPLOAD_ALL_FILES_IN_ONE_BATCH = True
 TARGET_CASES = None
-TARGET_BATCHES = None
+TARGET_BATCHES = None  # Process every batch under the source round.
+STABILITY_ROUNDS = 5
+STABILITY_START_ROUND = 1
+STABILITY_RESUME = True  # Skip a round when its output folder already exists.
+STABILITY_OUTPUT_ROOT = Path("runs/stability_test/rounds_with_few_shot")
 
 MODEL_NAME = "gpt-5.4-2026-03-05"
 REASONING_EFFORT = "medium"
@@ -57,16 +60,16 @@ REMOVE_SHORTCUT_EDGES = False
 HAZARDS_JSON_PATH = Path("prompt/hazards_consequence.json")
 CONDITIONS_JSON_PATH = Path("prompt/conditions.json")
 USE_FEW_SHOT = True
+FEW_SHOT_PATTERN_FILE = Path(
+    "prompt/review_feedback/case_coverage_12/"
+    "review_feedback_analysis_few_shot_balanced_small.json"
+)
 FEW_SHOT_PATTERN_FILES_BY_STEP = {
-    "graph_diagnosis": (
-        Path(r"runs\few-shot\review_feedback\case_coverage_12\review_feedback_analysis_few_shot_balanced_small.json"),
-    ),
-    "graph_revision_planning": (
-        Path(r"runs\few-shot\review_feedback\case_coverage_12\review_feedback_analysis_few_shot_balanced_small.json"),
-    ),
+    key: (FEW_SHOT_PATTERN_FILE,)
+    for key in ("graph_diagnosis", "graph_revision_planning")
 }
-ALL_STEP_KEYS = (
-    # "identify_hazard_consequence",
+ACTIVE_STEP_KEYS = (
+    # Hazard identification is a fixed prepared input shared across runs.
     "causal_narrative_extraction",
     "scenario_candidate_extraction",
     "scenario_structure_validation",
@@ -76,13 +79,17 @@ ALL_STEP_KEYS = (
     "causal_edge_linking",
     "graph_diagnosis",
     "graph_revision_planning",
-    # "review_feedback_analysis", 
+    # "review_feedback_analysis",
 )
 
-
-def build_config(base_dir: Path, active_step_keys: tuple[str, ...]) -> PipelineConfig:
-    return PipelineConfig(
-        base_dir=base_dir,
+def main() -> None:
+    parser = argparse.ArgumentParser(description="Run five main-method rounds from prepared case inputs.")
+    parser.add_argument("--dry-run", action="store_true", help="Check inputs and output safety without writing or calling the API.")
+    parser.add_argument("--source-dir", type=Path, default=BASE_DIR, help="Prepared batch/case inputs, including fixed hazard identification.")
+    parser.add_argument("--output-root", type=Path, default=STABILITY_OUTPUT_ROOT, help="Separate output tree for five rounds.")
+    args = parser.parse_args()
+    config = PipelineConfig(
+        base_dir=args.source_dir,
         model_name=MODEL_NAME,
         reasoning_effort=REASONING_EFFORT,
         verbosity=VERBOSITY,
@@ -96,66 +103,32 @@ def build_config(base_dir: Path, active_step_keys: tuple[str, ...]) -> PipelineC
         use_few_shot=USE_FEW_SHOT,
         few_shot_pattern_files_by_step=FEW_SHOT_PATTERN_FILES_BY_STEP,
         target_cases=TARGET_CASES,
-        active_step_keys=active_step_keys,
+        active_step_keys=ACTIVE_STEP_KEYS,
         responses_async_enabled=RESPONSES_ASYNC_ENABLED,
     )
-
-
-def discover_round_cases(round_dir: Path) -> tuple[Path, ...]:
-    return tuple(
-        case_dir
-        for batch_dir in iter_target_batch_dirs(round_dir)
-        for case_dir in discover_case_folders(batch_dir)
+    preflight(
+        config, output_root=args.output_root, rounds=STABILITY_ROUNDS,
+        start_round=STABILITY_START_ROUND, resume=STABILITY_RESUME,
+        target_batches=TARGET_BATCHES,
     )
-
-
-def missing_step_suffix(round_dir: Path) -> tuple[str, ...]:
-    case_dirs = discover_round_cases(round_dir)
-    if not case_dirs:
-        raise RuntimeError(f"No runnable case folders found under {round_dir}")
-    for index, step_key in enumerate(ALL_STEP_KEYS):
-        output_name = STEP_REGISTRY[step_key]["output_file"]
-        completed = sum((case_dir / output_name).is_file() for case_dir in case_dirs)
-        print(f"[{round_dir.name}] {step_key}: {completed}/{len(case_dirs)} outputs")
-        if completed != len(case_dirs):
-            return ALL_STEP_KEYS[index:]
-    return ()
-
-
-def resume_existing_round(round_dir: Path) -> None:
-    pending_steps = missing_step_suffix(round_dir)
-    if not pending_steps:
-        print(f"{round_dir.name} already has all {len(ALL_STEP_KEYS)} step outputs.")
+    if args.dry_run:
         return
-    print(f"Resuming {round_dir.name} from: {pending_steps[0]}")
-    run_single_or_multi_batch(
-        config=build_config(round_dir, pending_steps),
-        run_base_dir=round_dir,
+    if not ENV_FILE.is_file():
+        raise FileNotFoundError(f"Missing {ENV_FILE.name}. Create it with OPENAI_API_KEY.")
+    run_with_stability(
+        config=config,
+        base_dir=args.source_dir,
         execution_mode=EXECUTION_MODE,
         upload_all_files_in_one_batch=UPLOAD_ALL_FILES_IN_ONE_BATCH,
+        stability_rounds=STABILITY_ROUNDS,
+        stability_start_round=STABILITY_START_ROUND,
+        stability_resume=STABILITY_RESUME,
+        stability_output_root=args.output_root,
+        target_batches=TARGET_BATCHES,
     )
+
+    print("Done.")
 
 
 if __name__ == "__main__":
-    if not ROUND4_DIR.is_dir():
-        raise FileNotFoundError(f"Round 4 source directory does not exist: {ROUND4_DIR}")
-
-    resume_existing_round(ROUND4_DIR)
-
-    if ROUND5_DIR.exists():
-        resume_existing_round(ROUND5_DIR)
-    else:
-        run_with_stability(
-            config=build_config(ROUND4_DIR, ALL_STEP_KEYS),
-            base_dir=ROUND4_DIR,
-            execution_mode=EXECUTION_MODE,
-            upload_all_files_in_one_batch=UPLOAD_ALL_FILES_IN_ONE_BATCH,
-            stability_rounds=1,
-            stability_start_round=5,
-            stability_resume=False,
-            stability_output_root=STABILITY_OUTPUT_ROOT,
-            target_batches=TARGET_BATCHES,
-        )
-
-    print("Done.")
-    winsound.Beep(1000, 500)
+    main()

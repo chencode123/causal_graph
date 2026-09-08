@@ -41,7 +41,7 @@ load_dotenv(dotenv_path=PROJECT_ROOT / ".env_openai", override=True)
 SOURCE_DIR = PROJECT_ROOT / "runs" / "stability_test" / "batched_reports"
 
 # A fresh, separate directory is created for each independent run.
-OUTPUT_ROOT = PROJECT_ROOT / "runs" / "single_pass_baseline_all_batches"
+OUTPUT_ROOT = PROJECT_ROOT / "runs" / "stability_test" / "single_pass_baseline_all_batches"
 
 EXECUTION_MODE = "batch"  # "batch" or "responses"
 RESPONSES_ASYNC_ENABLED = False
