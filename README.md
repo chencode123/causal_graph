@@ -83,7 +83,7 @@ Experiment results are available on [Google Drive](https://drive.google.com/driv
 | `prompt/` | Prompts, manifest, hazard vocabulary, and available feedback resources |
 | `scheme/` | Ontology definitions and strict baseline output schema |
 | `utils/` | Shared processing, evaluation, and evaluation plotting implementation |
-| `scripts/` | Nine retained reproducibility scripts listed below |
+| `scripts/` | Eleven retained reproducibility scripts listed below |
 | `tests/` | Focused implementation checks |
 | `runs/` | Local inputs, generated graphs, references, and results; not distributed by Git |
 
@@ -95,6 +95,8 @@ evaluate_soft_matching_api.py
 evaluate_topology_negative_controls.py
 evaluation_structure_similarity.py
 generate_results_table.py
+gen_fig_paired_mixed_effects.py
+gen_fig_mixed_effects_by_condition.py
 plot_graph_structure_factors.py
 plot_stability_comparison_boxplot.py
 plot_topology_negative_controls.py
@@ -103,6 +105,15 @@ scrape_csb_completed_reports.py
 
 The CSB catalogue scraper records public catalogue metadata; it does not assign corpus inclusion decisions. Reference copying defaults to dry-run and matches exact case identifiers. Negative-control results must come from the corrected rewiring implementation, not superseded runs.
 
-The local `figures/` directory is currently Git-ignored, including the mixed-effects analysis scripts. The repository therefore does not yet distribute the complete inferential analysis and all manuscript figure sources. Experiment data, expert reference graphs, and the configured feedback snapshot must also be supplied separately for full reproduction.
+The mixed-effects analysis scripts are distributed under `scripts/`. Install their additional dependencies with `python -m pip install statsmodels patsy`, then inspect the available input and output options:
+
+```bash
+python scripts/gen_fig_paired_mixed_effects.py --help
+python scripts/gen_fig_mixed_effects_by_condition.py --help
+```
+
+The paired script analyzes GES and WLS and generates a forest plot. The condition-oriented script analyzes nine metrics with six condition contrasts per metric and one Holm correction across 54 tests. Both retain incident-case pairing across runs. Their default outputs are under `runs/stability_test/statistical_analysis/paired_effects`. The paired script accepts structural input overrides through `--condition NAME=PATH`; the condition-oriented script uses the shared `DEFAULT_CONDITION_PATHS` mapping and accepts `--auxiliary-path` for auxiliary scores. Adjust that mapping if the condition-oriented structural inputs are stored elsewhere.
+
+The local `figures/` directory remains Git-ignored. Experiment data, expert reference graphs, and the configured feedback snapshot must be supplied separately for full reproduction; see the experiment results link above.
 
 See [prompt authoring](docs/prompt_authoring.md) and the [few-shot library](prompt/review_feedback/README.md) for additional documentation.
