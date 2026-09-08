@@ -71,6 +71,10 @@ GES is normalized directed, typed bipartite approximate graph-edit similarity. W
 
 Repeated runs of the same case are repeated observations. Inferential comparisons must retain case pairing and use the declared multiplicity correction. The historical standalone `run_stability_evaluation.py` is excluded because its GED interface is obsolete.
 
+## Experiment results
+
+Experiment results are available on [Google Drive](https://drive.google.com/drive/folders/1apb6cQ8Xc7TADFh9npXLjE4DztVVUwfB?usp=sharing).
+
 ## Repository layout
 
 | Path | Contents |
