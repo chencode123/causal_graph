@@ -83,25 +83,9 @@ Experiment results are available on [Google Drive](https://drive.google.com/driv
 | `prompt/` | Prompts, manifest, hazard vocabulary, and available feedback resources |
 | `scheme/` | Ontology definitions and strict baseline output schema |
 | `utils/` | Shared processing, evaluation, and evaluation plotting implementation |
-| `scripts/` | Eleven retained reproducibility scripts listed below |
+| `scripts/` | Evaluation, statistical analysis, plotting, and data preparation |
 | `tests/` | Focused implementation checks |
 | `runs/` | Local inputs, generated graphs, references, and results; not distributed by Git |
-
-Retained scripts:
-
-```text
-copy_reference_graphs_to_baseline.py
-evaluate_soft_matching_api.py
-evaluate_topology_negative_controls.py
-evaluation_structure_similarity.py
-generate_results_table.py
-gen_fig_paired_mixed_effects.py
-gen_fig_mixed_effects_by_condition.py
-plot_graph_structure_factors.py
-plot_stability_comparison_boxplot.py
-plot_topology_negative_controls.py
-scrape_csb_completed_reports.py
-```
 
 The CSB catalogue scraper records public catalogue metadata; it does not assign corpus inclusion decisions. Reference copying defaults to dry-run and matches exact case identifiers. Negative-control results must come from the corrected rewiring implementation, not superseded runs.
 
