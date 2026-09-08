@@ -34,3 +34,18 @@ api.txt
 !/scripts/plot_stability_comparison_boxplot.py
 !/scripts/plot_topology_negative_controls.py
 !/scripts/scrape_csb_completed_reports.py
+
+# Local work log, legacy entrypoints, and one-off maintenance utilities.
+/AGENTS.md
+/batch_main.py
+/batch_main_tamu.py
+/batch_update_adoption.py
+/detect_and_update_adoption.py
+/fix_revision_mismatch.py
+/monitor_batch_sound.py
+/repair_no_few_shot_round5.py
+/rerun_batch_5_case_3_all_rounds.py
+/retry_round5_repair_until_10am.py
+/run_batch_7_split_cases_all_rounds.py
+/run_stability_evaluation.py
+/tmp_current_manuscript.txt

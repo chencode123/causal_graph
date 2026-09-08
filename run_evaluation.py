@@ -30,7 +30,7 @@ from utils.evaluation_case_filters import DEFAULT_EXCLUDED_CASES_PATH
 PROJECT_ROOT = Path(__file__).resolve().parent
 SCRIPTS_DIR = PROJECT_ROOT / "scripts"
 STRUCTURE_EVAL_PATH = PROJECT_ROOT / "scripts" / "evaluation_structure_similarity.py"
-PLOT_EVAL_PATH = PROJECT_ROOT / "scripts" / "plot_evaluation_results.py"
+PLOT_EVAL_PATH = PROJECT_ROOT / "utils" / "evaluation_plots.py"
 DEFAULT_FOLDER = Path("runs/stability_test/rounds_with_few_shot")  # Default base folder for evaluation; can be overridden by --folder argument.
 SHOW_PROGRESS = True  # Default progress-bar visibility; can still be overridden by --show-progress/--hide-progress.
 COMPUTE_GED = True  # Whether to compute GED-based metrics by default.
