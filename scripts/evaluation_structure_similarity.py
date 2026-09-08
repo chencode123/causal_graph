@@ -4,6 +4,7 @@ import argparse
 import os
 import csv
 import json
+import sys
 import time
 from concurrent.futures import FIRST_COMPLETED, ProcessPoolExecutor, wait
 from datetime import datetime
@@ -14,6 +15,19 @@ from typing import Any, Dict, Iterable, List, Tuple
 import networkx as nx
 from grakel import Graph, GraphKernel
 from tqdm import tqdm
+
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+from utils.evaluation_case_filters import (  # noqa: E402
+    DEFAULT_EXCLUDED_CASES_PATH,
+    filter_excluded_case_folders,
+    infer_case_key,
+    load_excluded_case_keys,
+    write_exclusion_audit,
+)
 
 try:
     from scipy.optimize import linear_sum_assignment
@@ -51,6 +65,10 @@ CASE_SCORE_COLUMNS = [
 GED_ALGORITHM_EXACT = "exact"
 GED_ALGORITHM_FAST = "fast"
 GED_ALGORITHM_BIPARTITE = "bipartite"
+GED_BIPARTITE_METHOD_ID = (
+    "riesen_bunke_bipartite_directed_"
+    "node_type_edge_relation_unit_cost_v1"
+)
 GED_ALGORITHM_CHOICES = (
     GED_ALGORITHM_EXACT,
     GED_ALGORITHM_FAST,
@@ -173,6 +191,49 @@ def parse_args() -> argparse.Namespace:
         help="Directory where CSV result files will be written.",
     )
     parser.add_argument(
+        "--reference-root",
+        type=Path,
+        default=None,
+        help=(
+            "Optional root containing reference graphs at <batch>/<case>/"
+            "updated_causal_graph.json. When omitted, each evaluated case must "
+            "contain its own updated_causal_graph.json."
+        ),
+    )
+    parser.add_argument(
+        "--generated-graph-name",
+        default="causal_graph.json",
+        help=(
+            "Filename of the generated graph inside each case directory. "
+            "The default preserves the standard pipeline behavior."
+        ),
+    )
+    parser.add_argument(
+        "--run-labels",
+        nargs="+",
+        default=None,
+        help=(
+            "Optional immediate child directories to evaluate, for example "
+            "--run-labels round_4 round_5 or --run-labels run_01 run_02."
+        ),
+    )
+    parser.add_argument(
+        "--exclude-case-list",
+        type=Path,
+        default=DEFAULT_EXCLUDED_CASES_PATH,
+        help=(
+            "JSON list of batch/case keys to exclude. Defaults to the cases that "
+            "contributed few-shot review patterns."
+        ),
+    )
+    parser.add_argument(
+        "--include-few-shot-cases",
+        dest="exclude_case_list",
+        action="store_const",
+        const=None,
+        help="Disable the default few-shot case exclusion for a non-held-out analysis.",
+    )
+    parser.add_argument(
         "--workers",
         type=int,
         default=None,
@@ -225,7 +286,8 @@ def parse_args() -> argparse.Namespace:
             "GED algorithm to use: "
             "'exact' exhausts candidates, "
             "'fast' uses the first NetworkX candidate, "
-            "and 'bipartite' uses a faster structure-aware assignment approximation."
+            "and 'bipartite' uses a directed Riesen-Bunke assignment approximation "
+            "with unit node/edge edit costs."
         ),
     )
     parser.add_argument(
@@ -281,21 +343,58 @@ def resolve_accept_all_graph_path(case_folder: Path) -> Path | None:
     return fallback_candidates[0] if fallback_candidates else None
 
 
-def find_case_folders(parent_dir: Path) -> List[Path]:
-    """Recursively find folders containing both required JSON files."""
+def resolve_reference_graph_path(
+    case_folder: Path,
+    parent_dir: Path,
+    reference_root: Path | None,
+) -> Path | None:
+    """Resolve one fixed reference graph by normalized batch/case identity."""
+    if reference_root is None:
+        return resolve_updated_graph_path(case_folder)
+    case_key = infer_case_key(case_folder, parent_dir)
+    batch_id, case_id = case_key.split("/", 1)
+    candidate = reference_root / batch_id / case_id / "updated_causal_graph.json"
+    return candidate if candidate.exists() else None
+
+
+def find_case_folders(
+    parent_dir: Path,
+    reference_root: Path | None = None,
+    run_labels: list[str] | None = None,
+    generated_graph_name: str = "causal_graph.json",
+) -> List[Path]:
+    """Recursively find generated cases that have an available reference graph."""
     valid_folders: List[Path] = []
+    allowed_labels = set(run_labels or ())
     for folder in parent_dir.rglob("*"):
         if not folder.is_dir():
             continue
-        if (folder / "causal_graph.json").exists() and resolve_updated_graph_path(folder) is not None:
+        if allowed_labels:
+            try:
+                first_part = folder.relative_to(parent_dir).parts[0]
+            except (ValueError, IndexError):
+                continue
+            if first_part not in allowed_labels:
+                continue
+        if (
+            (folder / generated_graph_name).exists()
+            and resolve_reference_graph_path(folder, parent_dir, reference_root) is not None
+        ):
             valid_folders.append(folder)
     return sorted(valid_folders)
 
 
 def load_json(path: Path) -> Dict[str, Any]:
-    """Load a JSON file into a dictionary."""
-    with path.open("r", encoding="utf-8") as fp:
-        return json.load(fp)
+    """Load JSON, retrying transient synced-drive invalid-handle failures."""
+    for attempt in range(1, 4):
+        try:
+            with path.open("r", encoding="utf-8") as fp:
+                return json.load(fp)
+        except OSError as exc:
+            if exc.errno != 22 or attempt == 3:
+                raise
+            time.sleep(0.25 * attempt)
+    raise AssertionError("Unreachable JSON retry state.")
 
 
 def to_float(value: str) -> float | None:
@@ -348,7 +447,22 @@ def build_directed_graph(
 
         if graph.has_node(node_id):
             warnings.append(f"Duplicate node_id detected and overwritten: {node_id}.")
-        graph.add_node(node_id, label=label)
+        node_type = str(node.get("node_type") or "").strip()
+        if not node_type:
+            if node_id == "H1" or node_id.startswith("H"):
+                node_type = "HazardConsequence"
+            elif node_id.startswith("En"):
+                node_type = "Entity"
+            elif node_id.startswith("C"):
+                node_type = "Condition"
+            elif node_id.startswith("Ev"):
+                node_type = "Event"
+            else:
+                node_type = "UNKNOWN_NODE_TYPE"
+                warnings.append(
+                    f"Node {node_id} missing node_type; replaced with UNKNOWN_NODE_TYPE."
+                )
+        graph.add_node(node_id, label=label, node_type=node_type)
 
     for edge in edges:
         source = str(edge.get("source") or "").strip()
@@ -413,92 +527,101 @@ def make_blank_operation_counts() -> Dict[str, int]:
     }
 
 
-def compute_component_depths(graph: nx.DiGraph) -> Tuple[Dict[int, int], Dict[int, int], Dict[str, int]]:
-    """Compute SCC-level forward/backward depths for structure-aware matching."""
-    if graph.number_of_nodes() == 0:
-        return {}, {}, {}
-
-    condensation_graph = nx.condensation(graph)
-    component_by_node = condensation_graph.graph.get("mapping", {})
-    topological_nodes = list(nx.topological_sort(condensation_graph))
-    forward_depth = {node: 0 for node in topological_nodes}
-    for node in topological_nodes:
-        for successor in condensation_graph.successors(node):
-            forward_depth[successor] = max(forward_depth[successor], forward_depth[node] + 1)
-
-    backward_depth = {node: 0 for node in topological_nodes}
-    for node in reversed(topological_nodes):
-        for predecessor in condensation_graph.predecessors(node):
-            backward_depth[predecessor] = max(backward_depth[predecessor], backward_depth[node] + 1)
-
-    return forward_depth, backward_depth, component_by_node
+def canonical_node_type(graph: nx.DiGraph, node: str) -> str:
+    """Return the ontology-level node type used by bipartite GED."""
+    return str(graph.nodes[node].get("node_type") or "UNKNOWN_NODE_TYPE").strip().lower()
 
 
-def compute_structural_node_profiles(graph: nx.DiGraph, iterations: int = 2) -> Dict[str, Dict[str, Any]]:
-    """Build structure-only node profiles for bipartite GED matching."""
-    forward_depth, backward_depth, component_by_node = compute_component_depths(graph)
-    scc_size_by_component: Dict[int, int] = {}
-    for component_id in component_by_node.values():
-        scc_size_by_component[component_id] = scc_size_by_component.get(component_id, 0) + 1
-    weak_component_by_node: Dict[str, int] = {}
-    for component_nodes in nx.weakly_connected_components(graph):
-        component_size = len(component_nodes)
-        for node in component_nodes:
-            weak_component_by_node[str(node)] = component_size
-
-    refinement_tokens = {
-        node: f"in{graph.in_degree(node)}|out{graph.out_degree(node)}"
-        for node in graph.nodes()
-    }
-    for _ in range(iterations):
-        next_tokens: Dict[str, str] = {}
-        for node in graph.nodes():
-            predecessor_tokens = sorted(refinement_tokens[pred] for pred in graph.predecessors(node))
-            successor_tokens = sorted(refinement_tokens[succ] for succ in graph.successors(node))
-            next_tokens[node] = (
-                f"{refinement_tokens[node]}|pred:{'|'.join(predecessor_tokens)}"
-                f"|succ:{'|'.join(successor_tokens)}"
-            )
-        refinement_tokens = next_tokens
-
-    profiles: Dict[str, Dict[str, Any]] = {}
-    for node in graph.nodes():
-        component_id = component_by_node.get(node, -1)
-        profiles[str(node)] = {
-            "in_degree": graph.in_degree(node),
-            "out_degree": graph.out_degree(node),
-            "total_degree": graph.in_degree(node) + graph.out_degree(node),
-            "scc_size": scc_size_by_component.get(component_id, 1),
-            "weak_component_size": weak_component_by_node.get(str(node), 1),
-            "forward_depth": forward_depth.get(component_id, 0),
-            "backward_depth": backward_depth.get(component_id, 0),
-            "signature": refinement_tokens[node],
-        }
-    return profiles
+def canonical_edge_relation(graph: nx.DiGraph, edge: Tuple[str, str]) -> str:
+    """Return the relation label used by bipartite GED."""
+    attributes = graph.edges[edge]
+    return str(attributes.get("relation") or attributes.get("label") or "").strip().lower()
 
 
-def node_substitution_cost(
-    generated_profile: Dict[str, Any],
-    updated_profile: Dict[str, Any],
+def minimum_labeled_edge_edit_cost(
+    generated_relations: List[str],
+    updated_relations: List[str],
 ) -> float:
-    """Return a structure-first substitution cost for bipartite GED."""
-    degree_cost = (
-        abs(int(generated_profile["in_degree"]) - int(updated_profile["in_degree"]))
-        + abs(int(generated_profile["out_degree"]) - int(updated_profile["out_degree"]))
+    """Return the unit-cost edit distance between two local edge-label multisets."""
+    if linear_sum_assignment is None:
+        raise RuntimeError(
+            "Bipartite GED requires scipy. Install scipy or use --ged-algorithm exact/fast."
+        )
+    generated_count = len(generated_relations)
+    updated_count = len(updated_relations)
+    matrix_size = generated_count + updated_count
+    if matrix_size == 0:
+        return 0.0
+
+    impossible_cost = float(matrix_size + 1) * 1000.0
+    cost_matrix = [[0.0 for _ in range(matrix_size)] for _ in range(matrix_size)]
+    for row_index, generated_relation in enumerate(generated_relations):
+        for col_index, updated_relation in enumerate(updated_relations):
+            cost_matrix[row_index][col_index] = (
+                0.0 if generated_relation == updated_relation else 1.0
+            )
+        for deletion_dummy_index in range(generated_count):
+            cost_matrix[row_index][updated_count + deletion_dummy_index] = impossible_cost
+        cost_matrix[row_index][updated_count + row_index] = 1.0
+
+    for insertion_dummy_index in range(updated_count):
+        row_index = generated_count + insertion_dummy_index
+        for col_index in range(updated_count):
+            cost_matrix[row_index][col_index] = impossible_cost
+        cost_matrix[row_index][insertion_dummy_index] = 1.0
+        for deletion_dummy_index in range(generated_count):
+            cost_matrix[row_index][updated_count + deletion_dummy_index] = 0.0
+
+    row_ind, col_ind = linear_sum_assignment(cost_matrix)
+    return float(sum(cost_matrix[int(row)][int(col)] for row, col in zip(row_ind, col_ind)))
+
+
+def local_incident_edge_cost(
+    generated_graph: nx.DiGraph,
+    updated_graph: nx.DiGraph,
+    generated_node: str,
+    updated_node: str,
+) -> float:
+    """Match directed incoming and outgoing edge neighborhoods separately."""
+    generated_in = [
+        canonical_edge_relation(generated_graph, edge)
+        for edge in generated_graph.in_edges(generated_node)
+    ]
+    updated_in = [
+        canonical_edge_relation(updated_graph, edge)
+        for edge in updated_graph.in_edges(updated_node)
+    ]
+    generated_out = [
+        canonical_edge_relation(generated_graph, edge)
+        for edge in generated_graph.out_edges(generated_node)
+    ]
+    updated_out = [
+        canonical_edge_relation(updated_graph, edge)
+        for edge in updated_graph.out_edges(updated_node)
+    ]
+    incoming_cost = minimum_labeled_edge_edit_cost(generated_in, updated_in)
+    outgoing_cost = minimum_labeled_edge_edit_cost(generated_out, updated_out)
+    return 0.5 * (incoming_cost + outgoing_cost)
+
+
+def bipartite_node_substitution_cost(
+    generated_graph: nx.DiGraph,
+    updated_graph: nx.DiGraph,
+    generated_node: str,
+    updated_node: str,
+) -> float:
+    """Return node-type cost plus directed local edge edit cost."""
+    node_type_cost = (
+        0.0
+        if canonical_node_type(generated_graph, generated_node)
+        == canonical_node_type(updated_graph, updated_node)
+        else 1.0
     )
-    topology_cost = (
-        abs(int(generated_profile["forward_depth"]) - int(updated_profile["forward_depth"]))
-        + abs(int(generated_profile["backward_depth"]) - int(updated_profile["backward_depth"]))
-    )
-    component_cost = abs(
-        int(generated_profile["weak_component_size"]) - int(updated_profile["weak_component_size"])
-    ) + abs(int(generated_profile["scc_size"]) - int(updated_profile["scc_size"]))
-    signature_cost = 0.0 if generated_profile["signature"] == updated_profile["signature"] else 0.75
-    return (
-        (0.35 * float(degree_cost))
-        + (0.2 * float(topology_cost))
-        + (0.1 * float(component_cost))
-        + signature_cost
+    return node_type_cost + local_incident_edge_cost(
+        generated_graph,
+        updated_graph,
+        generated_node,
+        updated_node,
     )
 
 
@@ -506,7 +629,7 @@ def compute_bipartite_operation_counts(
     generated_graph: nx.DiGraph,
     updated_graph: nx.DiGraph,
 ) -> Dict[str, int]:
-    """Approximate GED edit operations using structure-aware bipartite matching."""
+    """Approximate GED using directed Riesen-Bunke bipartite assignment."""
     if linear_sum_assignment is None:
         raise RuntimeError(
             "Bipartite GED requires scipy. Install scipy or use --ged-algorithm exact/fast."
@@ -520,8 +643,6 @@ def compute_bipartite_operation_counts(
     if generated_count == 0 and updated_count == 0:
         return make_blank_operation_counts()
 
-    generated_profiles = compute_structural_node_profiles(generated_graph)
-    updated_profiles = compute_structural_node_profiles(updated_graph)
     matrix_size = generated_count + updated_count
     impossible_cost = float(
         (
@@ -537,19 +658,28 @@ def compute_bipartite_operation_counts(
 
     for row_index, generated_node in enumerate(generated_nodes):
         for col_index, updated_node in enumerate(updated_nodes):
-            cost_matrix[row_index][col_index] = node_substitution_cost(
-                generated_profiles[str(generated_node)],
-                updated_profiles[str(updated_node)],
+            cost_matrix[row_index][col_index] = bipartite_node_substitution_cost(
+                generated_graph,
+                updated_graph,
+                generated_node,
+                updated_node,
             )
         for deletion_dummy_index in range(generated_count):
             cost_matrix[row_index][updated_count + deletion_dummy_index] = impossible_cost
-        cost_matrix[row_index][updated_count + row_index] = 1.0
+        cost_matrix[row_index][updated_count + row_index] = 1.0 + (
+            0.5 * float(generated_graph.in_degree(generated_node))
+            + 0.5 * float(generated_graph.out_degree(generated_node))
+        )
 
     for insertion_dummy_index in range(updated_count):
         row_index = generated_count + insertion_dummy_index
         for col_index in range(updated_count):
             cost_matrix[row_index][col_index] = impossible_cost
-        cost_matrix[row_index][insertion_dummy_index] = 1.0
+        updated_node = updated_nodes[insertion_dummy_index]
+        cost_matrix[row_index][insertion_dummy_index] = 1.0 + (
+            0.5 * float(updated_graph.in_degree(updated_node))
+            + 0.5 * float(updated_graph.out_degree(updated_node))
+        )
         for deletion_dummy_index in range(generated_count):
             cost_matrix[row_index][updated_count + deletion_dummy_index] = 0.0
 
@@ -564,6 +694,10 @@ def compute_bipartite_operation_counts(
         if assigned_column < updated_count:
             updated_node = updated_nodes[assigned_column]
             generated_to_updated[generated_node] = updated_node
+            if canonical_node_type(generated_graph, generated_node) != canonical_node_type(
+                updated_graph, updated_node
+            ):
+                counts["ged_node_substitution_count"] += 1
         else:
             counts["ged_node_deletion_count"] += 1
 
@@ -581,6 +715,16 @@ def compute_bipartite_operation_counts(
             continue
         if updated_graph.has_edge(mapped_source, mapped_target):
             matched_updated_edges.add((mapped_source, mapped_target))
+            generated_relation = canonical_edge_relation(
+                generated_graph,
+                (source, target),
+            )
+            updated_relation = canonical_edge_relation(
+                updated_graph,
+                (mapped_source, mapped_target),
+            )
+            if generated_relation != updated_relation:
+                counts["ged_edge_substitution_count"] += 1
         else:
             counts["ged_edge_deletion_count"] += 1
 
@@ -622,6 +766,7 @@ def compute_bipartite_graph_edit_metrics(
         + operation_counts["ged_node_substitution_count"]
         + operation_counts["ged_edge_insertion_count"]
         + operation_counts["ged_edge_deletion_count"]
+        + operation_counts["ged_edge_substitution_count"]
     )
     metrics = summarize_graph_edit_metrics(
         generated_graph,
@@ -825,10 +970,12 @@ def collect_numeric_values(rows: Iterable[Dict[str, Any]], key: str) -> List[flo
 def evaluate_case(
     case_folder: Path,
     parent_dir: Path,
+    reference_root: Path | None = None,
     compute_ged: bool = True,
     compute_ged_operation_counts: bool = True,
     ged_algorithm: str = GED_ALGORITHM_EXACT,
     ged_timeout_seconds: float | None = None,
+    generated_graph_name: str = "causal_graph.json",
 ) -> Dict[str, Any]:
     """Evaluate one case folder and return a CSV-ready row."""
     import re as _re
@@ -841,7 +988,11 @@ def evaluate_case(
         batch_id = infer_batch_id(case_folder, parent_dir)
         _m = _re.search(r"(round_\d+)", str(batch_id))
         round_label = _m.group(1) if _m else ""
-    ged_method = f"ged_{ged_algorithm}" if compute_ged else "ged_skipped"
+    ged_method = (
+        f"ged_{GED_BIPARTITE_METHOD_ID}"
+        if compute_ged and ged_algorithm == GED_ALGORITHM_BIPARTITE
+        else (f"ged_{ged_algorithm}" if compute_ged else "ged_skipped")
+    )
     method = "grakel_weisfeiler_lehman_n_iter_2_generated_vs_updated_label_only_" + ged_method
 
     row: Dict[str, Any] = {
@@ -865,8 +1016,12 @@ def evaluate_case(
     }
 
     try:
-        generated_data = load_json(case_folder / "causal_graph.json")
-        updated_graph_path = resolve_updated_graph_path(case_folder)
+        generated_data = load_json(case_folder / generated_graph_name)
+        updated_graph_path = resolve_reference_graph_path(
+            case_folder,
+            parent_dir,
+            reference_root,
+        )
         if updated_graph_path is None:
             raise FileNotFoundError("No updated_causal_graph.json file found.")
         updated_data = load_json(updated_graph_path)
@@ -1053,20 +1208,24 @@ def evaluate_case(
 def evaluate_case_with_timing(
     case_folder: Path,
     parent_dir: Path,
+    reference_root: Path | None = None,
     compute_ged: bool = True,
     compute_ged_operation_counts: bool = True,
     ged_algorithm: str = GED_ALGORITHM_EXACT,
     ged_timeout_seconds: float | None = None,
+    generated_graph_name: str = "causal_graph.json",
 ) -> Tuple[Dict[str, Any], float]:
     """Evaluate one case and return both the row and elapsed seconds."""
     started_at = time.perf_counter()
     row = evaluate_case(
         case_folder,
         parent_dir,
+        reference_root,
         compute_ged,
         compute_ged_operation_counts,
         ged_algorithm=ged_algorithm,
         ged_timeout_seconds=ged_timeout_seconds,
+        generated_graph_name=generated_graph_name,
     )
     elapsed_seconds = time.perf_counter() - started_at
     return row, elapsed_seconds
@@ -1411,12 +1570,14 @@ def report_case_runtime_summary(
 def evaluate_cases_with_progress(
     case_folders: List[Path],
     parent_dir: Path,
+    reference_root: Path | None = None,
     workers: int | None = None,
     compute_ged: bool = True,
     compute_ged_operation_counts: bool = True,
     show_progress: bool = True,
     ged_algorithm: str = GED_ALGORITHM_EXACT,
     ged_timeout_seconds: float | None = None,
+    generated_graph_name: str = "causal_graph.json",
 ) -> List[Dict[str, Any]]:
     """Evaluate all cases with a progress bar and runtime summary."""
     case_rows: List[Dict[str, Any]] = []
@@ -1438,10 +1599,12 @@ def evaluate_cases_with_progress(
             row, elapsed_seconds = evaluate_case_with_timing(
                 folder,
                 parent_dir,
+                reference_root,
                 compute_ged,
                 compute_ged_operation_counts,
                 ged_algorithm=ged_algorithm,
                 ged_timeout_seconds=ged_timeout_seconds,
+                generated_graph_name=generated_graph_name,
             )
             case_rows.append(row)
             case_timings.append(
@@ -1475,10 +1638,12 @@ def evaluate_cases_with_progress(
                     evaluate_case_with_timing,
                     folder,
                     parent_dir,
+                    reference_root,
                     compute_ged,
                     compute_ged_operation_counts,
                     ged_algorithm,
                     ged_timeout_seconds,
+                    generated_graph_name,
                 )
                 futures[future] = index
                 future_meta[future] = (index, folder, time.perf_counter())
@@ -1560,16 +1725,35 @@ def main() -> Path:
     parent_dir = args.parent_dir
     output_dir = make_run_output_dir(args.output_dir)
 
-    case_folders = find_case_folders(parent_dir)
+    discovered_case_folders = find_case_folders(
+        parent_dir,
+        args.reference_root,
+        args.run_labels,
+        args.generated_graph_name,
+    )
+    excluded_case_keys = load_excluded_case_keys(args.exclude_case_list)
+    case_folders, excluded_folders = filter_excluded_case_folders(
+        discovered_case_folders,
+        parent_dir,
+        excluded_case_keys,
+    )
+    exclusion_audit_path = write_exclusion_audit(
+        output_dir,
+        args.exclude_case_list,
+        excluded_case_keys,
+        excluded_folders,
+    )
     case_rows = evaluate_cases_with_progress(
         case_folders,
         parent_dir,
+        args.reference_root,
         args.workers,
         compute_ged=args.compute_ged,
         compute_ged_operation_counts=args.compute_ged_operation_counts,
         show_progress=args.show_progress,
         ged_algorithm=args.ged_algorithm,
         ged_timeout_seconds=args.ged_timeout,
+        generated_graph_name=args.generated_graph_name,
     )
     batch_rows = build_batch_rows(case_rows)
     overall_rows = build_overall_summary(case_rows, batch_rows)
@@ -1578,7 +1762,11 @@ def main() -> Path:
     write_csv(output_dir / "batch_scores.csv", BATCH_SCORE_COLUMNS, batch_rows)
     write_csv(output_dir / "overall_summary.csv", OVERALL_SUMMARY_COLUMNS, overall_rows)
 
-    print(f"Scanned {len(case_folders)} case folder(s) under {parent_dir}.")
+    print(
+        f"Discovered {len(discovered_case_folders)} case folder(s) under {parent_dir}; "
+        f"excluded {len(excluded_folders)} and evaluated {len(case_folders)}."
+    )
+    print(f"Saved exclusion audit to {exclusion_audit_path}.")
     print(f"Saved case_scores.csv, batch_scores.csv, and overall_summary.csv to {output_dir}.")
     return output_dir
 

@@ -406,6 +406,13 @@ def _build_schema_form_options(schema_payload: Dict[str, object]) -> Dict[str, o
     labels: List[str] = []
     types: List[str] = []
 
+    def split_schema_choices(value: object) -> List[str]:
+        """Expand pipe-delimited schema alternatives into form options."""
+        raw = str(value or "").strip()
+        if not raw:
+            return []
+        return [part.strip() for part in raw.split("|") if part.strip()]
+
     for key in (
         "hazard_consequence_node",
         "entity_nodes",
@@ -418,14 +425,29 @@ def _build_schema_form_options(schema_payload: Dict[str, object]) -> Dict[str, o
         for item in items:
             if not isinstance(item, dict):
                 continue
-            label = str(item.get("label", "")).strip()
+            item_labels = split_schema_choices(item.get("label", ""))
             node_type = _canonicalize_node_type(str(item.get("node_type", "")).strip())
-            if label and label not in labels:
-                labels.append(label)
             if node_type and node_type not in types:
                 types.append(node_type)
-            if label and node_type and label not in label_to_type:
-                label_to_type[label] = node_type
+            for label in item_labels:
+                if label not in labels:
+                    labels.append(label)
+                if node_type and label not in label_to_type:
+                    label_to_type[label] = node_type
+
+            # Historical main-method graphs use both representations below:
+            #   label="HazardConsequence", name="BLEVE"
+            #   label="BLEVE", name="BLEVE"
+            # Keep the controlled hazard names as form-compatible label aliases
+            # so opening an existing node never falls back to the first option.
+            if key == "hazard_consequence_node":
+                for alias in split_schema_choices(item.get("name", "")):
+                    if alias.lower() in {"string", "not specified", "n/a"}:
+                        continue
+                    if alias not in labels:
+                        labels.append(alias)
+                    if node_type and alias not in label_to_type:
+                        label_to_type[alias] = node_type
 
     return {
         "labels": labels,
@@ -818,16 +840,14 @@ def _text_field(value: object) -> str:
     return str(value or "").strip()
 
 
-def _apply_diff_marks_from_baseline_html(
+def _apply_diff_marks(
     graph_elements: Dict[str, List[Dict[str, object]]],
-    baseline_html_path: Union[str, os.PathLike],
+    baseline_nodes: List[Dict[str, object]],
+    baseline_edges: List[Dict[str, object]],
 ) -> None:
-    baseline = _load_elements_from_existing_html(baseline_html_path)
-    baseline_nodes = baseline.get("nodes", [])
-    baseline_edges = baseline.get("edges", [])
+    """Core diff logic shared by HTML-based and JSON-based baseline comparisons."""
     if not baseline_nodes and not baseline_edges:
         return
-
     nodes = graph_elements.setdefault("nodes", [])
     edges = graph_elements.setdefault("edges", [])
 
@@ -916,9 +936,64 @@ def _apply_diff_marks_from_baseline_html(
         edges.append(copied_edge)
         current_edge_index[key] = copied_edge
 
+
+def _apply_diff_marks_from_baseline_html(
+    graph_elements: Dict[str, List[Dict[str, object]]],
+    baseline_html_path: Union[str, os.PathLike],
+) -> None:
+    baseline = _load_elements_from_existing_html(baseline_html_path)
+    _apply_diff_marks(
+        graph_elements,
+        baseline.get("nodes", []),
+        baseline.get("edges", []),
+    )
+
+
+def _apply_diff_marks_from_baseline_json(
+    graph_elements: Dict[str, List[Dict[str, object]]],
+    baseline_json: Union[str, os.PathLike, Dict[str, object]],
+    *,
+    width: int = 26,
+) -> None:
+    payload = _load_json_payload(baseline_json)
+    if not isinstance(payload, dict):
+        return
+    baseline_elements = _build_elements_from_json_graph(payload, payload, width=width)
+    _ensure_unique_element_ids(baseline_elements)
+    _apply_diff_marks(
+        graph_elements,
+        baseline_elements.get("nodes", []),
+        baseline_elements.get("edges", []),
+    )
+
+
 # ============================================================
 # HTML generation
 # ============================================================
+
+def _build_inline_scripts() -> str:
+    """Return inline <script> blocks for cytoscape, dagre, and cytoscape-dagre.
+
+    Falls back to CDN links if any local JS file is missing.
+    """
+    js_dir = Path(__file__).parent / "js"
+    specs = [
+        ("cytoscape.min.js",   "https://unpkg.com/cytoscape/dist/cytoscape.min.js"),
+        ("dagre.min.js",       "https://unpkg.com/dagre@0.8.5/dist/dagre.min.js"),
+        ("cytoscape-dagre.js", "https://unpkg.com/cytoscape-dagre@2.5.0/cytoscape-dagre.js"),
+    ]
+    parts: list[str] = []
+    for filename, cdn_url in specs:
+        local = js_dir / filename
+        if local.exists() and local.stat().st_size > 0:
+            content = local.read_text(encoding="utf-8")
+            parts.append(f"<script>\n{content}\n</script>")
+        else:
+            parts.append(f'<script src="{cdn_url}"></script>')
+    return "\n  ".join(parts)
+
+
+_INLINE_SCRIPTS = _build_inline_scripts()
 
 _HTML_TEMPLATE = r"""<!doctype html>
 <html lang="zh">
@@ -927,12 +1002,7 @@ _HTML_TEMPLATE = r"""<!doctype html>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Interactive Causal Graph (Cytoscape.js)</title>
 
-  <!-- Cytoscape -->
-  <script src="https://unpkg.com/cytoscape/dist/cytoscape.min.js"></script>
-
-  <!-- Dagre (for hierarchical layout) -->
-  <script src="https://unpkg.com/dagre@0.8.5/dist/dagre.min.js"></script>
-  <script src="https://unpkg.com/cytoscape-dagre/cytoscape-dagre.js"></script>
+  {{INLINE_SCRIPTS}}
 
   <style>
     :root{
@@ -3008,9 +3078,7 @@ _JSON_GRAPH_HTML_TEMPLATE = r"""<!doctype html>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>{{PAGE_TITLE}}</title>
-  <script src="https://unpkg.com/cytoscape/dist/cytoscape.min.js"></script>
-  <script src="https://unpkg.com/dagre@0.8.5/dist/dagre.min.js"></script>
-  <script src="https://unpkg.com/cytoscape-dagre/cytoscape-dagre.js"></script>
+  {{INLINE_SCRIPTS}}
   <style>
     body {
       margin: 0;
@@ -5625,7 +5693,12 @@ _JSON_GRAPH_HTML_TEMPLATE = r"""<!doctype html>
       const data = node.data();
       const isDeleted = node.hasClass("delete-mark");
       setDetailSummary(`${data.label || ""}: ${data.name || ""}`);
-      const labelOptions = (schemaForm.labels || []).map((label) => {
+      const currentLabel = String(data.label || "").trim();
+      const availableLabels = [...(schemaForm.labels || [])];
+      if (currentLabel && !availableLabels.includes(currentLabel)) {
+        availableLabels.unshift(currentLabel);
+      }
+      const labelOptions = availableLabels.map((label) => {
         const selected = label === (data.label || "") ? " selected" : "";
         return `<option value="${escapeHtml(label)}"${selected}>${escapeHtml(label)}</option>`;
       }).join("");
@@ -6062,8 +6135,8 @@ _JSON_GRAPH_HTML_TEMPLATE = r"""<!doctype html>
     }
 
     normalizeInitialNodeSizes();
-    runLayout();
     cy.once("layoutstop", ensureNameVisibleInitialViewport);
+    runLayout();
     cy.on("render layoutstop dragfree position pan zoom add remove", syncNodeOverlay);
     syncNodeOverlay();
     applyStoredRevisionHighlights();
@@ -6253,6 +6326,7 @@ def _render_html(
     initial_text = "\n".join(lines)
 
     html = _HTML_TEMPLATE
+    html = html.replace("{{INLINE_SCRIPTS}}", _INLINE_SCRIPTS)
     html = html.replace("{{INITIAL_TEXT_JSON}}", json.dumps(initial_text, ensure_ascii=False))
     html = html.replace("{{CONDITIONS_JSON}}", json.dumps(sorted(condition_nodes), ensure_ascii=False))
     html = html.replace("{{HAZARDS_JSON}}", json.dumps(sorted(hazard_nodes), ensure_ascii=False))
@@ -6281,6 +6355,7 @@ def _render_json_graph_html(
 ) -> Path:
     page_title = f"Interactive Causal Graph - {case_id or html_path.parent.name} [{STYLE_VERSION}]"
     html = _JSON_GRAPH_HTML_TEMPLATE
+    html = html.replace("{{INLINE_SCRIPTS}}", _INLINE_SCRIPTS)
     html = html.replace("{{PAGE_TITLE}}", page_title)
     html = html.replace(
         "{{GRAPH_ELEMENTS_JSON}}",

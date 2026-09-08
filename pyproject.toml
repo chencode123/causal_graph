@@ -11,6 +11,7 @@ dependencies = [
     "python-dotenv",
     "graphviz>=0.20.0",
     "tqdm",
+    "beautifulsoup4>=4.12",
 ]
 
 [tool.setuptools.packages.find]

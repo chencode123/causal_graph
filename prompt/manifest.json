@@ -1,4 +1,18 @@
 {
+  "direct_graph_extraction": {
+    "template_file": "direct_graph_extraction.txt",
+    "required_vars": [
+      "incident_description",
+      "hazards_consequence_json",
+      "baseline_hazard_selection_rules",
+      "accident_scenario_schema",
+      "accident_scenario_schema_definition",
+      "baseline_final_node_rules",
+      "causal_edge_schema_definition",
+      "baseline_graph_connectivity_rules"
+    ],
+    "optional_vars": []
+  },
   "causal_edge_linking": {
     "template_file": "causal_edge_linking.txt",
     "required_vars": [
@@ -16,29 +30,7 @@
   "causal_narrative_extraction": {
     "template_file": "causal_narrative_extraction.txt",
     "required_vars": [
-      "causal_narrative_candidate_extraction_output",
-      "causal_narrative_structure_validation_output",
-      "identify_hazard_consequence_output"
-    ],
-    "optional_vars": [
-      "few_shot_examples"
-    ]
-  },
-  "causal_narrative_candidate_extraction": {
-    "template_file": "causal_narrative_candidate_extraction.txt",
-    "required_vars": [
       "incident_description",
-      "identify_hazard_consequence_output"
-    ],
-    "optional_vars": [
-      "few_shot_examples"
-    ]
-  },
-  "causal_narrative_structure_validation": {
-    "template_file": "causal_narrative_structure_validation.txt",
-    "required_vars": [
-      "incident_description",
-      "causal_narrative_candidate_extraction_output",
       "identify_hazard_consequence_output"
     ],
     "optional_vars": [

@@ -26,6 +26,7 @@ from .step_registry import STEP_REGISTRY
 
 ENDPOINT = "/v1/responses"
 COMPLETION_WINDOW = "24h"
+INPUT_FILE_RETRY_ATTEMPTS = 3
 
 
 def _mask(key: str | None) -> str:
@@ -35,37 +36,8 @@ def _mask(key: str | None) -> str:
 
 
 def _load_required_prompts() -> Dict[str, str]:
-<<<<<<< Updated upstream
-    """Load only the prompt files required by the current pipeline."""
-    prompt_paths = {
-        "identify_hazard_consequence": Path("prompt/identify_hazard_consequence.txt"),
-        "causal_narrative_candidate_extraction": Path(
-            "prompt/causal_narrative_candidate_extraction.txt"
-        ),
-        "causal_narrative_structure_validation": Path(
-            "prompt/causal_narrative_structure_validation.txt"
-        ),
-        "causal_narrative_extraction": Path("prompt/causal_narrative_extraction.txt"),
-        "scenario_candidate_extraction": Path("prompt/scenario_candidate_extraction.txt"),
-        "scenario_structure_validation": Path("prompt/scenario_structure_validation.txt"),
-        "identify_accident_scenario": Path("prompt/identify_accident_scenario.txt"),
-        "edge_candidate_extraction": Path("prompt/edge_candidate_extraction.txt"),
-        "edge_structure_validation": Path("prompt/edge_structure_validation.txt"),
-        "causal_edge_linking": Path("prompt/causal_edge_linking.txt"),
-        "review_causal_graph": Path("prompt/review_causal_graph.txt"),
-        "graph_diagnosis": Path("prompt/graph_diagnosis.txt"),
-        "graph_revision_planning": Path("prompt/graph_revision_planning.txt"),
-        "identify_incident": Path("prompt/identify_incident.txt"),
-    }
-    loaded: Dict[str, str] = {}
-    for key, path in prompt_paths.items():
-        if path.exists():
-            loaded[key] = path.read_text(encoding="utf-8")
-    return loaded
-=======
     """Load prompt templates from the shared manifest-backed prompt manager."""
     return prompt_manager.prompts.load_all()
->>>>>>> Stashed changes
 
 
 def poll_batch_until_done(
@@ -96,6 +68,16 @@ def download_file_text(client: OpenAI, file_id: str) -> str:
     """Download a batch output or error file as text."""
     response = client.files.content(file_id)
     return response.text if hasattr(response, "text") else str(response)
+
+
+def _is_missing_input_file_failure(batch: Dict[str, Any]) -> bool:
+    errors = (batch.get("errors") or {}).get("data") or []
+    return any(
+        error.get("code") == "invalid_request"
+        and "cannot find file" in str(error.get("message", "")).lower()
+        for error in errors
+        if isinstance(error, dict)
+    )
 
 
 def run_step_as_batch(
@@ -154,7 +136,17 @@ def run_step_as_batch(
         )
 
         text_cfg: Dict[str, Any] = {"verbosity": step.verbosity or config.verbosity}
-        if getattr(config, "force_json_output", False):
+        structured_schema = (
+            getattr(config, "structured_output_schemas", None) or {}
+        ).get(step.key)
+        if structured_schema is not None:
+            text_cfg["format"] = {
+                "type": "json_schema",
+                "name": f"{step.key}_output",
+                "strict": True,
+                "schema": structured_schema,
+            }
+        elif getattr(config, "force_json_output", False):
             text_cfg["format"] = {"type": "json_object"}
 
         body: Dict[str, Any] = {
@@ -183,27 +175,47 @@ def run_step_as_batch(
     write_text(batch_input_path, "\n".join(lines) + "\n")
     tqdm.write(f"[{step.key}] Prepared {len(lines)} requests: {batch_input_path}")
 
-    with batch_input_path.open("rb") as fp:
-        uploaded = client.files.create(file=fp, purpose="batch")
+    final: Dict[str, Any] | None = None
+    for upload_attempt in range(1, INPUT_FILE_RETRY_ATTEMPTS + 1):
+        with batch_input_path.open("rb") as fp:
+            uploaded = client.files.create(file=fp, purpose="batch")
 
-    batch = client.batches.create(
-        input_file_id=uploaded.id,
-        endpoint=ENDPOINT,
-        completion_window=COMPLETION_WINDOW,
-        metadata={"step": step.key},
-    )
-    tqdm.write(f"[{step.key}] Created batch: {batch.id}")
+        # Confirm that the same project can retrieve the uploaded file before
+        # handing its ID to asynchronous Batch validation.
+        client.files.retrieve(uploaded.id)
+        batch = client.batches.create(
+            input_file_id=uploaded.id,
+            endpoint=ENDPOINT,
+            completion_window=COMPLETION_WINDOW,
+            metadata={"step": step.key},
+        )
+        tqdm.write(
+            f"[{step.key}] Created batch: {batch.id} "
+            f"(upload attempt {upload_attempt}/{INPUT_FILE_RETRY_ATTEMPTS})"
+        )
 
-    batch_job_progress = tqdm(total=len(lines), desc=f"{step.key} batch", unit="req", leave=False)
-    final = poll_batch_until_done(
-        client,
-        batch_id=batch.id,
-        poll_seconds=15,
-        progress_bar=batch_job_progress,
-    )
-    if batch_job_progress.n < batch_job_progress.total:
-        batch_job_progress.update(batch_job_progress.total - batch_job_progress.n)
-    batch_job_progress.close()
+        batch_job_progress = tqdm(
+            total=len(lines), desc=f"{step.key} batch", unit="req", leave=False
+        )
+        final = poll_batch_until_done(
+            client,
+            batch_id=batch.id,
+            poll_seconds=15,
+            progress_bar=batch_job_progress,
+        )
+        if batch_job_progress.n < batch_job_progress.total:
+            batch_job_progress.update(batch_job_progress.total - batch_job_progress.n)
+        batch_job_progress.close()
+        if not _is_missing_input_file_failure(final):
+            break
+        if upload_attempt < INPUT_FILE_RETRY_ATTEMPTS:
+            tqdm.write(
+                f"[{step.key}] Uploaded input file was unavailable during Batch "
+                "validation; uploading a fresh copy and retrying."
+            )
+
+    if final is None:
+        raise RuntimeError(f"[{step.key}] Batch submission produced no Batch object.")
     write_text(
         batch_workdir / f"{step.key}_batch_object.json",
         json.dumps(final, ensure_ascii=False, indent=2),
@@ -217,8 +229,10 @@ def run_step_as_batch(
 
     output_file_id = final.get("output_file_id")
     if not output_file_id:
-        tqdm.write(f"[{step.key}] No successful outputs returned.")
-        return
+        raise RuntimeError(
+            f"[{step.key}] Batch ended with status={final.get('status')} and "
+            "returned no successful outputs; stopping before dependent steps."
+        )
 
     out_text = download_file_text(client, output_file_id)
     write_text(batch_workdir / f"{step.key}_output_raw.jsonl", out_text)
@@ -313,15 +327,16 @@ def run_batch_pipeline(config: Any) -> None:
             batch_workdir=batch_workdir,
         )
 
-    for folder in tqdm(folders, desc="Local postprocess", unit="folder"):
-        try:
-            run_local_postprocess(
-                all_prompts=all_prompts,
-                folder=folder,
-                hazards_json_path=config.hazards_json_path,
-                accident_scenario_schema_path=Path("scheme/accident_scenario_schema.json"),
-                source_folder=(getattr(config, "source_folder_map", None) or {}).get(folder, folder),
-                remove_shortcut_edges=getattr(config, "remove_shortcut_edges", True),
-            )
-        except Exception as exc:
-            tqdm.write(f"Postprocess skipped for {folder.name}: {exc}")
+    if getattr(config, "enable_local_postprocess", True):
+        for folder in tqdm(folders, desc="Local postprocess", unit="folder"):
+            try:
+                run_local_postprocess(
+                    all_prompts=all_prompts,
+                    folder=folder,
+                    hazards_json_path=config.hazards_json_path,
+                    accident_scenario_schema_path=Path("scheme/accident_scenario_schema.json"),
+                    source_folder=(getattr(config, "source_folder_map", None) or {}).get(folder, folder),
+                    remove_shortcut_edges=getattr(config, "remove_shortcut_edges", True),
+                )
+            except Exception as exc:
+                tqdm.write(f"Postprocess skipped for {folder.name}: {exc}")

@@ -5,6 +5,7 @@ import csv
 import hashlib
 import json
 import os
+import sys
 import threading
 from dataclasses import dataclass
 from datetime import datetime
@@ -16,6 +17,18 @@ from typing import Any, Dict, Iterable, List, Tuple
 from openai import OpenAI
 from scipy.optimize import linear_sum_assignment
 from tqdm import tqdm
+
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+from utils.evaluation_case_filters import (  # noqa: E402
+    DEFAULT_EXCLUDED_CASES_PATH,
+    filter_excluded_case_folders,
+    load_excluded_case_keys,
+    write_exclusion_audit,
+)
 
 
 NODE_GROUP_SPECS = (
@@ -115,6 +128,22 @@ def parse_args() -> argparse.Namespace:
             "Base output directory where timestamped CSV results will be written. "
             "Defaults to <parent-dir>/result_soft_f1_api."
         ),
+    )
+    parser.add_argument(
+        "--exclude-case-list",
+        type=Path,
+        default=DEFAULT_EXCLUDED_CASES_PATH,
+        help=(
+            "JSON list of batch/case keys to exclude. Defaults to the cases that "
+            "contributed few-shot review patterns."
+        ),
+    )
+    parser.add_argument(
+        "--include-few-shot-cases",
+        dest="exclude_case_list",
+        action="store_const",
+        const=None,
+        help="Disable the default few-shot case exclusion for a non-held-out analysis.",
     )
     parser.add_argument(
         "--embedding-model",
@@ -716,7 +745,24 @@ def main() -> Path:
         base_output_dir = parent_dir / suffix
     output_dir = make_run_output_dir(base_output_dir)
     search_root = (parent_dir / args.batch_id) if args.batch_id else parent_dir
-    case_folders = find_case_folders(search_root)
+    discovered_case_folders = find_case_folders(search_root)
+    excluded_case_keys = load_excluded_case_keys(args.exclude_case_list)
+    case_folders, excluded_folders = filter_excluded_case_folders(
+        discovered_case_folders,
+        parent_dir,
+        excluded_case_keys,
+    )
+    exclusion_audit_path = write_exclusion_audit(
+        output_dir,
+        args.exclude_case_list,
+        excluded_case_keys,
+        excluded_folders,
+    )
+    print(
+        f"Discovered {len(discovered_case_folders)} case(s) under {search_root}; "
+        f"excluded {len(excluded_folders)} and evaluating {len(case_folders)}."
+    )
+    print(f"Saved exclusion audit to {exclusion_audit_path}.")
 
     case_rows = [
         evaluate_case(

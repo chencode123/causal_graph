@@ -30,6 +30,10 @@ class PipelineConfig:
     source_folder_map: dict[Path, Path] | None = None
     remove_shortcut_edges: bool = True
     responses_async_enabled: bool = False
+    responses_max_concurrency: int = 10
+    stop_on_step_failure: bool = False
+    enable_local_postprocess: bool = True
+    structured_output_schemas: dict[str, dict[str, object]] | None = None
 
 
 def build_few_shot_cases_by_step(
@@ -115,14 +119,35 @@ def is_case_folder(folder: Path) -> bool:
 
 
 def discover_case_folders(batch_dir: Path) -> tuple[Path, ...]:
-    """Discover case folders under one batch directory."""
+    """Discover case folders under one batch directory.
+
+    Supports up to two levels of nesting so that BASE_DIR can point at a
+    parent directory (e.g. rounds/) containing round_N/batch_N/case trees.
+    """
     if is_case_folder(batch_dir):
         return (batch_dir,)
-    return tuple(
-        folder
-        for folder in sorted(batch_dir.iterdir())
-        if folder.is_dir() and not folder.name.startswith("_")
+
+    children = sorted(
+        f for f in batch_dir.iterdir()
+        if f.is_dir() and not f.name.startswith("_")
     )
+
+    # If any immediate child is a case folder return them directly
+    case_children = tuple(c for c in children if is_case_folder(c))
+    if case_children:
+        return case_children
+
+    # No case folders at first level — try one level deeper
+    deeper = tuple(
+        grandchild
+        for child in children
+        for grandchild in sorted(
+            f for f in child.iterdir()
+            if f.is_dir() and not f.name.startswith("_")
+        )
+        if is_case_folder(grandchild)
+    )
+    return deeper if deeper else tuple(children)
 
 
 def prepare_round_output_dirs(
@@ -184,6 +209,9 @@ def copy_case_seed_files(
             continue
         if path.name.endswith("_error.txt"):
             continue
-        if path.suffix.lower() not in {".json", ".txt", ".md", ".html", ".docx"}:
+        # DOCX report attachments are not prompt inputs and may be cloud-only
+        # placeholders on synced Windows drives. Copying them can fail with
+        # OSError 22 and abort round preparation unnecessarily.
+        if path.suffix.lower() not in {".json", ".txt", ".md", ".html"}:
             continue
         shutil.copy2(path, target_case_dir / path.name)

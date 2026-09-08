@@ -1,0 +1,11 @@
+FINAL GRAPH CONNECTIVITY RULES
+
+1. Hazard consequence nodes should normally be the downstream end of the main causal chain.
+2. Avoid adding a transitive edge when the existing direct local chain is already sufficient.
+3. Except for the HazardConsequence node, every retained node must have at least one
+   outgoing edge.
+4. Every retained Condition node must have both at least one incoming edge and at least one
+   outgoing edge. If a supported Condition lacks a supported downstream connection, omit it
+   rather than inventing an edge.
+5. If both release and dispersion events are present and supported, represent the local
+   release-to-dispersion mechanism.

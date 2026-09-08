@@ -24,16 +24,14 @@ import os
 import sys
 from pathlib import Path
 
+from utils.evaluation_case_filters import DEFAULT_EXCLUDED_CASES_PATH
+
 
 PROJECT_ROOT = Path(__file__).resolve().parent
 SCRIPTS_DIR = PROJECT_ROOT / "scripts"
 STRUCTURE_EVAL_PATH = PROJECT_ROOT / "scripts" / "evaluation_structure_similarity.py"
 PLOT_EVAL_PATH = PROJECT_ROOT / "scripts" / "plot_evaluation_results.py"
-<<<<<<< Updated upstream
-DEFAULT_FOLDER = Path("runs/stability_test/batch_4_without_few_shot_reruns_cov")  # Default base folder for evaluation; can be overridden by --folder argument.
-=======
-DEFAULT_FOLDER = Path(r"runs\stability_test\rounds")  # Default base folder for evaluation; can be overridden by --folder argument.
->>>>>>> Stashed changes
+DEFAULT_FOLDER = Path("runs/stability_test/rounds_with_few_shot")  # Default base folder for evaluation; can be overridden by --folder argument.
 SHOW_PROGRESS = True  # Default progress-bar visibility; can still be overridden by --show-progress/--hide-progress.
 COMPUTE_GED = True  # Whether to compute GED-based metrics by default.
 COMPUTE_GED_OPERATION_COUNTS = False  # Whether to run the expensive node/edge edit-operation counting step by default.
@@ -80,6 +78,51 @@ def parse_args() -> argparse.Namespace:
             "Directory where evaluation result files will be written. "
             "If omitted, results are written to <folder>/results."
         ),
+    )
+    parser.add_argument(
+        "--reference-root",
+        type=Path,
+        default=None,
+        help=(
+            "Optional fixed expert-reference root organized as "
+            "<batch>/<case>/updated_causal_graph.json. Required for result "
+            "folders, such as the single-pass baseline, that do not carry a "
+            "local reference graph."
+        ),
+    )
+    parser.add_argument(
+        "--generated-graph-name",
+        default="causal_graph.json",
+        help=(
+            "Filename of the generated graph inside each case directory. "
+            "Defaults to causal_graph.json; the two-stage No Revision condition "
+            "uses no_revision_causal_graph.json."
+        ),
+    )
+    parser.add_argument(
+        "--run-labels",
+        nargs="+",
+        default=None,
+        help=(
+            "Only evaluate these immediate child runs/rounds, such as "
+            "round_4 round_5 or run_01 run_02 run_03 run_04 run_05."
+        ),
+    )
+    parser.add_argument(
+        "--exclude-case-list",
+        type=Path,
+        default=DEFAULT_EXCLUDED_CASES_PATH,
+        help=(
+            "JSON list of batch/case keys to exclude. Defaults to the cases that "
+            "contributed few-shot review patterns."
+        ),
+    )
+    parser.add_argument(
+        "--include-few-shot-cases",
+        dest="exclude_case_list",
+        action="store_const",
+        const=None,
+        help="Disable the default few-shot case exclusion for a non-held-out analysis.",
     )
     parser.add_argument(
         "--workers",
@@ -134,7 +177,8 @@ def parse_args() -> argparse.Namespace:
             "GED algorithm to use: "
             "'exact' exhausts candidates, "
             "'fast' uses the first NetworkX candidate, "
-            "and 'bipartite' uses a faster structure-aware assignment approximation."
+            "and 'bipartite' uses a directed Riesen-Bunke assignment approximation "
+            "with unit node/edge edit costs."
         ),
     )
     parser.add_argument(
@@ -225,6 +269,15 @@ def main() -> None:
             "--output-dir",
             str(output_dir),
         ]
+        if args.exclude_case_list is None:
+            sys.argv.append("--include-few-shot-cases")
+        else:
+            sys.argv.extend(["--exclude-case-list", str(args.exclude_case_list)])
+        if args.reference_root is not None:
+            sys.argv.extend(["--reference-root", str(args.reference_root)])
+        sys.argv.extend(["--generated-graph-name", args.generated_graph_name])
+        if args.run_labels:
+            sys.argv.extend(["--run-labels", *args.run_labels])
         if args.workers is not None:
             sys.argv.extend(["--workers", str(args.workers)])
         if not args.compute_ged:

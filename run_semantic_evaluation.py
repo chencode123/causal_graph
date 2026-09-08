@@ -18,6 +18,13 @@ from openai import OpenAI
 from tqdm import tqdm
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
+from utils.evaluation_case_filters import (
+    DEFAULT_EXCLUDED_CASES_PATH,
+    filter_excluded_case_folders,
+    load_excluded_case_keys,
+    write_exclusion_audit,
+)
+
 NODE_GROUP_KEYS = (
     "hazard_consequence_node",
     "entity_nodes",
@@ -123,6 +130,22 @@ def parse_args() -> argparse.Namespace:
         type=Path,
         default=None,
         help="Directory where CSV files will be written. Default: <parent-dir>/result_semantic",
+    )
+    parser.add_argument(
+        "--exclude-case-list",
+        type=Path,
+        default=DEFAULT_EXCLUDED_CASES_PATH,
+        help=(
+            "JSON list of batch/case keys to exclude. Defaults to the cases that "
+            "contributed few-shot review patterns."
+        ),
+    )
+    parser.add_argument(
+        "--include-few-shot-cases",
+        dest="exclude_case_list",
+        action="store_const",
+        const=None,
+        help="Disable the default few-shot case exclusion for a non-held-out analysis.",
     )
     parser.add_argument(
         "--embedding-model",
@@ -971,9 +994,25 @@ def main() -> Path:
     parent_dir: Path = args.parent_dir
     base_output_dir = args.output_dir or (parent_dir / "result_semantic")
     output_dir = make_run_output_dir(base_output_dir)
-    case_folders = find_case_folders(parent_dir)
+    discovered_case_folders = find_case_folders(parent_dir)
+    excluded_case_keys = load_excluded_case_keys(args.exclude_case_list)
+    case_folders, excluded_folders = filter_excluded_case_folders(
+        discovered_case_folders,
+        parent_dir,
+        excluded_case_keys,
+    )
+    exclusion_audit_path = write_exclusion_audit(
+        output_dir,
+        args.exclude_case_list,
+        excluded_case_keys,
+        excluded_folders,
+    )
 
-    print(f"Evaluating {len(case_folders)} case(s) under {parent_dir}.")
+    print(
+        f"Discovered {len(discovered_case_folders)} case(s) under {parent_dir}; "
+        f"excluded {len(excluded_folders)} and evaluating {len(case_folders)}."
+    )
+    print(f"Saved exclusion audit to {exclusion_audit_path}.")
     embedding_helper = EmbeddingHelper(
         client=OpenAI(),
         model=args.embedding_model,

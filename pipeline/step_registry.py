@@ -4,6 +4,35 @@ from typing import Any, Dict
 
 
 STEP_REGISTRY: Dict[str, Dict[str, Any]] = {
+    "direct_graph_extraction": {
+        "output_file": "causal_graph.json",
+        "required_vars": {
+            "incident_description": "folder:identify_incident_output.json",
+            "hazards_consequence_json": "config:hazards_json",
+            "baseline_hazard_selection_rules": (
+                "project:scheme/baseline_hazard_selection_rules.txt"
+            ),
+            "accident_scenario_schema": "project:scheme/accident_scenario_schema.json",
+            "accident_scenario_schema_definition": (
+                "project:scheme/accident_scenario_scheme_definition.txt"
+            ),
+            "baseline_final_node_rules": (
+                "project:scheme/baseline_final_node_rules.txt"
+            ),
+            "causal_edge_schema_definition": (
+                "project:scheme/causal_edge_schema_definition.txt"
+            ),
+            "baseline_graph_connectivity_rules": (
+                "project:scheme/baseline_graph_connectivity_rules.txt"
+            ),
+        },
+        "default_params": {
+            "enabled": True,
+            "reasoning_effort": None,
+            "temperature": None,
+            "verbosity": None,
+        },
+    },
     "identify_hazard_consequence": {
         "output_file": "identify_hazard_consequence_output.json",
         "required_vars": {
@@ -20,50 +49,12 @@ STEP_REGISTRY: Dict[str, Dict[str, Any]] = {
             "verbosity": None,
         },
     },
-    "causal_narrative_candidate_extraction": {
-        "output_file": "causal_narrative_candidate_extraction_output.json",
-        "required_vars": {
-            "incident_description": "folder:identify_incident_output.json",
-            "identify_hazard_consequence_output": (
-                "folder:identify_hazard_consequence_output.json"
-            ),
-        },
-        "default_params": {
-            "enabled": True,
-            "reasoning_effort": None,
-            "temperature": None,
-            "verbosity": None,
-        },
-    },
-    "causal_narrative_structure_validation": {
-        "output_file": "causal_narrative_structure_validation_output.json",
-        "required_vars": {
-            "incident_description": "folder:identify_incident_output.json",
-            "identify_hazard_consequence_output": (
-                "folder:identify_hazard_consequence_output.json"
-            ),
-            "causal_narrative_candidate_extraction_output": (
-                "folder:causal_narrative_candidate_extraction_output.json"
-            ),
-        },
-        "default_params": {
-            "enabled": True,
-            "reasoning_effort": None,
-            "temperature": None,
-            "verbosity": None,
-        },
-    },
     "causal_narrative_extraction": {
         "output_file": "causal_narrative_extraction_output.json",
         "required_vars": {
+            "incident_description": "folder:identify_incident_output.json",
             "identify_hazard_consequence_output": (
                 "folder:identify_hazard_consequence_output.json"
-            ),
-            "causal_narrative_candidate_extraction_output": (
-                "folder:causal_narrative_candidate_extraction_output.json"
-            ),
-            "causal_narrative_structure_validation_output": (
-                "folder:causal_narrative_structure_validation_output.json"
             ),
         },
         "default_params": {

@@ -112,11 +112,12 @@ def run_with_stability(
     stability_start_round: int,
     stability_resume: bool,
     stability_output_root: Path | None,
+    target_batches: tuple[str, ...] | None = None,
 ) -> None:
     rounds = max(1, int(stability_rounds))
     start_round = max(1, int(stability_start_round))
 
-    if rounds == 1:
+    if rounds == 1 and stability_output_root is None and start_round == 1:
         run_single_or_multi_batch(
             config=config,
             run_base_dir=base_dir,
@@ -126,6 +127,18 @@ def run_with_stability(
         return
 
     source_batch_dirs = iter_target_batch_dirs(base_dir)
+    if target_batches:
+        requested_batches = set(target_batches)
+        available_batches = {path.name for path in source_batch_dirs}
+        missing_batches = sorted(requested_batches - available_batches)
+        if missing_batches:
+            raise ValueError(
+                "Requested TARGET_BATCHES were not found under "
+                f"{base_dir}: {', '.join(missing_batches)}"
+            )
+        source_batch_dirs = [
+            path for path in source_batch_dirs if path.name in requested_batches
+        ]
     source_case_dirs = tuple(
         folder
         for batch_dir in source_batch_dirs
@@ -176,12 +189,16 @@ def run_with_stability(
             )
             continue
 
-        flatten_single_batch = len(source_batch_dirs) == 1
+        # Preserve the batch directory whenever BASE_DIR is a parent containing
+        # batch_* folders, even if TARGET_BATCHES selects only one of them.
+        flatten_single_batch = (
+            len(source_batch_dirs) == 1 and source_batch_dirs[0] == base_dir
+        )
         for source_batch_dir in source_batch_dirs:
             round_batch_dir = (
                 round_base_dir
                 if flatten_single_batch
-                else round_base_dir / f"{source_batch_dir.name}_output_round_{round_index}"
+                else round_base_dir / source_batch_dir.name
             )
             source_folder_map.update(
                 prepare_round_output_dirs(

@@ -1,0 +1,175 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "hazard_consequence_node",
+    "entity_nodes",
+    "condition_nodes",
+    "event_nodes",
+    "edges"
+  ],
+  "properties": {
+    "hazard_consequence_node": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 1,
+      "items": { "$ref": "#/$defs/hazard_node" }
+    },
+    "entity_nodes": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/entity_node" }
+    },
+    "condition_nodes": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/condition_node" }
+    },
+    "event_nodes": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/event_node" }
+    },
+    "edges": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/edge" }
+    }
+  },
+  "$defs": {
+    "hazard_node": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["label", "name", "node_id", "node_type", "evidence", "explanation", "source"],
+      "properties": {
+        "label": { "type": "string", "enum": ["HazardConsequence"] },
+        "name": {
+          "type": "string",
+          "enum": [
+            "VCE",
+            "BLEVE",
+            "Dust explosion",
+            "Confined explosion",
+            "Pool fire",
+            "Jet fire",
+            "Fire ball",
+            "Flash fire",
+            "Toxicity dispersion",
+            "Asphyxiation"
+          ]
+        },
+        "node_id": { "type": "string", "enum": ["H1"] },
+        "node_type": { "type": "string", "enum": ["HazardConsequence"] },
+        "evidence": { "type": "string" },
+        "explanation": { "type": "string" },
+        "source": { "type": "string", "enum": ["incident_description", "Not specified"] }
+      }
+    },
+    "entity_node": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["label", "name", "node_id", "node_type", "evidence", "explanation", "source"],
+      "properties": {
+        "label": { "type": "string", "enum": ["Material", "Location"] },
+        "name": { "type": "string" },
+        "node_id": { "type": "string", "pattern": "^En[1-9][0-9]*$" },
+        "node_type": { "type": "string", "enum": ["Entity"] },
+        "evidence": { "type": "string" },
+        "explanation": { "type": "string" },
+        "source": { "type": "string", "enum": ["incident_description", "Not specified"] }
+      }
+    },
+    "condition_node": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["label", "name", "node_id", "node_type", "evidence", "explanation", "source"],
+      "properties": {
+        "label": {
+          "type": "string",
+          "enum": [
+            "Phase",
+            "Pressure",
+            "Temperature",
+            "Volatility",
+            "Combustibility",
+            "ToxicSubstance",
+            "Asphyxiant",
+            "Conductivity",
+            "Confinement"
+          ]
+        },
+        "name": {
+          "type": "string",
+          "enum": [
+            "Liquid",
+            "Vapor",
+            "Solid",
+            "TwoPhase",
+            "High pressure",
+            "Low pressure",
+            "Low temperature",
+            "Atmospheric temperature",
+            "High temperature",
+            "Low volatility",
+            "High volatility",
+            "Combustible",
+            "Non-combustible",
+            "Toxic",
+            "Non-toxic",
+            "Asphyxiant",
+            "Non-asphyxiant",
+            "Low conductivity",
+            "High conductivity",
+            "High confinement",
+            "Low confinement",
+            "Not specified"
+          ]
+        },
+        "node_id": { "type": "string", "pattern": "^C[1-9][0-9]*$" },
+        "node_type": { "type": "string", "enum": ["Condition"] },
+        "evidence": { "type": "string" },
+        "explanation": { "type": "string" },
+        "source": { "type": "string", "enum": ["incident_description", "Not specified"] }
+      }
+    },
+    "event_node": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["label", "name", "node_id", "node_type", "evidence", "explanation", "source"],
+      "properties": {
+        "label": {
+          "type": "string",
+          "enum": [
+            "InitiatingEvent",
+            "MechanicalFailure",
+            "IgnitionSource",
+            "IntermediateEvent",
+            "InstantRelease",
+            "ContinuousRelease",
+            "Dispersion"
+          ]
+        },
+        "name": { "type": "string" },
+        "node_id": { "type": "string", "pattern": "^Ev[1-9][0-9]*$" },
+        "node_type": { "type": "string", "enum": ["Event"] },
+        "evidence": { "type": "string" },
+        "explanation": { "type": "string" },
+        "source": { "type": "string", "enum": ["incident_description", "Not specified"] }
+      }
+    },
+    "edge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source", "target", "relation", "evidence", "explanation"],
+      "properties": {
+        "source": {
+          "type": "string",
+          "pattern": "^(H1|En[1-9][0-9]*|C[1-9][0-9]*|Ev[1-9][0-9]*)$"
+        },
+        "target": {
+          "type": "string",
+          "pattern": "^(H1|En[1-9][0-9]*|C[1-9][0-9]*|Ev[1-9][0-9]*)$"
+        },
+        "relation": { "type": "string", "enum": ["has", "enables"] },
+        "evidence": { "type": "string" },
+        "explanation": { "type": "string" }
+      }
+    }
+  }
+}

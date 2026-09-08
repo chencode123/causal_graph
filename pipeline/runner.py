@@ -12,7 +12,6 @@ from typing import Any, Dict, List, Tuple
 from openai import AsyncOpenAI, OpenAI
 from tqdm import tqdm
 
-import utils.incident_card_to_word as incident_card_to_word
 import utils.prompt_manager as prompt_manager
 from utils.causal_graph_interactive_pkg.causal_graph_interactive import (
     draw_causal_graph_interactive_from_json,
@@ -527,6 +526,7 @@ def generate_accept_all_review_outputs(
         accident_scenario_schema=accident_scenario_schema_path,
         review_causal_graph=review_path,
         revision_decisions=review_state_path,
+
         case_id=folder.name,
     )
 
@@ -828,9 +828,19 @@ def _build_responses_request_payload(
     step_temperature = step.temperature
     verbosity = step.verbosity or config.verbosity
     force_json_output = getattr(config, "force_json_output", False)
+    structured_schema = (
+        getattr(config, "structured_output_schemas", None) or {}
+    ).get(step.key)
 
     text_cfg: Dict[str, Any] = {"verbosity": verbosity}
-    if force_json_output:
+    if structured_schema is not None:
+        text_cfg["format"] = {
+            "type": "json_schema",
+            "name": f"{step.key}_output",
+            "strict": True,
+            "schema": structured_schema,
+        }
+    elif force_json_output:
         text_cfg["format"] = {"type": "json_object"}
 
     request_payload: Dict[str, Any] = {
@@ -946,6 +956,8 @@ async def run_step_async(
 ) -> None:
     _prepare_graph_inputs_if_needed(folders=folders, step=step, config=config)
     progress = tqdm(total=len(folders), desc=f"{step.key} (async)", unit="req", leave=False)
+    max_concurrency = max(1, int(getattr(config, "responses_max_concurrency", 10)))
+    semaphore = asyncio.Semaphore(max_concurrency)
 
     async def one_folder(folder: Path) -> bool:
         try:
@@ -965,7 +977,8 @@ async def run_step_async(
                 step=step,
                 config=config,
             )
-            resp = await client.responses.create(**request_payload)
+            async with semaphore:
+                resp = await client.responses.create(**request_payload)
             body = resp.model_dump() if hasattr(resp, "model_dump") else dict(resp)
             _persist_step_response(
                 folder=folder,
@@ -993,6 +1006,11 @@ async def run_step_async(
         progress.close()
 
     print(f"[{step.key}] Async done. ok={ok}, fail={fail}")
+    if fail and getattr(config, "stop_on_step_failure", False):
+        raise RuntimeError(
+            f"[{step.key}] {fail} of {len(folders)} Responses requests failed; "
+            "stopping before dependent steps."
+        )
 
 
 async def _run_pipeline_async(
@@ -1004,6 +1022,10 @@ async def _run_pipeline_async(
 ) -> None:
     client = AsyncOpenAI()
     print("[RUNTIME] responses_async_enabled = True")
+    print(
+        "[RUNTIME] responses_max_concurrency = "
+        f"{max(1, int(getattr(config, 'responses_max_concurrency', 10)))}"
+    )
     if getattr(config, "call_sleep_seconds", 0.0) > 0:
         print("[RUNTIME] call_sleep_seconds is ignored in async responses mode")
     for step in tqdm(pipeline, desc="Steps (async)", unit="step"):
@@ -1027,6 +1049,10 @@ def run_local_postprocess(
     source_folder: Path | None = None,
     remove_shortcut_edges: bool = True,
 ) -> None:
+    # Import lazily so extraction-only runners that disable local postprocessing
+    # do not require the optional Word-report dependency.
+    import utils.incident_card_to_word as incident_card_to_word
+
     source_folder = source_folder or folder
     write_causal_narrative_markdown_from_source(source_folder=source_folder, output_folder=folder)
     ensure_causal_graph_json(
@@ -1050,6 +1076,13 @@ def run_local_postprocess(
         accident_scenario_schema_path=accident_scenario_schema_path,
         remove_shortcut_edges=remove_shortcut_edges,
     )
+
+    updated_graph_path = folder / "updated_causal_graph.json"
+    updated_review_state_path = folder / "updated_causal_graph_review_state.json"
+    if updated_graph_path.exists() and updated_review_state_path.exists():
+        # Skip generating `updated_causal_graph.html` during local postprocess.
+        # Keep the updated JSON and review state files, but do not write the HTML output.
+        pass
 
     incident_card_to_word.incident_card_to_word(
         identify_incident_prompt=all_prompts.get("identify_incident", ""),
@@ -1122,15 +1155,16 @@ def run_batch_pipeline(config: Any) -> None:
                 call_sleep_seconds=config.call_sleep_seconds,
             )
 
-    for folder in tqdm(folders, desc="Local postprocess", unit="folder"):
-        try:
-            run_local_postprocess(
-                all_prompts=all_prompts,
-                folder=folder,
-                hazards_json_path=config.hazards_json_path,
-                accident_scenario_schema_path=Path("scheme/accident_scenario_schema.json"),
-                source_folder=(getattr(config, "source_folder_map", None) or {}).get(folder, folder),
-                remove_shortcut_edges=getattr(config, "remove_shortcut_edges", True),
-            )
-        except Exception as exc:
-            print(f"Postprocess skipped for {folder.name}: {exc}")
+    if getattr(config, "enable_local_postprocess", True):
+        for folder in tqdm(folders, desc="Local postprocess", unit="folder"):
+            try:
+                run_local_postprocess(
+                    all_prompts=all_prompts,
+                    folder=folder,
+                    hazards_json_path=config.hazards_json_path,
+                    accident_scenario_schema_path=Path("scheme/accident_scenario_schema.json"),
+                    source_folder=(getattr(config, "source_folder_map", None) or {}).get(folder, folder),
+                    remove_shortcut_edges=getattr(config, "remove_shortcut_edges", True),
+                )
+            except Exception as exc:
+                print(f"Postprocess skipped for {folder.name}: {exc}")

@@ -1,0 +1,182 @@
+You are a process-safety analyst performing evidence-grounded information extraction from accident investigation reports.
+
+INPUT DATA
+
+INCIDENT_DESCRIPTION
+{incident_description}
+
+HAZARD_CONSEQUENCE_ONTOLOGY
+{hazards_consequence_json}
+
+BASELINE_HAZARD_SELECTION_RULES
+{baseline_hazard_selection_rules}
+
+ACCIDENT_SCENARIO_SCHEMA
+{accident_scenario_schema}
+
+ACCIDENT_SCENARIO_SCHEMA_DEFINITION
+{accident_scenario_schema_definition}
+
+BASELINE_FINAL_NODE_RULES
+{baseline_final_node_rules}
+
+CAUSAL_EDGE_SCHEMA_DEFINITION
+{causal_edge_schema_definition}
+
+BASELINE_GRAPH_CONNECTIVITY_RULES
+{baseline_graph_connectivity_rules}
+
+
+TASK
+
+Using only the INCIDENT_DESCRIPTION, directly construct one schema-constrained,
+report-derived causal-relation graph for the primary accident pathway.
+
+This is a single-pass extraction task. Return the final graph directly in one
+response. Do not produce candidate sets, a causal narrative, validation feedback,
+diagnostic findings, a revision plan, or any other intermediate output.
+
+The graph represents causal relations stated or contextually supported by the
+report. It is not a structural causal model and must not include causal claims
+that depend only on general domain knowledge.
+
+
+NODE EXTRACTION RULES
+
+Apply BASELINE_HAZARD_SELECTION_RULES and BASELINE_FINAL_NODE_RULES exactly.
+The ontology and schema provide vocabulary constraints only; they are not
+evidence that a concept occurred in this incident. Keep each node explanation
+concise and limited to why that node is relevant to the represented pathway.
+
+
+EDGE EXTRACTION RULES
+
+1. Use only the relations `has` and `enables`, with the meanings, allowed
+   endpoint types, and prohibited uses specified in
+   CAUSAL_EDGE_SCHEMA_DEFINITION.
+
+2. Every edge must express one direct local relationship:
+   - `has` represents a supported descriptive, state, component, or part-of
+     relationship permitted by the edge schema.
+   - `enables` represents a direct local causal contribution from the source
+     node to the downstream target node.
+
+3. For `enables`, use the direction upstream cause or enabling condition ->
+   downstream event or hazard consequence.
+
+4. Do not infer an edge solely because two nodes:
+   - occur in the same sentence;
+   - occur consecutively in the narrative;
+   - share related terminology; or
+   - are generally associated in process-safety knowledge.
+
+5. An edge may represent an implicit causal relation only when the local context
+   of the report strongly supports both the relation and its direction.
+
+6. Do not create shortcut or transitive edges that bypass a necessary
+   intermediate mechanism already represented in the graph.
+
+7. Do not create self-loops or duplicate edges. Organize the accident
+   progression from upstream mechanisms to downstream consequences.
+
+8. Each edge must reference two node IDs present in the same output.
+
+9. In an edge object, `source` means only the upstream endpoint node ID and
+   `target` means only the downstream endpoint node ID. Do not add a provenance
+   field to an edge, and never write a second `source` key. The provenance value
+   `incident_description` is permitted only in node objects.
+
+10. Each edge object must contain exactly these five keys:
+   `source`, `target`, `relation`, `evidence`, and `explanation`.
+
+11. The edge `evidence` field must contain a short supporting text span grounded
+   in the provided input. Prefer a short verbatim quote from the
+   INCIDENT_DESCRIPTION. If the source does not explicitly state the edge but
+   strongly supports it, evidence may be a short grounded paraphrase, consistent
+   with the main method's final edge-linking rule.
+
+12. Keep each edge explanation concise and describe only why the source directly
+    characterizes, causes, or enables the target.
+
+
+FINAL CONSISTENCY REQUIREMENTS
+
+Before returning the JSON object, ensure that:
+
+1. Every node and edge is supported by the INCIDENT_DESCRIPTION.
+2. Every node follows the provided node schema.
+3. Every edge follows the provided edge schema.
+4. Every edge endpoint exists in the output.
+5. Node IDs are unique and use the correct prefixes.
+6. The graph contains no duplicate nodes, duplicate edges, or self-loops.
+7. The graph contains no unsupported association-only or temporal-only edges.
+8. The graph represents one minimally sufficient primary accident pathway.
+9. The graph satisfies BASELINE_GRAPH_CONNECTIVITY_RULES.
+
+
+OUTPUT REQUIREMENTS
+
+Return JSON only. Do not include Markdown, commentary, analysis, headings, or
+text outside the JSON object.
+
+In the output template below, `|` separates mutually exclusive alternatives.
+Choose exactly one permitted value; never output the alternatives as a literal
+combined string.
+
+Use exactly this top-level structure:
+
+{{
+  "hazard_consequence_node": [
+    {{
+      "label": "HazardConsequence",
+      "name": "schema-permitted hazard consequence",
+      "node_id": "H1",
+      "node_type": "HazardConsequence",
+      "evidence": "verbatim report quote",
+      "explanation": "concise relevance explanation",
+      "source": "incident_description"
+    }}
+  ],
+  "entity_nodes": [
+    {{
+      "label": "Material | Location",
+      "name": "schema-compliant name",
+      "node_id": "En1",
+      "node_type": "Entity",
+      "evidence": "verbatim report quote | N/A",
+      "explanation": "concise relevance explanation",
+      "source": "incident_description | Not specified"
+    }}
+  ],
+  "condition_nodes": [
+    {{
+      "label": "schema-permitted condition label",
+      "name": "schema-permitted condition value",
+      "node_id": "C1",
+      "node_type": "Condition",
+      "evidence": "verbatim report quote | N/A",
+      "explanation": "concise relevance explanation",
+      "source": "incident_description | Not specified"
+    }}
+  ],
+  "event_nodes": [
+    {{
+      "label": "schema-permitted event label",
+      "name": "concise event name",
+      "node_id": "Ev1",
+      "node_type": "Event",
+      "evidence": "verbatim report quote | N/A",
+      "explanation": "concise relevance explanation",
+      "source": "incident_description | Not specified"
+    }}
+  ],
+  "edges": [
+    {{
+      "source": "existing node_id",
+      "target": "existing node_id",
+      "relation": "has | enables",
+      "evidence": "verbatim report quote",
+      "explanation": "concise direct-relationship explanation"
+    }}
+  ]
+}}

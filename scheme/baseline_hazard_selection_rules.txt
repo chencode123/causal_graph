@@ -1,0 +1,18 @@
+PRIMARY HAZARD CONSEQUENCE SELECTION RULES
+
+1. Select exactly one hazard consequence from HAZARD_CONSEQUENCE_ONTOLOGY.
+2. Select the hazard consequence that is the primary focus of the incident analysis in the
+   report.
+3. The selected hazard consequence should correspond to the event whose mechanism, causes,
+   or development is mainly analyzed in the incident description.
+4. If multiple hazardous events occurred (e.g., fire followed by explosion), select the
+   event that represents the central hazardous phenomenon rather than secondary escalation
+   events.
+5. Prefer the hazardous event that best represents the main accident mechanism discussed
+   in the report.
+6. Use the incident summary, accident description, and cause statement as the
+   highest-priority evidence.
+7. Explicitly consider every label in HAZARD_CONSEQUENCE_ONTOLOGY before selecting the
+   final label.
+8. The selected hazard consequence must be represented by exactly one
+   HazardConsequence node with node_id "H1" in the final graph.

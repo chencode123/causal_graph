@@ -1,0 +1,24 @@
+FINAL NODE-SELECTION RULES
+
+1. Use the incident description as the factual source and follow
+   ACCIDENT_SCENARIO_SCHEMA and ACCIDENT_SCENARIO_SCHEMA_DEFINITION exactly.
+2. Retain the smallest node set that preserves one coherent primary pathway from the
+   upstream accident mechanism to the selected hazard consequence.
+3. Retain a node only when it represents a necessary local causal role in that pathway or
+   a supported entity or condition needed for a valid `has` relationship.
+4. Keep distinct local accident-process stages as distinct Event nodes when the report
+   supports them. Do not merge initiating events, failures, releases, dispersion, ignition,
+   and the final consequence when they play separate local roles.
+5. Do not retain duplicate, near-duplicate, alternative-branch, witness-chronology, or
+   descriptive-only nodes once the primary pathway is adequately represented.
+6. Represent stable properties or settings as Condition nodes and discrete changes,
+   transitions, releases, dispersion, ignition, or failures as Event nodes, following the
+   schema definition.
+7. Use IntermediateEvent only when a necessary process-significant transition cannot be
+   represented by a more specific schema-supported event label.
+8. Assign unique node IDs sequentially within each type using H#, En#, C#, and Ev#.
+9. For information supported by the incident description, use a short verbatim evidence
+   quote and source `incident_description`. Do not invent or paraphrase node evidence.
+10. Omit an unsupported optional node. Use evidence `N/A` and source `Not specified` only
+    when an otherwise necessary schema role must be retained but its value cannot be
+    determined from the report.

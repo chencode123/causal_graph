@@ -1,0 +1,18 @@
+{
+  "description": "Cases excluded from held-out evaluation because they contributed review-feedback few-shot patterns.",
+  "source_pattern_file": "runs/few-shot/review_feedback/case_coverage_12/review_feedback_analysis_few_shot_balanced_small.json",
+  "excluded_cases": [
+    "batch_12/2",
+    "batch_12/8",
+    "batch_3/3",
+    "batch_3/5",
+    "batch_5/2",
+    "batch_6/1",
+    "batch_6/7",
+    "batch_6/9",
+    "batch_7/10",
+    "batch_8/10",
+    "batch_9/1",
+    "batch_9/6_split_1"
+  ]
+}

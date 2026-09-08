@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import argparse
 import csv
+import json
+from collections import Counter
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -17,37 +19,69 @@ WL_COLUMN = "structural_similarity_accept_all_vs_updated"
 NORM_GED_COLUMN = "normalized_graph_edit_distance_accept_all_vs_updated"
 WL_COLUMN_NO_REV = "structural_similarity"
 NORM_GED_COLUMN_NO_REV = "normalized_graph_edit_distance"
-DEFAULT_COMPARISON_ROOTS = [
-    Path(r"runs\stability_test\rounds"),
-    Path(r"runs\stability_test\rounds_with_few_shot"),
-]
-DEFAULT_COMPARISON_LABELS = ["No few-shot", "Few-shot"]
+EXPECTED_REPORTS = 112
+EXPECTED_RUNS = 5
+DEFAULT_NO_REVISION_CSV = Path(
+    r"runs\stability_test\evaluation_final\no_revision\20260902_164902\case_scores.csv"
+)
+DEFAULT_REVISION_CSV = Path(
+    r"runs\stability_test\evaluation_final\revision\20260829_170239\case_scores.csv"
+)
+DEFAULT_FEW_SHOT_CSV = Path(
+    r"runs\stability_test\evaluation_final\few_shot\20260828_140052\case_scores.csv"
+)
+DEFAULT_SINGLE_PASS_CSV = Path(
+    r"runs\stability_test\evaluation_final\single_pass\20260828_141620\case_scores.csv"
+)
+def latest_auxiliary_csv() -> Path:
+    root = Path(r"runs\stability_test\evaluation_final\auxiliary")
+    candidates = sorted(
+        root.glob("*/combined_auxiliary_case_scores.csv"),
+        key=lambda path: path.parent.name,
+        reverse=True,
+    )
+    return candidates[0] if candidates else root / "combined_auxiliary_case_scores.csv"
+
+
+DEFAULT_AUXILIARY_CSV = latest_auxiliary_csv()
 DEFAULT_OUTPUT_DIR = Path(r"runs\stability_test\figures_comparing_rounds")
+FOUR_COLORS = ["#D0D0D0", "#A8A8A8", "#5E81AC", "#2E4A6E"]
+CONDITION_LABELS = ["Single Pass", "No Revision", "Revision", "Revision + FS"]
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description=(
-            "Generate a grouped violin plot that compares WL kernel similarity and "
-            "1 - normalized GED for accept-all vs updated causal graphs across "
-            "multiple stability result roots."
-        )
+        description="Generate the legacy-style comparison figures from audited five-run data."
     )
     parser.add_argument(
-        "--comparison-roots",
+        "--no-revision-csv",
         type=Path,
-        nargs="+",
-        default=DEFAULT_COMPARISON_ROOTS,
-        help=(
-            "Result roots to compare. Each root can be an experiment folder or "
-            "a results directory containing timestamped outputs."
-        ),
+        default=DEFAULT_NO_REVISION_CSV,
+        help="Five-run two-stage No Revision structural case_scores.csv.",
     )
     parser.add_argument(
-        "--comparison-labels",
-        nargs="+",
-        default=DEFAULT_COMPARISON_LABELS,
-        help="Display labels for --comparison-roots in the same order.",
+        "--revision-csv",
+        type=Path,
+        default=DEFAULT_REVISION_CSV,
+        help="Five-run revised structural case_scores.csv.",
+    )
+    parser.add_argument(
+        "--few-shot-csv",
+        type=Path,
+        default=DEFAULT_FEW_SHOT_CSV,
+        help="Five-run few-shot structural case_scores.csv.",
+    )
+    parser.add_argument(
+        "--single-pass-csv",
+        type=Path,
+        default=DEFAULT_SINGLE_PASS_CSV,
+        help="Five-run single-pass structural case_scores.csv.",
+    )
+    parser.add_argument(
+        "--auxiliary-csv",
+        type=Path,
+        default=DEFAULT_AUXILIARY_CSV,
+        help="Unified five-run node, edge, and semantic result CSV.",
     )
     parser.add_argument(
         "--output-dir",
@@ -76,6 +110,140 @@ def to_float(value: str) -> float | None:
 def ensure_dir(path: Path) -> Path:
     path.mkdir(parents=True, exist_ok=True)
     return path
+
+
+def audit_structural_input(path: Path, expected_runs: set[str]) -> dict[str, object]:
+    rows = read_csv_rows(path)
+    successful = [row for row in rows if str(row.get("status", "")).strip().lower() == "ok"]
+    reports = {
+        f"{row.get('batch_id', '').strip()}/{row.get('case_id', '').strip()}"
+        for row in successful
+    }
+    runs = {str(row.get("round", "")).strip() for row in successful}
+    report_counts = Counter(
+        f"{row.get('batch_id', '').strip()}/{row.get('case_id', '').strip()}"
+        for row in successful
+    )
+    keys = [
+        (
+            str(row.get("round", "")).strip(),
+            str(row.get("batch_id", "")).strip(),
+            str(row.get("case_id", "")).strip(),
+        )
+        for row in successful
+    ]
+    problems: list[str] = []
+    if len(rows) != EXPECTED_REPORTS * EXPECTED_RUNS:
+        problems.append(f"expected 560 total rows, found {len(rows)}")
+    if len(successful) != EXPECTED_REPORTS * EXPECTED_RUNS:
+        problems.append(f"expected 560 successful rows, found {len(successful)}")
+    if len(reports) != EXPECTED_REPORTS:
+        problems.append(f"expected 112 reports, found {len(reports)}")
+    if runs != expected_runs:
+        problems.append(f"expected runs {sorted(expected_runs)}, found {sorted(runs)}")
+    if report_counts and set(report_counts.values()) != {EXPECTED_RUNS}:
+        problems.append("reports do not all have five observations")
+    if len(keys) != len(set(keys)):
+        problems.append("duplicate run/batch/case rows were found")
+    audit = {
+        "path": str(path.resolve()),
+        "total_rows": len(rows),
+        "successful_rows": len(successful),
+        "independent_reports": len(reports),
+        "runs": sorted(runs),
+        "complete": not problems,
+        "problems": problems,
+    }
+    if problems:
+        raise RuntimeError(f"Five-run structural input audit failed for {path}: " + "; ".join(problems))
+    return audit
+
+
+def collect_final_auxiliary_metrics(
+    path: Path,
+) -> tuple[dict[str, dict[str, list[float]]], dict[str, object]]:
+    condition_names = (
+        "single_pass",
+        "no_revision",
+        "revision",
+        "revision_fs",
+    )
+    metric_names = (
+        "soft_node_precision",
+        "soft_node_recall",
+        "soft_node_f1",
+        "soft_edge_precision",
+        "soft_edge_recall",
+        "soft_edge_f1",
+        "semantic_similarity",
+    )
+    rows = read_csv_rows(path)
+    successful = [row for row in rows if str(row.get("status", "")).strip().lower() == "ok"]
+    result = {
+        condition: {metric: [] for metric in metric_names}
+        for condition in condition_names
+    }
+    condition_audits: dict[str, object] = {}
+    problems: list[str] = []
+
+    if len(rows) != len(condition_names) * EXPECTED_REPORTS * EXPECTED_RUNS:
+        problems.append(f"expected 2240 total rows, found {len(rows)}")
+    if len(successful) != len(rows):
+        problems.append(f"expected all rows to be successful, found {len(successful)} successful rows")
+
+    all_keys: list[tuple[str, str, str]] = []
+    for condition in condition_names:
+        selected = [row for row in successful if row.get("condition") == condition]
+        reports = {str(row.get("report_id", "")).strip() for row in selected}
+        runs = {str(row.get("run", "")).strip() for row in selected}
+        expected_runs = (
+            {f"run_{index:02d}" for index in range(1, EXPECTED_RUNS + 1)}
+            if condition == "single_pass"
+            else {f"round_{index}" for index in range(1, EXPECTED_RUNS + 1)}
+        )
+        report_counts = Counter(str(row.get("report_id", "")).strip() for row in selected)
+        local_problems: list[str] = []
+        if len(selected) != EXPECTED_REPORTS * EXPECTED_RUNS:
+            local_problems.append(f"expected 560 successful rows, found {len(selected)}")
+        if len(reports) != EXPECTED_REPORTS:
+            local_problems.append(f"expected 112 reports, found {len(reports)}")
+        if runs != expected_runs:
+            local_problems.append(f"expected runs {sorted(expected_runs)}, found {sorted(runs)}")
+        if report_counts and set(report_counts.values()) != {EXPECTED_RUNS}:
+            local_problems.append("reports do not all have five observations")
+
+        for row in selected:
+            all_keys.append((condition, str(row.get("run", "")), str(row.get("report_id", ""))))
+            for metric in metric_names:
+                value = to_float(row.get(metric, ""))
+                if value is None:
+                    local_problems.append(f"missing {metric} value")
+                    break
+                result[condition][metric].append(value)
+
+        if local_problems:
+            problems.extend(f"{condition}: {problem}" for problem in local_problems)
+        condition_audits[condition] = {
+            "successful_rows": len(selected),
+            "independent_reports": len(reports),
+            "runs": sorted(runs),
+            "complete": not local_problems,
+            "problems": local_problems,
+        }
+
+    if len(all_keys) != len(set(all_keys)):
+        problems.append("duplicate condition/run/report rows were found")
+    audit = {
+        "path": str(path.resolve()),
+        "total_rows": len(rows),
+        "successful_rows": len(successful),
+        "conditions": condition_audits,
+        "complete": not problems,
+        "problems": problems,
+    }
+    if problems:
+        raise RuntimeError("Five-run auxiliary input audit failed: " + "; ".join(problems))
+    return result, audit
 
 
 def find_latest_case_scores(root: Path) -> Path:
@@ -214,17 +382,12 @@ def find_latest_soft_f1_no_rev_csv(root: Path) -> Path | None:
 
 
 def plot_similarity_comparison(
-    comparison_roots: list[Path],
-    comparison_labels: list[str],
+    structural_paths: dict[str, Path],
     output_dir: Path,
 ) -> Path:
-    if len(comparison_roots) != len(comparison_labels):
-        raise ValueError("--comparison-roots and --comparison-labels must have the same length.")
-
-    resolved_csv_paths = [find_latest_case_scores(root) for root in comparison_roots]
-    metrics_by_label = {
-        label: collect_similarity_metrics(csv_path)
-        for label, csv_path in zip(comparison_labels, resolved_csv_paths)
+    metrics = {
+        condition: collect_similarity_metrics(path)
+        for condition, path in structural_paths.items()
     }
 
     output_dir = ensure_dir(output_dir.resolve())
@@ -255,39 +418,38 @@ def plot_similarity_comparison(
     ax.spines["bottom"].set_linewidth(0.8)
     ax.tick_params(length=4, width=0.8)
 
-    # 3 conditions: No Revision / Revision / Revision + FS
-    THREE_COLORS = ["#A8A8A8", "#5E81AC", "#2E4A6E"]
-    CONDITION_LABELS = ["No Revision", "Revision", "Revision + FS"]
-    no_rev_key_map = {"wl_kernel": "wl_kernel_no_rev", "one_minus_norm_ged": "one_minus_norm_ged_no_rev"}
-
     metric_specs = [
         ("wl_kernel", "WLS"),
         ("one_minus_norm_ged", "GES"),
     ]
 
     group_centers = np.arange(len(metric_specs), dtype=float) * 3.2
-    offsets = np.array([-0.7, 0.0, 0.7], dtype=float)
+    offsets = np.array([-1.05, -0.35, 0.35, 1.05], dtype=float)
     width = 0.55
 
     legend_handles = [
         plt.Line2D([0], [0], color=c, linewidth=10, alpha=0.82)
-        for c in THREE_COLORS
+        for c in FOUR_COLORS
     ]
     legend_labels_list = list(CONDITION_LABELS)
     mean_handle = None
 
     for metric_index, (metric_key, metric_name) in enumerate(metric_specs):
-        no_rev_key = no_rev_key_map[metric_key]
+        no_revision_key = {
+            "wl_kernel": "wl_kernel_no_rev",
+            "one_minus_norm_ged": "one_minus_norm_ged_no_rev",
+        }[metric_key]
         all_series = [
-            metrics_by_label[comparison_labels[0]][no_rev_key],
-            metrics_by_label[comparison_labels[0]][metric_key],
-            metrics_by_label[comparison_labels[1]][metric_key],
+            metrics["single_pass"][no_revision_key],
+            metrics["no_revision"][no_revision_key],
+            metrics["revision"][metric_key],
+            metrics["few_shot"][metric_key],
         ]
         for dataset_index, series in enumerate(all_series):
             if not series:
                 continue
             position = float(group_centers[metric_index] + offsets[dataset_index])
-            color = THREE_COLORS[dataset_index]
+            color = FOUR_COLORS[dataset_index]
             violin = ax.violinplot(
                 [series],
                 positions=[position],
@@ -338,8 +500,8 @@ def plot_similarity_comparison(
     plt.close(fig)
 
     print("Comparison data sources:")
-    for label, csv_path in zip(comparison_labels, resolved_csv_paths):
-        print(f"  {label}: {csv_path}")
+    for condition, csv_path in structural_paths.items():
+        print(f"  {condition}: {csv_path}")
     print(f"Saved comparison figure to {figure_base.with_suffix('.png')}")
     return figure_base.with_suffix(".png")
 
@@ -369,10 +531,10 @@ def _draw_panel(
 
     n_conditions = len(series_list)
     n_metrics = len(metric_specs)
-    spacing = max(n_conditions * 0.75, 2.0)
+    spacing = max(n_conditions * 0.90, 2.0)
     group_centers = np.arange(n_metrics, dtype=float) * spacing
     half = (n_conditions - 1) / 2.0
-    offsets = np.array([(i - half) * 0.7 for i in range(n_conditions)])
+    offsets = np.array([(i - half) * 0.9 for i in range(n_conditions)])
     width = 0.55
     mean_handle = None
 
@@ -408,7 +570,9 @@ def _draw_panel(
                     color="#111111", markersize=6,
                 )
             ax.text(
-                position, min(mean_value + 0.035, 1.02), f"{mean_value:.3f}",
+                position,
+                min(mean_value + 0.035 + 0.100 * (cond_index % 2), 1.02),
+                f"{mean_value:.3f}",
                 ha="center", va="bottom", fontsize=15, color="#222222",
             )
 
@@ -421,37 +585,10 @@ def _draw_panel(
 
 
 def plot_soft_and_semantic_comparison(
-    comparison_roots: list[Path],
-    comparison_labels: list[str],
+    auxiliary_metrics: dict[str, dict[str, list[float]]],
+    auxiliary_path: Path,
     output_dir: Path,
 ) -> Path:
-    if len(comparison_roots) != len(comparison_labels):
-        raise ValueError("--comparison-roots and --comparison-labels must have the same length.")
-
-    # Accept-all soft F1 (always available)
-    soft_f1_accept_paths = [find_latest_soft_f1_accept_csv(root) for root in comparison_roots]
-    # No-revision soft F1 (optional — only if data exists)
-    soft_f1_no_rev_paths = [find_latest_soft_f1_no_rev_csv(root) for root in comparison_roots]
-    semantic_csv_paths = [find_latest_named_csv(root, SEMANTIC_FILENAME) for root in comparison_roots]
-
-    accept_metrics: dict[str, dict[str, list[float]]] = {}
-    no_rev_metrics: dict[str, dict[str, list[float]]] = {}
-    for label, accept_path, no_rev_path, semantic_path in zip(
-        comparison_labels, soft_f1_accept_paths, soft_f1_no_rev_paths, semantic_csv_paths
-    ):
-        m: dict[str, list[float]] = {}
-        m.update(collect_soft_f1_api_metrics(accept_path))
-        m.update(collect_semantic_metrics(semantic_path))
-        accept_metrics[label] = m
-
-        if no_rev_path is not None:
-            nr: dict[str, list[float]] = {}
-            nr.update(collect_soft_f1_api_metrics(no_rev_path))
-            nr["semantic_no_rev"] = m.get("semantic_no_rev", [])
-            no_rev_metrics[label] = nr
-
-    has_no_rev = comparison_labels[0] in no_rev_metrics
-
     output_dir = ensure_dir(output_dir.resolve())
 
     plt.style.use("default")
@@ -468,35 +605,26 @@ def plot_soft_and_semantic_comparison(
         }
     )
 
-    # 3-color scheme: No Revision / Revision / Revision + FS
-    THREE_COLORS = ["#A8A8A8", "#5E81AC", "#2E4A6E"]
-
     sem_series = [
-        ("No Revision",
-         {"sem_val": accept_metrics[comparison_labels[0]].get("semantic_no_rev", [])},
-         THREE_COLORS[0]),
-        ("Revision",
-         {"sem_val": accept_metrics[comparison_labels[0]].get("semantic_accept_all_vs_updated", [])},
-         THREE_COLORS[1]),
-        ("Revision + FS",
-         {"sem_val": accept_metrics[comparison_labels[1]].get("semantic_accept_all_vs_updated", [])},
-         THREE_COLORS[2]),
+        (label, {"sem_val": auxiliary_metrics[condition]["semantic_similarity"]}, color)
+        for label, condition, color in zip(
+            CONDITION_LABELS,
+            ("single_pass", "no_revision", "revision", "revision_fs"),
+            FOUR_COLORS,
+        )
     ]
 
-    if has_no_rev:
-        node_edge_series = [
-            ("No Revision", no_rev_metrics[comparison_labels[0]], THREE_COLORS[0]),
-            ("Revision",    accept_metrics[comparison_labels[0]], THREE_COLORS[1]),
-            ("Revision + FS", accept_metrics[comparison_labels[1]], THREE_COLORS[2]),
-        ]
-    else:
-        node_edge_series = [
-            ("Revision",      accept_metrics[comparison_labels[0]], THREE_COLORS[1]),
-            ("Revision + FS", accept_metrics[comparison_labels[1]], THREE_COLORS[2]),
-        ]
+    node_edge_series = [
+        (label, auxiliary_metrics[condition], color)
+        for label, condition, color in zip(
+            CONDITION_LABELS,
+            ("single_pass", "no_revision", "revision", "revision_fs"),
+            FOUR_COLORS,
+        )
+    ]
 
-    legend_labels_list = ["No Revision", "Revision", "Revision + FS"]
-    legend_colors = THREE_COLORS
+    legend_labels_list = list(CONDITION_LABELS)
+    legend_colors = FOUR_COLORS
 
     panel_defs = [
         (
@@ -546,86 +674,54 @@ def plot_soft_and_semantic_comparison(
         saved_paths.append(figure_base.with_suffix(".png"))
         print(f"Saved: {figure_base.with_suffix('.png')}")
 
-    print("Soft F1 accept-all data sources:")
-    for label, csv_path in zip(comparison_labels, soft_f1_accept_paths):
-        print(f"  {label}: {csv_path}")
-    if has_no_rev:
-        print("Soft F1 no-revision data sources:")
-        for label, csv_path in zip(comparison_labels, soft_f1_no_rev_paths):
-            print(f"  {label}: {csv_path}")
-    print("Semantic data sources:")
-    for label, csv_path in zip(comparison_labels, semantic_csv_paths):
-        print(f"  {label}: {csv_path}")
+    print(f"Five-run auxiliary data source: {auxiliary_path}")
     return saved_paths[0]
 
 
 def plot_combined_figure(
-    comparison_roots: list[Path],
-    comparison_labels: list[str],
+    structural_paths: dict[str, Path],
+    auxiliary_metrics: dict[str, dict[str, list[float]]],
     output_dir: Path,
 ) -> Path:
     """2×2 combined figure: (a) Structure, (b) Node, (c) Edge, (d) Semantic."""
-    THREE_COLORS = ["#A8A8A8", "#5E81AC", "#2E4A6E"]
-
-    # ── load data ──────────────────────────────────────────────────────────────
-    struct_paths = [find_latest_case_scores(r) for r in comparison_roots]
     struct_metrics = {
-        label: collect_similarity_metrics(p)
-        for label, p in zip(comparison_labels, struct_paths)
+        condition: collect_similarity_metrics(path)
+        for condition, path in structural_paths.items()
     }
 
-    soft_f1_accept_paths = [find_latest_soft_f1_accept_csv(r) for r in comparison_roots]
-    soft_f1_no_rev_paths = [find_latest_soft_f1_no_rev_csv(r) for r in comparison_roots]
-    semantic_paths = [find_latest_named_csv(r, SEMANTIC_FILENAME) for r in comparison_roots]
-
-    accept_metrics: dict[str, dict[str, list[float]]] = {}
-    no_rev_metrics: dict[str, dict[str, list[float]]] = {}
-    for label, ap, nrp, sp in zip(comparison_labels, soft_f1_accept_paths, soft_f1_no_rev_paths, semantic_paths):
-        m: dict[str, list[float]] = {}
-        m.update(collect_soft_f1_api_metrics(ap))
-        m.update(collect_semantic_metrics(sp))
-        accept_metrics[label] = m
-        if nrp is not None:
-            nr: dict[str, list[float]] = {}
-            nr.update(collect_soft_f1_api_metrics(nrp))
-            nr["semantic_no_rev"] = m.get("semantic_no_rev", [])
-            no_rev_metrics[label] = nr
-
-    has_no_rev = comparison_labels[0] in no_rev_metrics
-
-    # ── series definitions ─────────────────────────────────────────────────────
-    # Structure
     struct_series = [
+        ("Single Pass", {
+            "wl_kernel":          struct_metrics["single_pass"]["wl_kernel_no_rev"],
+            "one_minus_norm_ged": struct_metrics["single_pass"]["one_minus_norm_ged_no_rev"],
+        }, FOUR_COLORS[0]),
         ("No Revision", {
-            "wl_kernel":          struct_metrics[comparison_labels[0]]["wl_kernel_no_rev"],
-            "one_minus_norm_ged": struct_metrics[comparison_labels[0]]["one_minus_norm_ged_no_rev"],
-        }, THREE_COLORS[0]),
+            "wl_kernel":          struct_metrics["no_revision"]["wl_kernel_no_rev"],
+            "one_minus_norm_ged": struct_metrics["no_revision"]["one_minus_norm_ged_no_rev"],
+        }, FOUR_COLORS[1]),
         ("Revision", {
-            "wl_kernel":          struct_metrics[comparison_labels[0]]["wl_kernel"],
-            "one_minus_norm_ged": struct_metrics[comparison_labels[0]]["one_minus_norm_ged"],
-        }, THREE_COLORS[1]),
+            "wl_kernel":          struct_metrics["revision"]["wl_kernel"],
+            "one_minus_norm_ged": struct_metrics["revision"]["one_minus_norm_ged"],
+        }, FOUR_COLORS[2]),
         ("Revision + FS", {
-            "wl_kernel":          struct_metrics[comparison_labels[1]]["wl_kernel"],
-            "one_minus_norm_ged": struct_metrics[comparison_labels[1]]["one_minus_norm_ged"],
-        }, THREE_COLORS[2]),
+            "wl_kernel":          struct_metrics["few_shot"]["wl_kernel"],
+            "one_minus_norm_ged": struct_metrics["few_shot"]["one_minus_norm_ged"],
+        }, FOUR_COLORS[3]),
     ]
 
-    if has_no_rev:
-        node_edge_series = [
-            ("No Revision",   no_rev_metrics[comparison_labels[0]], THREE_COLORS[0]),
-            ("Revision",      accept_metrics[comparison_labels[0]], THREE_COLORS[1]),
-            ("Revision + FS", accept_metrics[comparison_labels[1]], THREE_COLORS[2]),
-        ]
-    else:
-        node_edge_series = [
-            ("Revision",      accept_metrics[comparison_labels[0]], THREE_COLORS[1]),
-            ("Revision + FS", accept_metrics[comparison_labels[1]], THREE_COLORS[2]),
-        ]
+    condition_specs = (
+        ("Single Pass", "single_pass", FOUR_COLORS[0]),
+        ("No Revision", "no_revision", FOUR_COLORS[1]),
+        ("Revision", "revision", FOUR_COLORS[2]),
+        ("Revision + FS", "revision_fs", FOUR_COLORS[3]),
+    )
+    node_edge_series = [
+        (label, auxiliary_metrics[condition], color)
+        for label, condition, color in condition_specs
+    ]
 
     sem_series = [
-        ("No Revision",   {"sem_val": accept_metrics[comparison_labels[0]].get("semantic_no_rev", [])},              THREE_COLORS[0]),
-        ("Revision",      {"sem_val": accept_metrics[comparison_labels[0]].get("semantic_accept_all_vs_updated", [])}, THREE_COLORS[1]),
-        ("Revision + FS", {"sem_val": accept_metrics[comparison_labels[1]].get("semantic_accept_all_vs_updated", [])}, THREE_COLORS[2]),
+        (label, {"sem_val": auxiliary_metrics[condition]["semantic_similarity"]}, color)
+        for label, condition, color in condition_specs
     ]
 
     # ── figure layout ──────────────────────────────────────────────────────────
@@ -644,7 +740,7 @@ def plot_combined_figure(
         "legend.fontsize": 20,
     })
 
-    fig = plt.figure(figsize=(13, 7.0))
+    fig = plt.figure(figsize=(16, 7.0))
     gs = fig.add_gridspec(2, 2, hspace=0.3, wspace=0.1)
     axes = [
         fig.add_subplot(gs[0, 0]),  # (a) Structure
@@ -672,15 +768,15 @@ def plot_combined_figure(
                 fontsize=20, fontweight="bold", va="bottom", ha="left")
 
     # ── shared legend at bottom ────────────────────────────────────────────────
-    legend_handles = [plt.Line2D([0], [0], color=c, linewidth=10, alpha=0.82) for c in THREE_COLORS]
+    legend_handles = [plt.Line2D([0], [0], color=c, linewidth=10, alpha=0.82) for c in FOUR_COLORS]
     mean_handle = plt.Line2D([0], [0], marker="D", linestyle="",
                              markerfacecolor="white", markeredgecolor="#111111",
                              color="#111111", markersize=6)
     legend_handles.append(mean_handle)
-    legend_labels = ["No Revision", "Revision", "Revision + FS", "Mean"]
+    legend_labels = [*CONDITION_LABELS, "Mean"]
     fig.subplots_adjust(bottom=0.08)
     fig.legend(legend_handles, legend_labels,
-               loc="lower center", ncol=4, frameon=False,
+               loc="lower center", ncol=5, frameon=False,
                bbox_to_anchor=(0.5, -0.05))
 
     output_dir = ensure_dir(output_dir.resolve())
@@ -694,21 +790,110 @@ def plot_combined_figure(
 
 def main() -> None:
     args = parse_args()
+    structural_paths = {
+        "single_pass": args.single_pass_csv.resolve(),
+        "no_revision": args.no_revision_csv.resolve(),
+        "revision": args.revision_csv.resolve(),
+        "few_shot": args.few_shot_csv.resolve(),
+    }
+    for path in [*structural_paths.values(), args.auxiliary_csv.resolve()]:
+        if not path.is_file():
+            raise FileNotFoundError(path)
+
+    structural_audits = {
+        "single_pass": audit_structural_input(
+            structural_paths["single_pass"],
+            {f"run_{index:02d}" for index in range(1, EXPECTED_RUNS + 1)},
+        ),
+        "no_revision": audit_structural_input(
+            structural_paths["no_revision"],
+            {f"round_{index}" for index in range(1, EXPECTED_RUNS + 1)},
+        ),
+        "revision": audit_structural_input(
+            structural_paths["revision"],
+            {f"round_{index}" for index in range(1, EXPECTED_RUNS + 1)},
+        ),
+        "few_shot": audit_structural_input(
+            structural_paths["few_shot"],
+            {f"round_{index}" for index in range(1, EXPECTED_RUNS + 1)},
+        ),
+    }
+    auxiliary_path = args.auxiliary_csv.resolve()
+    auxiliary_metrics, auxiliary_audit = collect_final_auxiliary_metrics(auxiliary_path)
+
+    structural_report_sets = {
+        condition: {
+            f"{row.get('batch_id', '').strip()}/{row.get('case_id', '').strip()}"
+            for row in read_csv_rows(path)
+            if str(row.get("status", "")).strip().lower() == "ok"
+        }
+        for condition, path in structural_paths.items()
+    }
+    auxiliary_report_sets = {
+        condition: {
+            str(row.get("report_id", "")).strip()
+            for row in read_csv_rows(auxiliary_path)
+            if str(row.get("status", "")).strip().lower() == "ok"
+            and row.get("condition") == condition
+        }
+        for condition in (
+            "single_pass",
+            "no_revision",
+            "revision",
+            "revision_fs",
+        )
+    }
+    reference_reports = structural_report_sets["no_revision"]
+    report_set_problems: list[str] = []
+    for condition, reports in structural_report_sets.items():
+        if reports != reference_reports:
+            report_set_problems.append(f"structural report set differs for {condition}")
+    for condition, reports in auxiliary_report_sets.items():
+        if reports != reference_reports:
+            report_set_problems.append(f"auxiliary report set differs for {condition}")
+    if report_set_problems:
+        raise RuntimeError("Five-run paired report audit failed: " + "; ".join(report_set_problems))
+
     plot_similarity_comparison(
-        comparison_roots=args.comparison_roots,
-        comparison_labels=args.comparison_labels,
+        structural_paths=structural_paths,
         output_dir=args.output_dir,
     )
     plot_soft_and_semantic_comparison(
-        comparison_roots=args.comparison_roots,
-        comparison_labels=args.comparison_labels,
+        auxiliary_metrics=auxiliary_metrics,
+        auxiliary_path=auxiliary_path,
         output_dir=args.output_dir,
     )
     plot_combined_figure(
-        comparison_roots=args.comparison_roots,
-        comparison_labels=args.comparison_labels,
+        structural_paths=structural_paths,
+        auxiliary_metrics=auxiliary_metrics,
         output_dir=args.output_dir,
     )
+
+    output_dir = ensure_dir(args.output_dir.resolve())
+    audit = {
+        "expected_reports": EXPECTED_REPORTS,
+        "expected_runs": EXPECTED_RUNS,
+        "conditions": CONDITION_LABELS,
+        "colors": dict(zip(CONDITION_LABELS, FOUR_COLORS)),
+        "structural_inputs": structural_audits,
+        "auxiliary_input": auxiliary_audit,
+        "paired_report_sets_identical": True,
+        "output_files": [
+            "structure_metric_comparison_boxplot.png",
+            "structure_metric_comparison_boxplot.svg",
+            "soft_node_comparison_violin.png",
+            "soft_node_comparison_violin.svg",
+            "soft_edge_comparison_violin.png",
+            "soft_edge_comparison_violin.svg",
+            "semantic_comparison_violin.png",
+            "semantic_comparison_violin.svg",
+            "combined_comparison.png",
+            "combined_comparison.svg",
+        ],
+    }
+    audit_path = output_dir / "five_run_comparison_input_audit.json"
+    audit_path.write_text(json.dumps(audit, indent=2), encoding="utf-8")
+    print(f"Saved five-run input audit: {audit_path}")
 
 
 if __name__ == "__main__":
