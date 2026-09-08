@@ -22,3 +22,15 @@ batch_main_tamu.py
 .env_tamu
 api_key_list
 api.txt
+
+# Publish only the nine reproducibility scripts; retain other utilities locally.
+/scripts/**
+!/scripts/copy_reference_graphs_to_baseline.py
+!/scripts/evaluate_soft_matching_api.py
+!/scripts/evaluate_topology_negative_controls.py
+!/scripts/evaluation_structure_similarity.py
+!/scripts/generate_results_table.py
+!/scripts/plot_graph_structure_factors.py
+!/scripts/plot_stability_comparison_boxplot.py
+!/scripts/plot_topology_negative_controls.py
+!/scripts/scrape_csb_completed_reports.py
